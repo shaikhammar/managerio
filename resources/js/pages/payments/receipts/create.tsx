@@ -1,0 +1,172 @@
+import { Head, useForm, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem, ContactOption, AccountOption, Invoice } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Receipts', href: '/payments/receipts' },
+    { title: 'Receive Payment', href: '/payments/receipts/create' },
+];
+
+function fmt(n: number) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
+}
+
+type Props = {
+    customers: ContactOption[];
+    bankAccounts: AccountOption[];
+    outstandingInvoices: Invoice[];
+    preselectedInvoiceId?: number;
+};
+
+export default function ReceiptCreate({ customers, bankAccounts, outstandingInvoices, preselectedInvoiceId }: Props) {
+    const { data, setData, post, processing, errors } = useForm({
+        contact_id: '',
+        bank_account_id: '',
+        date: new Date().toISOString().split('T')[0],
+        amount: '',
+        reference: '',
+        description: '',
+        allocations: [] as { invoice_id: number; amount: string }[],
+    });
+
+    const filteredInvoices = data.contact_id
+        ? outstandingInvoices.filter((inv) => inv.contact_id.toString() === data.contact_id)
+        : outstandingInvoices;
+
+    function toggleInvoice(invoiceId: number, balanceDue: number) {
+        const exists = data.allocations.find((a) => a.invoice_id === invoiceId);
+        if (exists) {
+            setData('allocations', data.allocations.filter((a) => a.invoice_id !== invoiceId));
+        } else {
+            setData('allocations', [...data.allocations, { invoice_id: invoiceId, amount: balanceDue.toFixed(2) }]);
+        }
+    }
+
+    function updateAllocation(invoiceId: number, amount: string) {
+        setData('allocations', data.allocations.map((a) => a.invoice_id === invoiceId ? { ...a, amount } : a));
+    }
+
+    const totalAllocated = data.allocations.reduce((sum, a) => sum + (parseFloat(a.amount) || 0), 0);
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        post('/payments/receipts');
+    }
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Receive Payment" />
+            <div className="max-w-3xl mx-auto p-4 md:p-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <Card>
+                        <CardHeader><CardTitle>Receive Payment</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="contact_id">Customer *</Label>
+                                    <Select value={data.contact_id} onValueChange={(v) => setData('contact_id', v)}>
+                                        <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
+                                        <SelectContent>
+                                            {customers.map((c) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.contact_id} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="bank_account_id">Deposit To *</Label>
+                                    <Select value={data.bank_account_id} onValueChange={(v) => setData('bank_account_id', v)}>
+                                        <SelectTrigger><SelectValue placeholder="Bank account" /></SelectTrigger>
+                                        <SelectContent>
+                                            {bankAccounts.map((a) => <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.bank_account_id} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="date">Date *</Label>
+                                    <Input id="date" type="date" value={data.date} onChange={(e) => setData('date', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="amount">Amount *</Label>
+                                    <Input id="amount" type="number" step="0.01" value={data.amount} onChange={(e) => setData('amount', e.target.value)} />
+                                    <InputError message={errors.amount} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="reference">Reference</Label>
+                                    <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Invoice Allocation */}
+                    {filteredInvoices.length > 0 && (
+                        <Card>
+                            <CardHeader><CardTitle className="text-base">Allocate to Invoices</CardTitle></CardHeader>
+                            <CardContent>
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b text-sm text-muted-foreground">
+                                            <th className="text-left py-2 w-8"></th>
+                                            <th className="text-left py-2">Invoice</th>
+                                            <th className="text-right py-2">Balance Due</th>
+                                            <th className="text-right py-2 w-36">Allocate</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredInvoices.map((inv) => {
+                                            const alloc = data.allocations.find((a) => a.invoice_id === inv.id);
+                                            return (
+                                                <tr key={inv.id} className="border-b last:border-0">
+                                                    <td className="py-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={!!alloc}
+                                                            onChange={() => toggleInvoice(inv.id, inv.balance_due)}
+                                                            className="rounded"
+                                                        />
+                                                    </td>
+                                                    <td className="py-2 font-mono text-sm">{inv.number} <span className="text-muted-foreground ml-1">({inv.date})</span></td>
+                                                    <td className="py-2 text-right text-sm">{fmt(inv.balance_due)}</td>
+                                                    <td className="py-2 text-right">
+                                                        {alloc && (
+                                                            <Input
+                                                                type="number"
+                                                                step="0.01"
+                                                                className="h-8 text-sm text-right w-full"
+                                                                value={alloc.amount}
+                                                                onChange={(e) => updateAllocation(inv.id, e.target.value)}
+                                                            />
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                                <div className="flex justify-end mt-4 text-sm">
+                                    <span className="text-muted-foreground mr-4">Total Allocated:</span>
+                                    <span className="font-bold">{fmt(totalAllocated)}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" type="button" asChild><Link href="/payments/receipts">Cancel</Link></Button>
+                        <Button type="submit" disabled={processing}>{processing ? 'Saving...' : 'Record Receipt'}</Button>
+                    </div>
+                </form>
+            </div>
+        </AppLayout>
+    );
+}

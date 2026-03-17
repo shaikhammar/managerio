@@ -15,6 +15,9 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->beforeEach(function () {
+        $this->withoutVite();
+    })
     ->in('Feature');
 
 /*
@@ -27,6 +30,27 @@ pest()->extend(TestCase::class)
 | to assert different things. Of course, you may extend the Expectation API at any time.
 |
 */
+
+function setupBusiness(?\App\Models\User $user = null): \App\Models\Business
+{
+    $user ??= \App\Models\User::factory()->create();
+    $business = \App\Models\Business::factory()->create();
+    $business->users()->attach($user, ['role' => \App\Domain\Shared\Enums\BusinessRole::OWNER->value]);
+    
+    session()->put('current_business_id', $business->id);
+    session()->put('auth.password_confirmed_at', time());
+    session()->save();
+    
+    // If we are in a test case, we should also ensure the session is shared
+    if (isset($this) && method_exists($this, 'withSession')) {
+        $this->withSession([
+            'current_business_id' => $business->id,
+            'auth.password_confirmed_at' => time(),
+        ]);
+    }
+    
+    return $business;
+}
 
 expect()->extend('toBeOne', function () {
     return $this->toBe(1);

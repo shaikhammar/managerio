@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "skills": {
+    "api-design-patterns": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "4c9048d7644cb28fcef996d042f9a8a4b6d5bd1131f40f720592b0247f1b928d"
+    },
+    "clean-code-principles": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "2c78185e24e4c5f1cdb4c0e7b08f85d635609e868336481eaaad262c54bbe5f3"
+    },
+    "git-workflow": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "f696d8bba311c55c16c95fe417af0b7a90596e5c90be995c82c0df4f2c879572"
+    },
+    "laravel-best-practices": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "11b411f3046234ff4f63696dd732105480dde215375bdc1272d0979c1f720f2c"
+    },
+    "laravel-database-optimization": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "84f770de837605d75789b2d4de45cb5f0c86ad0defe95a388468b9b26cca1758"
+    },
+    "laravel-inertia-react": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "433d9507e15b80accd001269164fda0dd21149246c248c5d4dedd57de9361ac1"
+    },
+    "laravel-owasp-security": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "4a330a13c592bd5bd93a5046f6d681dc8a3b2a08df8557759459096e99f4adbf"
+    },
+    "laravel-testing": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "48106674c9d4f5d2d09fe70d674918a398c36055cd1b65b163821e99dc847c47"
+    },
+    "php-best-practices": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "4ec7edc12bdbaefe464715d0eedc14678696df4ae28d1cd32237827c735dd69c"
+    },
+    "react-vite-best-practices": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "bfd0d0cef40fd678863adcc5bc96a27ffb9c5cece99f56894dc22e5f36f37c6b"
+    },
+    "seo-best-practices": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "ede2d46fb4db0e89443763ae313a85a440f74f3be97eb44fc354a999af1a6d01"
+    },
+    "state-management": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "86378a32860655bcc50132967276b3c41b65a6e1724b337ba22939623a261e3e"
+    },
+    "tailwind-best-practices": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "ee6787299efa53778918c98ce3e27485a721d6808d8b7973f77828e80d5674f7"
+    },
+    "testing-best-practices": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "b5bfe4ebd7f8358601c2d30483f41ed5be81a8c2b2c7dcbea81c6b4db39ad461"
+    },
+    "typescript-react-patterns": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "8f76be25c1c42cf5669d04ec14b4cc3d6b0d15b935a0d75a52237ec68caea9f1"
+    },
+    "web-design-guidelines": {
+      "source": "AsyrafHussin/agent-skills",
+      "sourceType": "github",
+      "computedHash": "2e126d90c179ec85efa30dfa4456416271972b73423293e0a3a2cfd1ff176641"
+    }
+  }
+}

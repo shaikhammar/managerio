@@ -1,14 +1,96 @@
 <?php
 
+use App\Http\Controllers\Accounting\AccountController;
+use App\Http\Controllers\Accounting\JournalEntryController;
+use App\Http\Controllers\Accounting\TaxCodeController;
+use App\Http\Controllers\Banking\BankAccountController;
+use App\Http\Controllers\Banking\BankTransactionController;
+use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Payments\ReceiptController;
+use App\Http\Controllers\Payments\SupplierPaymentController;
+use App\Http\Controllers\Purchases\PurchaseInvoiceController;
+use App\Http\Controllers\Purchases\SupplierController;
+use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Sales\CreditNoteController;
+use App\Http\Controllers\Sales\CustomerController;
+use App\Http\Controllers\Sales\InvoiceController;
+use App\Http\Controllers\Sales\QuoteController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
+// ── Public / Marketing Routes ─────────────────────────────────
+Route::inertia('/', 'marketing/home', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+Route::inertia('/features', 'marketing/features')->name('features');
+Route::inertia('/pricing', 'marketing/pricing')->name('pricing');
+Route::inertia('/about', 'marketing/about')->name('about');
+
+// ── Authenticated Routes ──────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+
+    // Business selection (no business context required)
+    Route::get('/business', [BusinessController::class, 'index'])->name('business.index');
+    Route::get('/business/create', [BusinessController::class, 'create'])->name('business.create');
+    Route::post('/business', [BusinessController::class, 'store'])->name('business.store');
+    Route::post('/business/{business}/switch', [BusinessController::class, 'switch'])->name('business.switch');
+
+    // All routes below require a current business
+    Route::middleware(['business.set', 'business.access'])->group(function () {
+
+        // ── Dashboard ──────────────────────────────────────
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+        // ── Accounting ─────────────────────────────────────
+        Route::prefix('accounting')->name('accounting.')->group(function () {
+            Route::resource('accounts', AccountController::class);
+            Route::resource('journal-entries', JournalEntryController::class);
+            Route::post('journal-entries/{journal_entry}/post', [JournalEntryController::class, 'post'])->name('journal-entries.post');
+            Route::post('journal-entries/{journal_entry}/reverse', [JournalEntryController::class, 'reverse'])->name('journal-entries.reverse');
+            Route::resource('tax-codes', TaxCodeController::class)->except(['show']);
+        });
+
+        // ── Sales ──────────────────────────────────────────
+        Route::prefix('sales')->name('sales.')->group(function () {
+            Route::resource('customers', CustomerController::class);
+            Route::resource('quotes', QuoteController::class);
+            Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+            Route::resource('invoices', InvoiceController::class);
+            Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+            Route::resource('credit-notes', CreditNoteController::class);
+        });
+
+        // ── Purchases ──────────────────────────────────────
+        Route::prefix('purchases')->name('purchases.')->group(function () {
+            Route::resource('suppliers', SupplierController::class);
+            Route::resource('invoices', PurchaseInvoiceController::class)->names('purchase-invoices');
+        });
+
+        // ── Payments ───────────────────────────────────────
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::resource('receipts', ReceiptController::class)->only(['index', 'create', 'store', 'show']);
+            Route::resource('supplier-payments', SupplierPaymentController::class)->only(['index', 'create', 'store', 'show']);
+        });
+
+        // ── Banking ────────────────────────────────────────
+        Route::prefix('banking')->name('banking.')->group(function () {
+            Route::resource('accounts', BankAccountController::class)->only(['index', 'show']);
+            Route::resource('transactions', BankTransactionController::class);
+        });
+
+        // ── Reports ────────────────────────────────────────
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::get('/profit-and-loss', [ReportController::class, 'profitAndLoss'])->name('profit-and-loss');
+            Route::get('/balance-sheet', [ReportController::class, 'balanceSheet'])->name('balance-sheet');
+            Route::get('/trial-balance', [ReportController::class, 'trialBalance'])->name('trial-balance');
+            Route::get('/general-ledger', [ReportController::class, 'generalLedger'])->name('general-ledger');
+            Route::get('/aged-receivables', [ReportController::class, 'agedReceivables'])->name('aged-receivables');
+            Route::get('/aged-payables', [ReportController::class, 'agedPayables'])->name('aged-payables');
+        });
+    });
 });
 
 require __DIR__.'/settings.php';

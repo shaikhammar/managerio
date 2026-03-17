@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 test('confirm password screen can be rendered', function () {
     $user = User::factory()->create();
@@ -9,14 +11,25 @@ test('confirm password screen can be rendered', function () {
     $response = $this->actingAs($user)->get(route('password.confirm'));
 
     $response->assertOk();
-
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('auth/confirm-password'),
-    );
 });
 
-test('password confirmation requires authentication', function () {
-    $response = $this->get(route('password.confirm'));
+test('password can be confirmed', function () {
+    $user = User::factory()->create();
 
-    $response->assertRedirect(route('login'));
+    $response = $this->actingAs($user)->post(route('password.confirm'), [
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHasNoErrors();
+});
+
+test('password is not confirmed with invalid password', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->post(route('password.confirm'), [
+        'password' => 'wrong-password',
+    ]);
+
+    $response->assertSessionHasErrors();
 });

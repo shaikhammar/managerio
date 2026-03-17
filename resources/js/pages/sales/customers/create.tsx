@@ -1,0 +1,117 @@
+import { Head, useForm, Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import InputError from '@/components/input-error';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Customers', href: '/sales/customers' },
+    { title: 'New Customer', href: '/sales/customers/create' },
+];
+
+export default function CustomerCreate() {
+    const { data, setData, post, processing, errors } = useForm({
+        name: '',
+        email: '',
+        phone: '',
+        tax_number: '',
+        address_line_1: '',
+        address_line_2: '',
+        city: '',
+        state: '',
+        postal_code: '',
+        country: '',
+        notes: '',
+    });
+
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        post('/sales/customers');
+    }
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="New Customer" />
+            <div className="max-w-2xl mx-auto p-4 md:p-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>New Customer</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Name *</Label>
+                                <Input id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} required />
+                                <InputError message={errors.name} />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input id="email" type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} />
+                                    <InputError message={errors.email} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="phone">Phone</Label>
+                                    <Input id="phone" value={data.phone} onChange={(e) => setData('phone', e.target.value)} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="tax_number">Tax Number</Label>
+                                <Input id="tax_number" value={data.tax_number} onChange={(e) => setData('tax_number', e.target.value)} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="address_line_1">Address Line 1</Label>
+                                <Input id="address_line_1" value={data.address_line_1} onChange={(e) => setData('address_line_1', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="address_line_2">Address Line 2</Label>
+                                <Input id="address_line_2" value={data.address_line_2} onChange={(e) => setData('address_line_2', e.target.value)} />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="city">City</Label>
+                                    <Input id="city" value={data.city} onChange={(e) => setData('city', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="state">State</Label>
+                                    <Input id="state" value={data.state} onChange={(e) => setData('state', e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="postal_code">Postal Code</Label>
+                                    <Input id="postal_code" value={data.postal_code} onChange={(e) => setData('postal_code', e.target.value)} />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="notes">Notes</Label>
+                                <textarea
+                                    id="notes"
+                                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    value={data.notes}
+                                    onChange={(e) => setData('notes', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <Button variant="outline" type="button" asChild>
+                                    <Link href="/sales/customers">Cancel</Link>
+                                </Button>
+                                <Button type="submit" disabled={processing}>
+                                    {processing ? 'Creating...' : 'Create Customer'}
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </AppLayout>
+    );
+}
