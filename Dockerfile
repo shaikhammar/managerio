@@ -1,5 +1,5 @@
 # Stage 1: Build assets
-FROM node:24-alpine AS assets-builder
+FROM node:22-alpine AS assets-builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production environment
-FROM dunglas/frankenphp:latest-php8.4-alpine AS runner
+FROM dunglas/frankenphp:php8.4-alpine AS runner
 
 # Install system dependencies
 RUN apk add --no-cache \
