@@ -47,7 +47,7 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY docker/php/opcache.ini $PHP_INI_DIR/conf.d/opcache.ini
 
 # Configure FrankenPHP
-ENV SERVER_NAME=":{$PORT:-80}"
+ENV SERVER_NAME=":${PORT:-80}"
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV PHP_INI_SCAN_DIR=:/usr/local/etc/php/conf.d
