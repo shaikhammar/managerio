@@ -1,26 +1,15 @@
 # Stage 1: Build assets and dependencies
 FROM dunglas/frankenphp:php8.4-alpine AS builder
 
-# Install Node.js and npm
-RUN apk add --no-cache nodejs npm
-
-# Install system dependencies
-RUN apk add --no-cache \
-    postgresql-dev \
-    libzip-dev \
-    zip \
-    unzip \
-    git \
-    icu-dev \
-    oniguruma-dev
+# Install PHP extensions helper
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions
 
 # Install PHP extensions
-RUN docker-php-ext-install \
-    pdo_pgsql \
-    zip \
-    intl \
-    bcmath \
-    mbstring
+RUN install-php-extensions pdo_pgsql zip intl bcmath mbstring opcache
+
+# Install Node.js and npm
+RUN apk add --no-cache nodejs npm zip unzip git
 
 WORKDIR /app
 
@@ -37,28 +26,21 @@ RUN npm install
 # Copy the rest of the application
 COPY . .
 
-# Finish composer (generate autoloader and run scripts)
+# Finish composer
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Build assets (Wayfinder will now find the 'php' binary)
+# Build assets
 RUN npm run build
 
 # Stage 2: Production runner
 FROM dunglas/frankenphp:php8.4-alpine AS runner
 
-# Install system runtime dependencies
-RUN apk add --no-cache \
-    libpq \
-    libzip \
-    icu-libs
+# Install PHP extensions helper
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions
 
 # Install PHP extensions for production
-RUN docker-php-ext-install \
-    pdo_pgsql \
-    zip \
-    intl \
-    bcmath \
-    opcache
+RUN install-php-extensions pdo_pgsql zip intl bcmath mbstring opcache
 
 # Optimized PHP Configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
@@ -72,7 +54,7 @@ ENV PHP_INI_SCAN_DIR=:/usr/local/etc/php/conf.d
 
 WORKDIR /var/www/html
 
-# Copy from builder
+# Copy from builder (only what's needed for production)
 COPY --from=builder /app /var/www/html
 
 # Set permissions for Laravel
