@@ -6,7 +6,7 @@ ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/do
 RUN chmod +x /usr/local/bin/install-php-extensions
 
 # Install PHP extensions
-RUN install-php-extensions pdo_pgsql zip intl bcmath mbstring opcache
+RUN install-php-extensions pdo_pgsql zip intl bcmath mbstring
 
 # Install Node.js and npm
 RUN apk add --no-cache nodejs npm zip unzip git
@@ -40,7 +40,7 @@ ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/do
 RUN chmod +x /usr/local/bin/install-php-extensions
 
 # Install PHP extensions for production
-RUN install-php-extensions pdo_pgsql zip intl bcmath mbstring opcache
+RUN install-php-extensions pdo_pgsql zip intl bcmath mbstring
 
 # Optimized PHP Configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
