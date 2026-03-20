@@ -5,12 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
+import { formatCurrency } from '@/lib/utils';
 
 type Props = { invoice: Invoice };
-
-function fmt(n: number) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
-}
 
 const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
@@ -116,10 +113,10 @@ export default function InvoiceShow({ invoice }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{fmt(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{fmt(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -129,27 +126,27 @@ export default function InvoiceShow({ invoice }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{fmt(invoice.subtotal)}</span>
+                                    <span>{formatCurrency(invoice.subtotal)}</span>
                                 </div>
                                 {invoice.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{fmt(invoice.tax_amount)}</span>
+                                        <span>{formatCurrency(invoice.tax_amount)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{fmt(invoice.total)}</span>
+                                    <span>{formatCurrency(invoice.total)}</span>
                                 </div>
                                 {invoice.amount_paid > 0 && (
                                     <>
                                         <div className="flex justify-between text-sm text-emerald-600">
                                             <span>Paid</span>
-                                            <span>-{fmt(invoice.amount_paid)}</span>
+                                            <span>-{formatCurrency(invoice.amount_paid)}</span>
                                         </div>
                                         <div className="flex justify-between font-bold border-t pt-1 text-amber-600">
                                             <span>Balance Due</span>
-                                            <span>{fmt(invoice.balance_due)}</span>
+                                            <span>{formatCurrency(invoice.balance_due)}</span>
                                         </div>
                                     </>
                                 )}

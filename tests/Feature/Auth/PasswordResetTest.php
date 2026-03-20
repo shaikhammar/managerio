@@ -52,13 +52,13 @@ test('password can be reset with valid token', function () {
     $response = $this->post(route('password.update'), [
         'token' => $token,
         'email' => $user->email,
-        'password' => 'newpassword123',
-        'password_confirmation' => 'newpassword123',
+        'password' => 'NewPassword123!',
+        'password_confirmation' => 'NewPassword123!',
     ]);
 
     $response->assertRedirect(route('login'));
 
-    expect(Hash::check('newpassword123', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('NewPassword123!', $user->refresh()->password))->toBeTrue();
 });
 
 test('password cannot be reset with invalid token', function () {
@@ -67,8 +67,8 @@ test('password cannot be reset with invalid token', function () {
     $response = $this->post(route('password.update'), [
         'token' => 'invalid-token',
         'email' => $user->email,
-        'password' => 'newpassword123',
-        'password_confirmation' => 'newpassword123',
+        'password' => 'NewPassword123!',
+        'password_confirmation' => 'NewPassword123!',
     ]);
 
     $response->assertSessionHasErrors('email');

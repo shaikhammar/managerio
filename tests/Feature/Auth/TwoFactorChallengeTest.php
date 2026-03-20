@@ -20,7 +20,7 @@ test('two factor challenge can be rendered', function () {
 
     $this->post(route('login'), [
         'email' => $user->email,
-        'password' => 'password',
+        'password' => 'Password123!',
     ]);
 
     $this->get(route('two-factor.login'))
@@ -46,7 +46,7 @@ test('two factor challenge can be authenticated', function () {
 
     $this->post(route('login'), [
         'email' => $user->email,
-        'password' => 'password',
+        'password' => 'Password123!',
     ]);
 
     $response = $this->post(route('two-factor.login'), [
@@ -76,7 +76,7 @@ test('two factor challenge cannot be authenticated with invalid code', function 
 
     $this->post(route('login'), [
         'email' => $user->email,
-        'password' => 'password',
+        'password' => 'Password123!',
     ]);
 
     $response = $this->post(route('two-factor.login'), [

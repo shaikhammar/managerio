@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, ContactOption, AccountOption, Invoice } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -13,10 +14,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Receipts', href: '/payments/receipts' },
     { title: 'Receive Payment', href: '/payments/receipts/create' },
 ];
-
-function fmt(n: number) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
-}
 
 type Props = {
     customers: ContactOption[];
@@ -26,9 +23,9 @@ type Props = {
 };
 
 export default function ReceiptCreate({ customers, bankAccounts, outstandingInvoices, preselectedInvoiceId }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
-        contact_id: '',
-        bank_account_id: '',
+    const { data, setData, post, processing, errors, transform } = useForm({
+        contact_id: 'none',
+        bank_account_id: 'none',
         date: new Date().toISOString().split('T')[0],
         amount: '',
         reference: '',
@@ -36,16 +33,17 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
         allocations: [] as { invoice_id: number; amount: string }[],
     });
 
-    const filteredInvoices = data.contact_id
+    const filteredInvoices = data.contact_id && data.contact_id !== 'none'
         ? outstandingInvoices.filter((inv) => inv.contact_id.toString() === data.contact_id)
         : outstandingInvoices;
 
-    function toggleInvoice(invoiceId: number, balanceDue: number) {
+    function toggleInvoice(invoiceId: number, balanceDue: number | string) {
         const exists = data.allocations.find((a) => a.invoice_id === invoiceId);
         if (exists) {
             setData('allocations', data.allocations.filter((a) => a.invoice_id !== invoiceId));
         } else {
-            setData('allocations', [...data.allocations, { invoice_id: invoiceId, amount: balanceDue.toFixed(2) }]);
+            const amount = typeof balanceDue === 'string' ? parseFloat(balanceDue) : balanceDue;
+            setData('allocations', [...data.allocations, { invoice_id: invoiceId, amount: amount.toFixed(2) }]);
         }
     }
 
@@ -57,6 +55,13 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        transform((data) => ({
+            ...data,
+            contact_id: data.contact_id === 'none' ? '' : data.contact_id,
+            bank_account_id: data.bank_account_id === 'none' ? '' : data.bank_account_id,
+        }));
+
         post('/payments/receipts');
     }
 
@@ -74,6 +79,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                     <Select value={data.contact_id} onValueChange={(v) => setData('contact_id', v)}>
                                         <SelectTrigger><SelectValue placeholder="Select customer" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none" disabled>Select customer...</SelectItem>
                                             {customers.map((c) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -84,6 +90,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                     <Select value={data.bank_account_id} onValueChange={(v) => setData('bank_account_id', v)}>
                                         <SelectTrigger><SelectValue placeholder="Bank account" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none" disabled>Select bank account...</SelectItem>
                                             {bankAccounts.map((a) => <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -136,7 +143,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                                         />
                                                     </td>
                                                     <td className="py-2 font-mono text-sm">{inv.number} <span className="text-muted-foreground ml-1">({inv.date})</span></td>
-                                                    <td className="py-2 text-right text-sm">{fmt(inv.balance_due)}</td>
+                                                    <td className="py-2 text-right text-sm">{formatCurrency(inv.balance_due)}</td>
                                                     <td className="py-2 text-right">
                                                         {alloc && (
                                                             <Input
@@ -155,7 +162,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                 </table>
                                 <div className="flex justify-end mt-4 text-sm">
                                     <span className="text-muted-foreground mr-4">Total Allocated:</span>
-                                    <span className="font-bold">{fmt(totalAllocated)}</span>
+                                    <span className="font-bold">{formatCurrency(totalAllocated)}</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -170,3 +177,4 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
         </AppLayout>
     );
 }
+

@@ -3,6 +3,7 @@ import { Plus, Search, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Account } from '@/types';
 import { useState } from 'react';
 
@@ -10,10 +11,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Bank Accounts', href: '/banking/accounts' },
 ];
-
-function fmt(n: number) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
-}
 
 type BankAccountWithBalance = Account & { balance: number };
 
@@ -32,7 +29,7 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Bank Accounts</h1>
                         <p className="text-muted-foreground text-sm">
-                            Total balance: <span className={`font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{fmt(totalBalance)}</span>
+                            Total balance: <span className={`font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(totalBalance)}</span>
                         </p>
                     </div>
                 </div>
@@ -63,7 +60,7 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                                         </div>
                                     </div>
                                     <p className={`text-2xl font-bold ${account.balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                        {fmt(account.balance)}
+                                        {formatCurrency(account.balance)}
                                     </p>
                                 </div>
                             </Link>

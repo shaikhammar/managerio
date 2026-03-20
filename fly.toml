@@ -1,0 +1,38 @@
+# fly.toml app configuration file generated for managerio on 2026-03-18
+
+app = "managerio"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 80
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
+
+[[statics]]
+  guest_path = "/var/www/html/public"
+  url_prefix = "/"
+
+[env]
+  APP_ENV = "production"
+  LOG_CHANNEL = "stderr"
+  SESSION_DRIVER = "cookie"
+  CACHE_STORE = "database"
+  DB_CONNECTION = "pgsql"
+
+[[checks]]
+  name = "status"
+  type = "http"
+  interval = "10s"
+  timeout = "2s"
+  method = "GET"
+  path = "/up"

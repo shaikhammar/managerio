@@ -37,7 +37,7 @@ class InvoiceController extends Controller
     {
         return Inertia::render('sales/invoices/create', [
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name']),
+            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
@@ -79,7 +79,7 @@ class InvoiceController extends Controller
         return Inertia::render('sales/invoices/create', [
             'invoice' => $invoice->load('lines'),
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name']),
+            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }

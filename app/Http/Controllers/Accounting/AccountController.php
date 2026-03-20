@@ -53,8 +53,22 @@ class AccountController extends Controller
 
     public function show(Account $account)
     {
+        $ledgerService = app(\App\Services\Accounting\LedgerService::class);
+
+        $transactions = \App\Models\JournalEntryLine::query()
+            ->where('account_id', $account->id)
+            ->with('journalEntry')
+            ->whereHas('journalEntry', fn ($q) => $q->where('is_posted', true))
+            ->orderByDesc(
+                \App\Models\JournalEntry::select('date')
+                    ->whereColumn('journal_entries.id', 'journal_entry_lines.journal_entry_id')
+            )
+            ->paginate(50);
+
         return Inertia::render('accounting/accounts/show', [
             'account' => $account->load('parent', 'children'),
+            'transactions' => $transactions,
+            'balance' => $ledgerService->getAccountBalance($account, \Carbon\Carbon::now()),
         ]);
     }
 

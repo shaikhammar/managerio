@@ -121,6 +121,10 @@ export default function Security({
                                         placeholder="New password"
                                     />
 
+                                    <p className="text-xs text-muted-foreground">
+                                        Min. 12 chars with letters, numbers, and symbols.
+                                    </p>
+
                                     <InputError message={errors.password} />
                                 </div>
 

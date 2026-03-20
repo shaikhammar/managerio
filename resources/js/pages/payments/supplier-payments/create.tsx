@@ -20,9 +20,9 @@ type Props = {
 };
 
 export default function SupplierPaymentCreate({ suppliers, bankAccounts }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
-        contact_id: '',
-        bank_account_id: '',
+    const { data, setData, post, processing, errors, transform } = useForm({
+        contact_id: 'none',
+        bank_account_id: 'none',
         date: new Date().toISOString().split('T')[0],
         amount: '',
         reference: '',
@@ -31,6 +31,13 @@ export default function SupplierPaymentCreate({ suppliers, bankAccounts }: Props
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        transform((data) => ({
+            ...data,
+            contact_id: data.contact_id === 'none' ? '' : data.contact_id,
+            bank_account_id: data.bank_account_id === 'none' ? '' : data.bank_account_id,
+        }));
+
         post('/payments/supplier-payments');
     }
 
@@ -48,6 +55,7 @@ export default function SupplierPaymentCreate({ suppliers, bankAccounts }: Props
                                     <Select value={data.contact_id} onValueChange={(v) => setData('contact_id', v)}>
                                         <SelectTrigger><SelectValue placeholder="Select supplier" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none" disabled>Select supplier...</SelectItem>
                                             {suppliers.map((s) => <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -58,6 +66,7 @@ export default function SupplierPaymentCreate({ suppliers, bankAccounts }: Props
                                     <Select value={data.bank_account_id} onValueChange={(v) => setData('bank_account_id', v)}>
                                         <SelectTrigger><SelectValue placeholder="Bank account" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none" disabled>Select bank account...</SelectItem>
                                             {bankAccounts.map((a) => <SelectItem key={a.id} value={a.id.toString()}>{a.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>

@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('banking')->name('banking.')->group(function () {
             Route::resource('accounts', BankAccountController::class)->only(['index', 'show']);
             Route::resource('transactions', BankTransactionController::class);
+            Route::resource('reconciliations', \App\Http\Controllers\Banking\BankReconciliationController::class);
         });
 
         // ── Reports ────────────────────────────────────────

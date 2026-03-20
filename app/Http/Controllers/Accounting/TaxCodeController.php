@@ -9,10 +9,16 @@ use Inertia\Inertia;
 
 class TaxCodeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $taxCodes = TaxCode::query()
+            ->when($request->search, fn ($q, $search) => $q->where('name', 'ilike', "%{$search}%"))
+            ->orderBy('name')
+            ->paginate(25);
+
         return Inertia::render('accounting/tax-codes/index', [
-            'taxCodes' => TaxCode::query()->orderBy('name')->paginate(25),
+            'taxCodes' => $taxCodes,
+            'filters' => $request->only('search'),
         ]);
     }
 

@@ -70,6 +70,7 @@ const navGroups: NavGroup[] = [
         items: [
             { title: 'Bank Accounts', href: '/banking/accounts' },
             { title: 'Transactions', href: '/banking/transactions' },
+            { title: 'Reconciliations', href: '/banking/reconciliations' },
         ],
     },
     {

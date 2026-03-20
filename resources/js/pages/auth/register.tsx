@@ -68,6 +68,9 @@ export default function Register() {
                                     name="password"
                                     placeholder="Password"
                                 />
+                                <p className="text-xs text-muted-foreground">
+                                    Min. 12 chars with letters, numbers, and symbols.
+                                </p>
                                 <InputError message={errors.password} />
                             </div>
 

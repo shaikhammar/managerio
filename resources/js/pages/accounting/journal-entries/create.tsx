@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, AccountOption } from '@/types';
+import { formatCurrency } from '@/lib/utils';
+import type { AccountOption, BreadcrumbItem } from '@/types';
 import { useCallback, useMemo } from 'react';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -24,13 +26,13 @@ type JournalLine = {
 };
 
 function emptyLine(): JournalLine {
-    return { account_id: '', description: '', debit: '', credit: '' };
+    return { account_id: 'none', description: '', debit: '', credit: '' };
 }
 
 type Props = { accounts: AccountOption[] };
 
 export default function JournalEntryCreate({ accounts }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         date: new Date().toISOString().split('T')[0],
         description: '',
         reference: '',
@@ -61,12 +63,17 @@ export default function JournalEntryCreate({ accounts }: Props) {
         return { debit, credit, balanced: Math.abs(debit - credit) < 0.01 };
     }, [data.lines]);
 
-    function fmt(n: number) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
-    }
-
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        transform((data) => ({
+            ...data,
+            lines: data.lines.map(line => ({
+                ...line,
+                account_id: line.account_id === 'none' ? '' : line.account_id
+            }))
+        }));
+
         post('/accounting/journal-entries');
     }
 
@@ -87,10 +94,12 @@ export default function JournalEntryCreate({ accounts }: Props) {
                                 <div className="space-y-2">
                                     <Label htmlFor="description">Description</Label>
                                     <Input id="description" value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="Journal entry description" />
+                                    <InputError message={errors.description} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="reference">Reference</Label>
                                     <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
+                                    <InputError message={errors.reference} />
                                 </div>
                             </div>
                         </CardContent>
@@ -121,11 +130,13 @@ export default function JournalEntryCreate({ accounts }: Props) {
                                                 <Select value={line.account_id} onValueChange={(v) => updateLine(idx, 'account_id', v)}>
                                                     <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Account" /></SelectTrigger>
                                                     <SelectContent>
+                                                        <SelectItem value="none" disabled>Select account...</SelectItem>
                                                         {accounts.map((a) => (
                                                             <SelectItem key={a.id} value={a.id.toString()} className="text-xs">{a.code} · {a.name}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                                <InputError message={(errors as any)[`lines.${idx}.account_id`]} className="mt-1" />
                                             </td>
                                             <td className="py-2 pr-2">
                                                 <Input className="h-9 text-sm" value={line.description} onChange={(e) => updateLine(idx, 'description', e.target.value)} placeholder="Line description" />
@@ -147,8 +158,8 @@ export default function JournalEntryCreate({ accounts }: Props) {
                                 <tfoot>
                                     <tr className="border-t-2 font-bold">
                                         <td colSpan={2} className="py-2">Totals</td>
-                                        <td className="py-2 text-right">{fmt(totals.debit)}</td>
-                                        <td className="py-2 text-right">{fmt(totals.credit)}</td>
+                                        <td className="py-2 text-right">{formatCurrency(totals.debit)}</td>
+                                        <td className="py-2 text-right">{formatCurrency(totals.credit)}</td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -156,7 +167,7 @@ export default function JournalEntryCreate({ accounts }: Props) {
 
                             {!totals.balanced && totals.debit + totals.credit > 0 && (
                                 <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400">
-                                    ⚠️ Entry is unbalanced. Difference: {fmt(Math.abs(totals.debit - totals.credit))}
+                                    ⚠️ Entry is unbalanced. Difference: {formatCurrency(Math.abs(totals.debit - totals.credit))}
                                 </div>
                             )}
                         </CardContent>

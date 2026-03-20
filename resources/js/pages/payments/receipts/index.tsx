@@ -3,6 +3,7 @@ import { Plus, Search, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Payment, PaginatedData } from '@/types';
 import { useState } from 'react';
 
@@ -10,10 +11,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Receipts', href: '/payments/receipts' },
 ];
-
-function fmt(n: number) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
-}
 
 type Props = {
     receipts: PaginatedData<Payment>;
@@ -73,7 +70,7 @@ export default function ReceiptIndex({ receipts, filters }: Props) {
                                         <td className="py-3 px-4 text-sm">{receipt.contact?.name || '—'}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{receipt.date}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{receipt.reference || '—'}</td>
-                                        <td className="py-3 px-4 text-right text-sm font-medium text-emerald-600 dark:text-emerald-400">+{fmt(receipt.amount)}</td>
+                                        <td className="py-3 px-4 text-right text-sm font-medium text-emerald-600 dark:text-emerald-400">+{formatCurrency(receipt.amount)}</td>
                                     </tr>
                                 ))
                             )}

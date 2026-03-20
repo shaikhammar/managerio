@@ -1,0 +1,14 @@
+/node_modules
+/vendor
+/storage/*.key
+/public/build
+.env
+.git
+.github
+.phpunit.result.cache
+docker-compose.yml
+Dockerfile
+tests
+phpunit.xml
+.vscode
+.idea

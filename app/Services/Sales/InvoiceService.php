@@ -26,12 +26,40 @@ class InvoiceService
      */
     public function create(Business $business, array $data): Invoice
     {
-        return DB::transaction(function () use ($business, $data) {
+        return $this->createInvoice($business, $data, InvoiceType::INVOICE);
+    }
+
+    /**
+     * Create a new purchase invoice with line items and post journal entries.
+     */
+    public function createPurchaseInvoice(Business $business, array $data): Invoice
+    {
+        return $this->createInvoice($business, $data, InvoiceType::PURCHASE_INVOICE);
+    }
+
+    /**
+     * Create a new credit note with line items and post journal entries.
+     */
+    public function createCreditNote(Business $business, array $data): Invoice
+    {
+        return $this->createInvoice($business, $data, InvoiceType::CREDIT_NOTE);
+    }
+
+    private function createInvoice(Business $business, array $data, InvoiceType $type): Invoice
+    {
+        return DB::transaction(function () use ($business, $data, $type) {
+            $numberType = match ($type) {
+                InvoiceType::INVOICE => 'invoice',
+                InvoiceType::PURCHASE_INVOICE => 'purchase_invoice',
+                InvoiceType::CREDIT_NOTE => 'credit_note',
+                default => 'invoice',
+            };
+
             $invoice = Invoice::withoutGlobalScopes()->create([
                 'business_id' => $business->id,
                 'contact_id' => $data['contact_id'],
-                'type' => InvoiceType::INVOICE,
-                'number' => $this->numberSequence->getNext($business, 'invoice'),
+                'type' => $type,
+                'number' => $this->numberSequence->getNext($business, $numberType),
                 'date' => $data['date'],
                 'due_date' => $data['due_date'] ?? null,
                 'reference' => $data['reference'] ?? null,
@@ -57,7 +85,12 @@ class InvoiceService
             ]);
 
             // Auto-post the invoice
-            $this->postInvoice($invoice);
+            match ($type) {
+                InvoiceType::INVOICE => $this->postInvoice($invoice),
+                InvoiceType::PURCHASE_INVOICE => $this->postPurchaseInvoice($invoice),
+                InvoiceType::CREDIT_NOTE => $this->postCreditNote($invoice),
+                default => null,
+            };
 
             return $invoice->fresh(['lines', 'journalEntry', 'contact']);
         });
@@ -100,7 +133,7 @@ class InvoiceService
     }
 
     /**
-     * Post an invoice — generates the accounting journal entry.
+     * Post a sales invoice — generates the accounting journal entry.
      */
     public function postInvoice(Invoice $invoice): void
     {
@@ -153,6 +186,132 @@ class InvoiceService
             lines: $lines,
             description: "Sales Invoice {$invoice->number}",
             sourceType: 'invoice',
+            sourceId: $invoice->id,
+        );
+
+        $invoice->update([
+            'journal_entry_id' => $journalEntry->id,
+            'status' => InvoiceStatus::SENT,
+        ]);
+    }
+
+    /**
+     * Post a purchase invoice — generates the accounting journal entry.
+     */
+    public function postPurchaseInvoice(Invoice $invoice): void
+    {
+        $business = $invoice->business;
+        $apAccount = Account::withoutGlobalScopes()
+            ->where('business_id', $business->id)
+            ->where('sub_type', AccountSubType::ACCOUNTS_PAYABLE)
+            ->firstOrFail();
+
+        $lines = [];
+
+        // CR: Accounts Payable (total including tax)
+        $lines[] = [
+            'account_id' => $apAccount->id,
+            'contact_id' => $invoice->contact_id,
+            'debit' => 0,
+            'credit' => (float) $invoice->total,
+            'description' => "Purchase Invoice {$invoice->number}",
+        ];
+
+        // DR: Expense accounts (per invoice line)
+        foreach ($invoice->lines as $invoiceLine) {
+            $lines[] = [
+                'account_id' => $invoiceLine->account_id,
+                'debit' => (float) $invoiceLine->line_total,
+                'credit' => 0,
+                'description' => $invoiceLine->description,
+            ];
+
+            // DR: Tax Receivable (if applicable)
+            if ($invoiceLine->tax_amount > 0) {
+                $taxAccount = Account::withoutGlobalScopes()
+                    ->where('business_id', $business->id)
+                    ->where('sub_type', AccountSubType::TAX_RECEIVABLE)
+                    ->firstOrFail();
+
+                $lines[] = [
+                    'account_id' => $taxAccount->id,
+                    'debit' => (float) $invoiceLine->tax_amount,
+                    'credit' => 0,
+                    'description' => "Tax on {$invoiceLine->description}",
+                    'tax_code_id' => $invoiceLine->tax_code_id,
+                ];
+            }
+        }
+
+        $journalEntry = $this->journalService->createAndPost(
+            business: $business,
+            date: $invoice->date,
+            lines: $lines,
+            description: "Purchase Invoice {$invoice->number}",
+            sourceType: 'purchase_invoice',
+            sourceId: $invoice->id,
+        );
+
+        $invoice->update([
+            'journal_entry_id' => $journalEntry->id,
+            'status' => InvoiceStatus::SENT,
+        ]);
+    }
+
+    /**
+     * Post a credit note — generates the accounting journal entry.
+     */
+    public function postCreditNote(Invoice $invoice): void
+    {
+        $business = $invoice->business;
+        $arAccount = Account::withoutGlobalScopes()
+            ->where('business_id', $business->id)
+            ->where('sub_type', AccountSubType::ACCOUNTS_RECEIVABLE)
+            ->firstOrFail();
+
+        $lines = [];
+
+        // CR: Accounts Receivable (total including tax) - Reducing what customer owes
+        $lines[] = [
+            'account_id' => $arAccount->id,
+            'contact_id' => $invoice->contact_id,
+            'debit' => 0,
+            'credit' => (float) $invoice->total,
+            'description' => "Credit Note {$invoice->number}",
+        ];
+
+        // DR: Revenue accounts (per line) - Reducing revenue
+        foreach ($invoice->lines as $invoiceLine) {
+            $lines[] = [
+                'account_id' => $invoiceLine->account_id,
+                'debit' => (float) $invoiceLine->line_total,
+                'credit' => 0,
+                'description' => $invoiceLine->description,
+            ];
+
+            // DR: Tax Payable (if applicable) - Reducing tax liability
+            if ($invoiceLine->tax_amount > 0) {
+                $taxAccount = Account::withoutGlobalScopes()
+                    ->where('business_id', $business->id)
+                    ->where('sub_type', AccountSubType::TAX_PAYABLE)
+                    ->firstOrFail();
+
+                $lines[] = [
+                    'account_id' => $taxAccount->id,
+                    'debit' => (float) $invoiceLine->tax_amount,
+                    'credit' => 0,
+                    'description' => "Tax on {$invoiceLine->description}",
+                    'tax_code_id' => $invoiceLine->tax_code_id,
+                ];
+            }
+        }
+
+        $journalEntry = $this->journalService->createAndPost(
+            business: $business,
+            date: $invoice->date,
+            lines: $lines,
+            description: "Credit Note {$invoice->number}",
+            sourceType: 'credit_note',
             sourceId: $invoice->id,
         );
 

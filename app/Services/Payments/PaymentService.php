@@ -78,6 +78,18 @@ class PaymentService
 
             $payment->update(['journal_entry_id' => $journalEntry->id]);
 
+            // Create bank transaction record
+            \App\Models\BankTransaction::create([
+                'business_id' => $business->id,
+                'bank_account_id' => $data['bank_account_id'],
+                'date' => $payment->date,
+                'description' => $payment->description ?? "Payment received - {$payment->number}",
+                'amount' => (float) $payment->amount,
+                'reference' => $payment->reference,
+                'payment_id' => $payment->id,
+                'journal_entry_id' => $journalEntry->id,
+            ]);
+
             return $payment->fresh(['allocations', 'journalEntry', 'contact']);
         });
     }
@@ -137,6 +149,18 @@ class PaymentService
             );
 
             $payment->update(['journal_entry_id' => $journalEntry->id]);
+
+            // Create bank transaction record (negative amount for payments)
+            \App\Models\BankTransaction::create([
+                'business_id' => $business->id,
+                'bank_account_id' => $data['bank_account_id'],
+                'date' => $payment->date,
+                'description' => $payment->description ?? "Payment to supplier - {$payment->number}",
+                'amount' => -(float) $payment->amount,
+                'reference' => $payment->reference,
+                'payment_id' => $payment->id,
+                'journal_entry_id' => $journalEntry->id,
+            ]);
 
             return $payment->fresh(['allocations', 'journalEntry', 'contact']);
         });

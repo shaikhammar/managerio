@@ -11,7 +11,19 @@ class BankTransactionController extends Controller
 {
     public function index(Request $request)
     {
-        return Inertia::render('banking/transactions/index');
+        $transactions = BankTransaction::query()
+            ->with(['bankAccount', 'payment.contact'])
+            ->when($request->search, fn ($q, $s) => $q->where('description', 'ilike', "%{$s}%"))
+            ->when($request->bank_account_id, fn ($q, $id) => $q->where('bank_account_id', $id))
+            ->orderByDesc('date')
+            ->orderByDesc('created_at')
+            ->paginate(25);
+
+        return Inertia::render('banking/transactions/index', [
+            'transactions' => $transactions,
+            'filters' => $request->only('search', 'bank_account_id'),
+            'bankAccounts' => \App\Models\Account::bankAccounts()->active()->get(['id', 'name', 'code']),
+        ]);
     }
 
     public function create()

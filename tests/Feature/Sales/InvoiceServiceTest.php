@@ -41,6 +41,94 @@ beforeEach(function () {
 
     $this->contact = Contact::factory()->create(['business_id' => $this->business->id]);
     $this->taxCode = TaxCode::factory()->create(['business_id' => $this->business->id, 'rate' => 10]);
+
+    // Set up AP and Expense accounts for purchase tests
+    $this->apAccount = Account::factory()->create([
+        'business_id' => $this->business->id,
+        'sub_type' => AccountSubType::ACCOUNTS_PAYABLE,
+        'code' => '2000',
+    ]);
+
+    $this->expenseAccount = Account::factory()->create([
+        'business_id' => $this->business->id,
+        'type' => 'expense',
+        'code' => '5000',
+    ]);
+
+    $this->taxReceivableAccount = Account::factory()->create([
+        'business_id' => $this->business->id,
+        'sub_type' => AccountSubType::TAX_RECEIVABLE,
+        'code' => '1200',
+    ]);
+});
+
+it('can create a purchase invoice and post journal entries', function () {
+    $data = [
+        'contact_id' => $this->contact->id,
+        'date' => now()->format('Y-m-d'),
+        'due_date' => now()->addDays(30)->format('Y-m-d'),
+        'lines' => [
+            [
+                'account_id' => $this->expenseAccount->id,
+                'description' => 'Business Utility',
+                'quantity' => 1,
+                'unit_price' => 100,
+                'tax_code_id' => $this->taxCode->id,
+            ],
+        ],
+    ];
+
+    $invoice = $this->invoiceService->createPurchaseInvoice($this->business, $data);
+
+    expect($invoice)->toBeInstanceOf(Invoice::class)
+        ->and($invoice->total)->toBe('110.00')
+        ->and($invoice->status)->toBe(InvoiceStatus::SENT);
+
+    $journalEntry = $invoice->journalEntry;
+    expect($journalEntry->lines)->toHaveCount(3); // AP, Expense, Tax Receivable
+
+    $apLine = $journalEntry->lines()->where('account_id', $this->apAccount->id)->first();
+    expect($apLine->credit)->toBe('110.00');
+
+    $expLine = $journalEntry->lines()->where('account_id', $this->expenseAccount->id)->first();
+    expect($expLine->debit)->toBe('100.00');
+
+    $taxLine = $journalEntry->lines()->where('account_id', $this->taxReceivableAccount->id)->first();
+    expect($taxLine->debit)->toBe('10.00');
+});
+
+it('can create a credit note and post journal entries', function () {
+    $data = [
+        'contact_id' => $this->contact->id,
+        'date' => now()->format('Y-m-d'),
+        'lines' => [
+            [
+                'account_id' => $this->revenueAccount->id,
+                'description' => 'Service Refund',
+                'quantity' => 1,
+                'unit_price' => 200,
+                'tax_code_id' => $this->taxCode->id,
+            ],
+        ],
+    ];
+
+    $creditNote = $this->invoiceService->createCreditNote($this->business, $data);
+
+    expect($creditNote)->toBeInstanceOf(Invoice::class)
+        ->and($creditNote->total)->toBe('220.00')
+        ->and($creditNote->status)->toBe(InvoiceStatus::SENT);
+
+    $journalEntry = $creditNote->journalEntry;
+    expect($journalEntry->lines)->toHaveCount(3); // AR (CR), Revenue (DR), Tax (DR)
+
+    $arLine = $journalEntry->lines()->where('account_id', $this->arAccount->id)->first();
+    expect($arLine->credit)->toBe('220.00');
+
+    $revLine = $journalEntry->lines()->where('account_id', $this->revenueAccount->id)->first();
+    expect($revLine->debit)->toBe('200.00');
+
+    $taxLine = $journalEntry->lines()->where('account_id', $this->taxAccount->id)->first();
+    expect($taxLine->debit)->toBe('20.00');
 });
 
 it('can create an invoice and post journal entries', function () {

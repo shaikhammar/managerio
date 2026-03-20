@@ -16,7 +16,7 @@ type Props = {
     filters: { search?: string };
 };
 
-export default function TaxCodeIndex({ taxCodes, filters }: Props) {
+export default function TaxCodeIndex({ taxCodes, filters = {} }: Props) {
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {

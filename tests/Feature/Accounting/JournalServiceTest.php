@@ -65,7 +65,6 @@ it('can create a draft journal entry', function () {
 
 it('can post a draft journal entry', function () {
     $entry = JournalEntry::factory()->draft()->create(['business_id' => $this->business->id]);
-    Account::factory()->create(['id' => 1, 'business_id' => $this->business->id]); // Ensure accounts exist if factory uses them
 
     // Manually add lines to make it balanced
     $entry->lines()->create(['account_id' => $this->account1->id, 'debit' => 100, 'credit' => 0]);

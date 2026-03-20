@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 import { useCallback, useMemo } from 'react';
 
@@ -50,7 +51,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
     const isEditing = !!invoice;
     const today = new Date().toISOString().split('T')[0];
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, put, processing, errors, transform } = useForm({
         contact_id: invoice?.contact_id?.toString() || '',
         date: invoice?.date || today,
         due_date: invoice?.due_date || '',
@@ -63,12 +64,12 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
             quantity: l.quantity?.toString() || '1',
             unit_price: l.unit_price?.toString() || '0',
             discount_percent: l.discount_percent?.toString() || '0',
-            tax_code_id: l.tax_code_id?.toString() || '',
+            tax_code_id: l.tax_code_id?.toString() || 'none',
         })),
     });
 
     const addLine = useCallback(() => {
-        setData('lines', [...data.lines, emptyLine()]);
+        setData('lines', [...data.lines, { ...emptyLine(), tax_code_id: 'none' }]);
     }, [data.lines, setData]);
 
     const removeLine = useCallback((index: number) => {
@@ -96,6 +97,15 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        transform((data) => ({
+            ...data,
+            lines: data.lines.map(line => ({
+                ...line,
+                tax_code_id: line.tax_code_id === 'none' ? null : line.tax_code_id
+            }))
+        }));
+
         if (isEditing) {
             put(`/sales/invoices/${invoice!.id}`);
         } else {
@@ -103,7 +113,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
         }
     }
 
-    function fmt(n: number) {
+    function formatCurrency(n: number) {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n);
     }
 
@@ -139,12 +149,14 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                 <div className="space-y-2">
                                     <Label htmlFor="due_date">Due Date</Label>
                                     <Input id="due_date" type="date" value={data.due_date} onChange={(e) => setData('due_date', e.target.value)} />
+                                    <InputError message={errors.due_date} />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="reference">Reference / PO #</Label>
                                     <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
+                                    <InputError message={errors.reference} />
                                 </div>
                             </div>
                         </CardContent>
@@ -190,6 +202,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>
+                                                        <InputError message={(errors as any)[`lines.${idx}.account_id`]} className="mt-1" />
                                                     </td>
                                                     <td className="py-2 pr-2">
                                                         <Input
@@ -198,6 +211,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                                             value={line.description}
                                                             onChange={(e) => updateLine(idx, 'description', e.target.value)}
                                                         />
+                                                        <InputError message={(errors as any)[`lines.${idx}.description`]} className="mt-1" />
                                                     </td>
                                                     <td className="py-2 pr-2">
                                                         <Input
@@ -207,6 +221,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                                             value={line.quantity}
                                                             onChange={(e) => updateLine(idx, 'quantity', e.target.value)}
                                                         />
+                                                        <InputError message={(errors as any)[`lines.${idx}.quantity`]} className="mt-1" />
                                                     </td>
                                                     <td className="py-2 pr-2">
                                                         <Input
@@ -216,6 +231,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                                             value={line.unit_price}
                                                             onChange={(e) => updateLine(idx, 'unit_price', e.target.value)}
                                                         />
+                                                        <InputError message={(errors as any)[`lines.${idx}.unit_price`]} className="mt-1" />
                                                     </td>
                                                     <td className="py-2 pr-2">
                                                         <Input
@@ -229,10 +245,10 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                                         />
                                                     </td>
                                                     <td className="py-2 pr-2">
-                                                        <Select value={line.tax_code_id} onValueChange={(v) => updateLine(idx, 'tax_code_id', v)}>
+                                                        <Select value={line.tax_code_id || 'none'} onValueChange={(v) => updateLine(idx, 'tax_code_id', v)}>
                                                             <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value="">None</SelectItem>
+                                                                <SelectItem value="none">None</SelectItem>
                                                                 {taxCodes.map((t) => (
                                                                     <SelectItem key={t.id} value={t.id.toString()} className="text-xs">
                                                                         {t.name} ({t.rate}%)
@@ -242,7 +258,7 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                                         </Select>
                                                     </td>
                                                     <td className="py-2 pr-2 text-right text-sm font-medium pt-4">
-                                                        {fmt(calc.total)}
+                                                        {formatCurrency(calc.total)}
                                                     </td>
                                                     <td className="py-2 pt-3">
                                                         <Button
@@ -268,17 +284,17 @@ export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: 
                                 <div className="w-64 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Subtotal</span>
-                                        <span className="font-medium">{fmt(totals.subtotal)}</span>
+                                        <span className="font-medium">{formatCurrency(totals.subtotal)}</span>
                                     </div>
                                     {totals.tax > 0 && (
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Tax</span>
-                                            <span className="font-medium">{fmt(totals.tax)}</span>
+                                            <span className="font-medium">{formatCurrency(totals.tax)}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                                         <span>Total</span>
-                                        <span>{fmt(totals.total)}</span>
+                                        <span>{formatCurrency(totals.total)}</span>
                                     </div>
                                 </div>
                             </div>

@@ -48,19 +48,26 @@ export default function AccountForm({ account, accountTypes }: Props) {
         { title: isEditing ? `Edit ${account.name}` : 'New Account', href: '#' },
     ];
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, put, processing, errors, transform } = useForm({
         code: account?.code || '',
         name: account?.name || '',
-        type: account?.type || '',
-        sub_type: account?.sub_type || '',
+        type: account?.type || 'none',
+        sub_type: account?.sub_type || 'none',
         description: account?.description || '',
         is_active: account?.is_active ?? true,
     });
 
-    const availableSubTypes = data.type ? (subTypes[data.type] || []) : [];
+    const availableSubTypes = data.type && data.type !== 'none' ? (subTypes[data.type] || []) : [];
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
+        transform((data) => ({
+            ...data,
+            type: data.type === 'none' ? '' : data.type,
+            sub_type: data.sub_type === 'none' ? '' : data.sub_type,
+        }));
+
         if (isEditing) {
             put(`/accounting/accounts/${account!.id}`);
         } else {
@@ -92,9 +99,10 @@ export default function AccountForm({ account, accountTypes }: Props) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="type">Type *</Label>
-                                    <Select value={data.type} onValueChange={(v) => { setData('type', v); setData('sub_type', ''); }}>
+                                    <Select value={data.type} onValueChange={(v) => { setData('type', v); setData('sub_type', 'none'); }}>
                                         <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none" disabled>Select type...</SelectItem>
                                             {accountTypes.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -102,9 +110,10 @@ export default function AccountForm({ account, accountTypes }: Props) {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="sub_type">Sub Type</Label>
-                                    <Select value={data.sub_type} onValueChange={(v) => setData('sub_type', v)} disabled={!data.type}>
+                                    <Select value={data.sub_type} onValueChange={(v) => setData('sub_type', v)} disabled={data.type === 'none'}>
                                         <SelectTrigger><SelectValue placeholder="Select sub type" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="none">None</SelectItem>
                                             {availableSubTypes.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
