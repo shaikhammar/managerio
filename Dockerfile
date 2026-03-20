@@ -1,13 +1,8 @@
-# Stage 1: Build assets
-FROM node:22-alpine AS assets-builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+# Stage 1: Build assets and dependencies
+FROM dunglas/frankenphp:php8.4-alpine AS builder
 
-# Stage 2: Production environment
-FROM dunglas/frankenphp:php8.4-alpine AS runner
+# Install Node.js and npm
+RUN apk add --no-cache nodejs npm
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -19,21 +14,57 @@ RUN apk add --no-cache \
     icu-dev \
     oniguruma-dev
 
-# Install PHP extensions for production performance
+# Install PHP extensions
 RUN docker-php-ext-install \
     pdo_pgsql \
     zip \
     intl \
     bcmath \
-    opcache \
     mbstring
+
+WORKDIR /app
+
+# Install composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy only dependency files first for better caching
+COPY composer.json composer.lock package*.json ./
+
+# Install dependencies
+RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Finish composer (generate autoloader and run scripts)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Build assets (Wayfinder will now find the 'php' binary)
+RUN npm run build
+
+# Stage 2: Production runner
+FROM dunglas/frankenphp:php8.4-alpine AS runner
+
+# Install system runtime dependencies
+RUN apk add --no-cache \
+    libpq \
+    libzip \
+    icu-libs
+
+# Install PHP extensions for production
+RUN docker-php-ext-install \
+    pdo_pgsql \
+    zip \
+    intl \
+    bcmath \
+    opcache
 
 # Optimized PHP Configuration
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 COPY docker/php/opcache.ini $PHP_INI_DIR/conf.d/opcache.ini
 
 # Configure FrankenPHP
-# We use the PORT environment variable provided by Railway/Cloud providers
 ENV SERVER_NAME=":{$PORT:-80}"
 ENV APP_ENV=production
 ENV APP_DEBUG=false
@@ -41,13 +72,8 @@ ENV PHP_INI_SCAN_DIR=:/usr/local/etc/php/conf.d
 
 WORKDIR /var/www/html
 
-# Copy application files
-COPY . .
-COPY --from=assets-builder /app/public/build ./public/build
-
-# Install composer dependencies
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# Copy from builder
+COPY --from=builder /app /var/www/html
 
 # Set permissions for Laravel
 RUN chown -R www-data:www-data storage bootstrap/cache
