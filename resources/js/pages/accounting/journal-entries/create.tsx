@@ -1,15 +1,15 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { AccountOption, BreadcrumbItem } from '@/types';
-import { useCallback, useMemo } from 'react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,22 +44,33 @@ export default function JournalEntryCreate({ accounts }: Props) {
     }, [data.lines, setData]);
 
     const removeLine = useCallback((index: number) => {
-        if (data.lines.length <= 2) return;
+        if (data.lines.length <= 2) {
+return;
+}
+
         setData('lines', data.lines.filter((_, i) => i !== index));
     }, [data.lines, setData]);
 
     const updateLine = useCallback((index: number, field: keyof JournalLine, value: string) => {
         const updated = [...data.lines];
         updated[index] = { ...updated[index], [field]: value };
+
         // Clear opposite side when value entered
-        if (field === 'debit' && value) updated[index].credit = '';
-        if (field === 'credit' && value) updated[index].debit = '';
+        if (field === 'debit' && value) {
+updated[index].credit = '';
+}
+
+        if (field === 'credit' && value) {
+updated[index].debit = '';
+}
+
         setData('lines', updated);
     }, [data.lines, setData]);
 
     const totals = useMemo(() => {
         const debit = data.lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
         const credit = data.lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+
         return { debit, credit, balanced: Math.abs(debit - credit) < 0.01 };
     }, [data.lines]);
 

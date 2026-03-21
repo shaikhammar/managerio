@@ -1,11 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, Landmark, HelpCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { BankReconciliation, BankTransaction, BreadcrumbItem } from '@/types';
-import { useState, useMemo } from 'react';
 
 type Props = {
     reconciliation: BankReconciliation;
@@ -36,7 +36,10 @@ export default function ReconciliationShow({ reconciliation, transactions }: Pro
     const isBalanced = Math.abs(currentDifference) < 0.01;
 
     function toggleTransaction(id: number) {
-        if (reconciliation.is_completed) return;
+        if (reconciliation.is_completed) {
+return;
+}
+
         setSelectedIds(prev => 
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );

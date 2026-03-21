@@ -1,11 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, CreditCard } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Payment, PaginatedData } from '@/types';
-import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

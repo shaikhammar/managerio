@@ -1,7 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Building2, Plus, Users, Globe } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import AuthLayout from '@/layouts/auth-layout';
 import type { BusinessSummary } from '@/types';
 

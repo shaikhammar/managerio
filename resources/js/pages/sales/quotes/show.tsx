@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Send, Ban, FileCheck } from 'lucide-react';
+import { ArrowLeft, Ban, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Invoice } from '@/types';
 import { formatCurrency } from '@/lib/utils';
+import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { quote: Invoice };
 

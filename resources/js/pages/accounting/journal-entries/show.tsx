@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, History, RotateCcw, User, FileText } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, History, RotateCcw, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -26,6 +26,7 @@ export default function JournalEntryShow({ entry }: Props) {
 
     function handleReverse() {
         const reason = prompt('Please enter a reason for reversal:');
+
         if (reason) {
             router.post(`/accounting/journal-entries/${entry.id}/reverse`, { reason });
         }

@@ -1,11 +1,9 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Search, Landmark } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Account } from '@/types';
-import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },

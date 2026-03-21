@@ -1,7 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Landmark, FileText, CheckCircle2, XCircle } from 'lucide-react';
+import { ArrowLeft, FileText, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { Account, BankTransaction, BreadcrumbItem, PaginatedData } from '@/types';

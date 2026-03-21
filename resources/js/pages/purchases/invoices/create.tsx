@@ -1,15 +1,15 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
+import { useCallback, useMemo } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
-import { useCallback, useMemo } from 'react';
 import { formatCurrency } from '@/lib/utils';
+import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -37,6 +37,7 @@ function calcLineTotal(line: LineItem, taxCodes: TaxCodeOption[]): { subtotal: n
     const subtotal = qty * price * (1 - discount / 100);
     const taxCode = taxCodes.find((t) => t.id.toString() === line.tax_code_id);
     const tax = taxCode ? subtotal * (taxCode.rate / 100) : 0;
+
     return { subtotal, tax, total: subtotal + tax };
 }
 
@@ -73,7 +74,10 @@ export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, inv
     }, [data.lines, setData]);
 
     const removeLine = useCallback((index: number) => {
-        if (data.lines.length <= 1) return;
+        if (data.lines.length <= 1) {
+return;
+}
+
         setData('lines', data.lines.filter((_, i) => i !== index));
     }, [data.lines, setData]);
 
@@ -90,6 +94,7 @@ export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, inv
             subtotal += calc.subtotal;
             tax += calc.tax;
         });
+
         return { subtotal, tax, total: subtotal + tax };
     }, [data.lines, taxCodes]);
 
@@ -183,6 +188,7 @@ export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, inv
                                     <tbody>
                                         {data.lines.map((line, idx) => {
                                             const calc = calcLineTotal(line, taxCodes);
+
                                             return (
                                                 <tr key={idx} className="border-b last:border-0 align-top">
                                                     <td className="py-2 pr-2">

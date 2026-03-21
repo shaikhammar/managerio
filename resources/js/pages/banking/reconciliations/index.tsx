@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { Plus, CheckCircle2, FileText, Landmark } from 'lucide-react';
+import { Plus, CheckCircle2, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';

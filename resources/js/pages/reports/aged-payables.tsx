@@ -1,13 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Printer, Calendar } from 'lucide-react';
+import { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
-import { useState } from 'react';
-import React from 'react';
 
 type AgedItem = {
     invoice_id: number;

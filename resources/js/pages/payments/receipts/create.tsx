@@ -1,10 +1,10 @@
 import { Head, useForm, Link } from '@inertiajs/react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, ContactOption, AccountOption, Invoice } from '@/types';
@@ -22,7 +22,7 @@ type Props = {
     preselectedInvoiceId?: number;
 };
 
-export default function ReceiptCreate({ customers, bankAccounts, outstandingInvoices, preselectedInvoiceId }: Props) {
+export default function ReceiptCreate({ customers, bankAccounts, outstandingInvoices }: Props) {
     const { data, setData, post, processing, errors, transform } = useForm({
         contact_id: 'none',
         bank_account_id: 'none',
@@ -39,6 +39,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
 
     function toggleInvoice(invoiceId: number, balanceDue: number | string) {
         const exists = data.allocations.find((a) => a.invoice_id === invoiceId);
+
         if (exists) {
             setData('allocations', data.allocations.filter((a) => a.invoice_id !== invoiceId));
         } else {
@@ -132,6 +133,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                     <tbody>
                                         {filteredInvoices.map((inv) => {
                                             const alloc = data.allocations.find((a) => a.invoice_id === inv.id);
+
                                             return (
                                                 <tr key={inv.id} className="border-b last:border-0">
                                                     <td className="py-2">

@@ -1,12 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Search, FileText, CheckCircle2, XCircle, Landmark } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
 import type { Account, BankTransaction, BreadcrumbItem, PaginatedData } from '@/types';
-import { useState } from 'react';
 
 type Props = {
     transactions: PaginatedData<BankTransaction>;

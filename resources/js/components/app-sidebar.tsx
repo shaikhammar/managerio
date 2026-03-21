@@ -2,20 +2,16 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutGrid,
     Receipt,
-    BookOpen,
-    Users,
     CreditCard,
     Landmark,
     BarChart3,
-    FileText,
     Calculator,
     ShoppingCart,
-    Building2,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { BusinessSwitcher } from '@/components/business-switcher';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { BusinessSwitcher } from '@/components/business-switcher';
 import {
     Sidebar,
     SidebarContent,

@@ -1,5 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Ban, CreditCard } from 'lucide-react';
+import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -25,15 +25,6 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
     ];
 
     const canEdit = invoice.status === 'draft';
-    const canVoid = ['sent', 'overdue', 'partially_paid'].includes(invoice.status);
-
-    function handleVoid() {
-        if (confirm('Are you sure you want to void this invoice?')) {
-            // Need a void route for purchase invoices too?
-            // For now, redirecting to a generic void if available or just back
-            router.post(`/sales/invoices/${invoice.id}/void`); // Shared logic in Service
-        }
-    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

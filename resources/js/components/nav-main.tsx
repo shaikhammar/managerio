@@ -1,4 +1,6 @@
 import { Link } from '@inertiajs/react';
+import { ChevronRight } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -9,10 +11,8 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem, NavGroup } from '@/types';
-import { ChevronRight } from 'lucide-react';
 
 export function NavMain({ items = [], groups = [] }: { items?: NavItem[]; groups?: NavGroup[] }) {
     const { isCurrentUrl } = useCurrentUrl();
@@ -40,6 +40,7 @@ export function NavMain({ items = [], groups = [] }: { items?: NavItem[]; groups
                 {/* Collapsible groups */}
                 {groups.map((group) => {
                     const isGroupActive = group.items.some((item) => isCurrentUrl(item.href));
+
                     return (
                         <Collapsible
                             key={group.title}

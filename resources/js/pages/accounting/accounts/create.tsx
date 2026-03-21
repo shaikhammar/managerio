@@ -1,13 +1,13 @@
 import { Head, useForm, Link } from '@inertiajs/react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Account, AccountType } from '@/types';
+import type { BreadcrumbItem, Account } from '@/types';
 
 type Props = {
     account?: Account;
@@ -99,7 +99,9 @@ export default function AccountForm({ account, accountTypes }: Props) {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="type">Type *</Label>
-                                    <Select value={data.type} onValueChange={(v) => { setData('type', v); setData('sub_type', 'none'); }}>
+                                    <Select value={data.type} onValueChange={(v) => {
+ setData('type', v); setData('sub_type', 'none'); 
+}}>
                                         <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="none" disabled>Select type...</SelectItem>
