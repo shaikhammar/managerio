@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Banking;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Banking\BankTransactionRequest;
+use App\Models\Account;
 use App\Models\BankTransaction;
+use App\Services\Banking\BankTransactionService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BankTransactionController extends Controller
 {
+    public function __construct(private BankTransactionService $transactionService) {}
+
     public function index(Request $request)
     {
         $transactions = BankTransaction::query()
@@ -22,37 +27,54 @@ class BankTransactionController extends Controller
         return Inertia::render('banking/transactions/index', [
             'transactions' => $transactions,
             'filters' => $request->only('search', 'bank_account_id'),
-            'bankAccounts' => \App\Models\Account::bankAccounts()->active()->get(['id', 'name', 'code']),
+            'bankAccounts' => Account::bankAccounts()->active()->get(['id', 'name', 'code']),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('banking/transactions/create');
+        return Inertia::render('banking/transactions/create', [
+            'bankAccounts' => Account::bankAccounts()->active()->get(['id', 'name', 'code']),
+        ]);
     }
 
-    public function store(Request $request)
+    public function store(BankTransactionRequest $request)
     {
-        return back();
+        $business = $request->user()->currentBusiness();
+        $transaction = $this->transactionService->create($business, $request->validated());
+
+        return redirect()->route('banking.transactions.show', $transaction)
+            ->with('success', 'Transaction created successfully.');
     }
 
     public function show(BankTransaction $transaction)
     {
-        return Inertia::render('banking/transactions/show');
+        return Inertia::render('banking/transactions/show', [
+            'transaction' => $transaction->load(['bankAccount', 'payment.contact', 'journalEntry.lines.account']),
+        ]);
     }
 
     public function edit(BankTransaction $transaction)
     {
-        return Inertia::render('banking/transactions/edit');
+        return Inertia::render('banking/transactions/edit', [
+            'transaction' => $transaction->load('bankAccount'),
+            'bankAccounts' => Account::bankAccounts()->active()->get(['id', 'name', 'code']),
+        ]);
     }
 
-    public function update(Request $request, BankTransaction $transaction)
+    public function update(BankTransactionRequest $request, BankTransaction $transaction)
     {
-        return back();
+        $this->transactionService->update($transaction, $request->validated());
+
+        return redirect()->route('banking.transactions.show', $transaction)
+            ->with('success', 'Transaction updated successfully.');
     }
 
     public function destroy(BankTransaction $transaction)
     {
-        return back();
+        $this->transactionService->delete($transaction);
+
+        return redirect()->route('banking.transactions.index')
+            ->with('success', 'Transaction deleted successfully.');
     }
 }

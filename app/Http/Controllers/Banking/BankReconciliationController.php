@@ -6,15 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Banking\BankReconciliationRequest;
 use App\Models\Account;
 use App\Models\BankReconciliation;
-use App\Models\BankTransaction;
-use App\Services\Accounting\LedgerService;
-use Carbon\Carbon;
+use App\Services\Banking\ReconciliationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BankReconciliationController extends Controller
 {
-    public function __construct(private LedgerService $ledger) {}
+    public function __construct(private ReconciliationService $reconciliationService) {}
 
     public function index(Request $request)
     {
@@ -37,62 +35,24 @@ class BankReconciliationController extends Controller
 
     public function store(BankReconciliationRequest $request)
     {
-        $validated = $request->validated();
-
-        $account = Account::findOrFail($validated['bank_account_id']);
-
-        // Calculate the actual ledger balance as of that date
-        $ledgerBalance = $this->ledger->getAccountBalance($account, Carbon::parse($validated['statement_date']));
-
-        $reconciliation = BankReconciliation::create([
-            'business_id' => $request->user()->current_business_id,
-            'bank_account_id' => $validated['bank_account_id'],
-            'statement_date' => $validated['statement_date'],
-            'statement_balance' => $validated['statement_balance'],
-            'reconciled_balance' => $ledgerBalance,
-            'is_completed' => false,
-        ]);
+        $business = $request->user()->currentBusiness();
+        $reconciliation = $this->reconciliationService->start($business, $request->validated());
 
         return redirect()->route('banking.reconciliations.show', $reconciliation);
     }
 
     public function show(BankReconciliation $reconciliation)
     {
-        $reconciliation->load('bankAccount');
-
-        // Fetch unreconciled transactions for this account up to the statement date
-        $transactions = BankTransaction::query()
-            ->where('bank_account_id', $reconciliation->bank_account_id)
-            ->where('date', '<=', $reconciliation->statement_date)
-            ->where(function ($q) use ($reconciliation) {
-                $q->where('is_reconciled', false)
-                    ->orWhere('reconciled_at', '>', $reconciliation->completed_at ?? now());
-            })
-            ->orderBy('date')
-            ->get();
-
         return Inertia::render('banking/reconciliations/show', [
-            'reconciliation' => $reconciliation,
-            'transactions' => $transactions,
+            'reconciliation' => $reconciliation->load('bankAccount'),
+            'transactions' => $this->reconciliationService->getTransactionsFor($reconciliation),
         ]);
     }
 
     public function update(Request $request, BankReconciliation $reconciliation)
     {
         if ($request->action === 'complete') {
-            $reconciliation->update([
-                'is_completed' => true,
-                'completed_at' => now(),
-            ]);
-
-            // Mark matched transactions as reconciled
-            if ($request->transaction_ids) {
-                BankTransaction::whereIn('id', $request->transaction_ids)
-                    ->update([
-                        'is_reconciled' => true,
-                        'reconciled_at' => now(),
-                    ]);
-            }
+            $this->reconciliationService->complete($reconciliation, $request->transaction_ids ?? []);
 
             return redirect()->route('banking.reconciliations.index')
                 ->with('success', 'Reconciliation completed successfully.');
