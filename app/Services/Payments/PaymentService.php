@@ -5,7 +5,9 @@ namespace App\Services\Payments;
 use App\Domain\Accounting\Enums\AccountSubType;
 use App\Domain\Payments\Enums\PaymentType;
 use App\Domain\Sales\Enums\InvoiceStatus;
+use App\Events\PaymentReceived as PaymentReceivedEvent;
 use App\Models\Account;
+use App\Models\BankTransaction;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -79,7 +81,7 @@ class PaymentService
             $payment->update(['journal_entry_id' => $journalEntry->id]);
 
             // Create bank transaction record
-            \App\Models\BankTransaction::create([
+            BankTransaction::create([
                 'business_id' => $business->id,
                 'bank_account_id' => $data['bank_account_id'],
                 'date' => $payment->date,
@@ -90,7 +92,10 @@ class PaymentService
                 'journal_entry_id' => $journalEntry->id,
             ]);
 
-            return $payment->fresh(['allocations', 'journalEntry', 'contact']);
+            $fresh = $payment->fresh(['allocations', 'journalEntry', 'contact']);
+            PaymentReceivedEvent::dispatch($fresh);
+
+            return $fresh;
         });
     }
 
@@ -151,7 +156,7 @@ class PaymentService
             $payment->update(['journal_entry_id' => $journalEntry->id]);
 
             // Create bank transaction record (negative amount for payments)
-            \App\Models\BankTransaction::create([
+            BankTransaction::create([
                 'business_id' => $business->id,
                 'bank_account_id' => $data['bank_account_id'],
                 'date' => $payment->date,
@@ -162,7 +167,10 @@ class PaymentService
                 'journal_entry_id' => $journalEntry->id,
             ]);
 
-            return $payment->fresh(['allocations', 'journalEntry', 'contact']);
+            $fresh = $payment->fresh(['allocations', 'journalEntry', 'contact']);
+            PaymentReceivedEvent::dispatch($fresh);
+
+            return $fresh;
         });
     }
 

@@ -5,6 +5,7 @@ namespace App\Services\Business;
 use App\Domain\Accounting\Enums\AccountSubType;
 use App\Domain\Accounting\Enums\AccountType;
 use App\Domain\Shared\Enums\BusinessRole;
+use App\Events\BusinessCreated;
 use App\Models\Account;
 use App\Models\Business;
 use App\Models\NumberSequence;
@@ -43,6 +44,8 @@ class BusinessSetupService
 
             // Create number sequences
             $this->createNumberSequences($business);
+
+            BusinessCreated::dispatch($business, $owner);
 
             return $business;
         });

@@ -5,6 +5,7 @@ namespace App\Services\Sales;
 use App\Domain\Accounting\Enums\AccountSubType;
 use App\Domain\Sales\Enums\InvoiceStatus;
 use App\Domain\Sales\Enums\InvoiceType;
+use App\Events\InvoicePosted;
 use App\Models\Account;
 use App\Models\Business;
 use App\Models\Invoice;
@@ -193,6 +194,8 @@ class InvoiceService
             'journal_entry_id' => $journalEntry->id,
             'status' => InvoiceStatus::SENT,
         ]);
+
+        InvoicePosted::dispatch($invoice->fresh());
     }
 
     /**
@@ -256,6 +259,8 @@ class InvoiceService
             'journal_entry_id' => $journalEntry->id,
             'status' => InvoiceStatus::SENT,
         ]);
+
+        InvoicePosted::dispatch($invoice->fresh());
     }
 
     /**
@@ -319,6 +324,8 @@ class InvoiceService
             'journal_entry_id' => $journalEntry->id,
             'status' => InvoiceStatus::SENT,
         ]);
+
+        InvoicePosted::dispatch($invoice->fresh());
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Services\Accounting;
 
+use App\Events\JournalEntryPosted;
 use App\Models\Business;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
@@ -56,7 +57,10 @@ class JournalService
                 ]);
             }
 
-            return $entry->load('lines');
+            $loaded = $entry->load('lines');
+            JournalEntryPosted::dispatch($loaded);
+
+            return $loaded;
         });
     }
 
@@ -120,7 +124,10 @@ class JournalService
             'posted_at' => now(),
         ]);
 
-        return $entry->fresh();
+        $fresh = $entry->fresh();
+        JournalEntryPosted::dispatch($fresh);
+
+        return $fresh;
     }
 
     /**
