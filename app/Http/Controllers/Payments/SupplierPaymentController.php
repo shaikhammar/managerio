@@ -32,6 +32,8 @@ class SupplierPaymentController extends Controller
 
     public function store(PaymentRequest $request)
     {
+        $this->authorize('create', Payment::class);
+
         $business = $request->user()->currentBusiness();
         $payment = $this->paymentService->makePayment($business, $request->validated());
 

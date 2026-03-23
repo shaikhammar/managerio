@@ -41,6 +41,8 @@ class ReceiptController extends Controller
 
     public function store(PaymentRequest $request)
     {
+        $this->authorize('create', Payment::class);
+
         $business = $request->user()->currentBusiness();
         $payment = $this->paymentService->receivePayment($business, $request->validated());
 

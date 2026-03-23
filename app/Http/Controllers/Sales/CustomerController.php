@@ -32,6 +32,8 @@ class CustomerController extends Controller
 
     public function store(ContactRequest $request)
     {
+        $this->authorize('create', Contact::class);
+
         Contact::create(array_merge($request->validated(), ['type' => ContactType::CUSTOMER]));
 
         return redirect()->route('sales.customers.index')
@@ -54,6 +56,8 @@ class CustomerController extends Controller
 
     public function update(ContactRequest $request, Contact $customer)
     {
+        $this->authorize('update', $customer);
+
         $customer->update($request->validated());
 
         return redirect()->route('sales.customers.index')
@@ -62,6 +66,8 @@ class CustomerController extends Controller
 
     public function destroy(Contact $customer)
     {
+        $this->authorize('delete', $customer);
+
         if ($customer->invoices()->exists()) {
             return back()->with('error', 'Cannot delete customer with existing invoices.');
         }

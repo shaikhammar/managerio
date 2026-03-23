@@ -45,6 +45,8 @@ class QuoteController extends Controller
 
     public function store(QuoteRequest $request)
     {
+        $this->authorize('create', Invoice::class);
+
         $business = $request->user()->currentBusiness();
         $quote = $this->quoteService->create($business, $request->validated());
 
@@ -79,6 +81,8 @@ class QuoteController extends Controller
 
     public function update(QuoteRequest $request, Invoice $quote)
     {
+        $this->authorize('update', $quote);
+
         $this->quoteService->update($quote, $request->validated());
 
         return redirect()->route('sales.quotes.show', $quote)
@@ -95,6 +99,8 @@ class QuoteController extends Controller
 
     public function destroy(Invoice $quote)
     {
+        $this->authorize('delete', $quote);
+
         if (! $quote->isQuote()) {
             abort(404);
         }

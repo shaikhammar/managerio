@@ -32,6 +32,8 @@ class SupplierController extends Controller
 
     public function store(ContactRequest $request)
     {
+        $this->authorize('create', Contact::class);
+
         Contact::create(array_merge($request->validated(), ['type' => ContactType::SUPPLIER]));
 
         return redirect()->route('purchases.suppliers.index')->with('success', 'Supplier created successfully.');
@@ -49,6 +51,8 @@ class SupplierController extends Controller
 
     public function update(ContactRequest $request, Contact $supplier)
     {
+        $this->authorize('update', $supplier);
+
         $supplier->update($request->validated());
 
         return redirect()->route('purchases.suppliers.index')->with('success', 'Supplier updated.');
@@ -56,6 +60,8 @@ class SupplierController extends Controller
 
     public function destroy(Contact $supplier)
     {
+        $this->authorize('delete', $supplier);
+
         $supplier->delete();
 
         return redirect()->route('purchases.suppliers.index')->with('success', 'Supplier deleted.');

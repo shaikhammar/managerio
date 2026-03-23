@@ -41,6 +41,8 @@ class AccountController extends Controller
 
     public function store(AccountRequest $request)
     {
+        $this->authorize('create', Account::class);
+
         Account::create($request->validated());
 
         return redirect()->route('accounting.accounts.index')
@@ -84,6 +86,8 @@ class AccountController extends Controller
 
     public function update(AccountRequest $request, Account $account)
     {
+        $this->authorize('update', $account);
+
         if ($account->is_system) {
             return back()->with('error', 'System accounts cannot be edited.');
         }
@@ -96,6 +100,8 @@ class AccountController extends Controller
 
     public function destroy(Account $account)
     {
+        $this->authorize('delete', $account);
+
         if ($account->is_system) {
             return back()->with('error', 'System accounts cannot be deleted.');
         }

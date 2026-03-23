@@ -45,6 +45,8 @@ class InvoiceController extends Controller
 
     public function store(InvoiceRequest $request)
     {
+        $this->authorize('create', Invoice::class);
+
         $business = $request->user()->currentBusiness();
         $invoice = $this->invoiceService->create($business, $request->validated());
 
@@ -71,6 +73,8 @@ class InvoiceController extends Controller
 
     public function update(InvoiceRequest $request, Invoice $invoice)
     {
+        $this->authorize('update', $invoice);
+
         $this->invoiceService->update($invoice, $request->validated());
 
         return redirect()->route('sales.invoices.show', $invoice)
@@ -79,6 +83,8 @@ class InvoiceController extends Controller
 
     public function void(Invoice $invoice)
     {
+        $this->authorize('void', $invoice);
+
         $this->invoiceService->void($invoice);
 
         return back()->with('success', 'Invoice voided successfully.');
@@ -86,6 +92,8 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice)
     {
+        $this->authorize('delete', $invoice);
+
         if ($invoice->amount_paid > 0) {
             return back()->with('error', 'Cannot delete an invoice with payments.');
         }

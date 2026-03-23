@@ -45,6 +45,8 @@ class CreditNoteController extends Controller
 
     public function store(CreditNoteRequest $request)
     {
+        $this->authorize('create', Invoice::class);
+
         $business = $request->user()->currentBusiness();
         $creditNote = $this->invoiceService->createCreditNote($business, $request->validated());
 
@@ -79,6 +81,8 @@ class CreditNoteController extends Controller
 
     public function update(CreditNoteRequest $request, Invoice $creditNote)
     {
+        $this->authorize('update', $creditNote);
+
         if (! $creditNote->isCreditNote()) {
             abort(404);
         }
@@ -91,6 +95,8 @@ class CreditNoteController extends Controller
 
     public function destroy(Invoice $creditNote)
     {
+        $this->authorize('delete', $creditNote);
+
         if (! $creditNote->isCreditNote()) {
             abort(404);
         }

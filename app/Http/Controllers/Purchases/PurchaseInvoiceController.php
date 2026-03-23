@@ -45,6 +45,8 @@ class PurchaseInvoiceController extends Controller
 
     public function store(PurchaseInvoiceRequest $request)
     {
+        $this->authorize('create', Invoice::class);
+
         $business = $request->user()->currentBusiness();
         $invoice = $this->invoiceService->createPurchaseInvoice($business, $request->validated());
 
@@ -79,6 +81,8 @@ class PurchaseInvoiceController extends Controller
 
     public function update(PurchaseInvoiceRequest $request, Invoice $invoice)
     {
+        $this->authorize('update', $invoice);
+
         if (! $invoice->isPurchaseInvoice()) {
             abort(404);
         }
@@ -91,6 +95,8 @@ class PurchaseInvoiceController extends Controller
 
     public function destroy(Invoice $invoice)
     {
+        $this->authorize('delete', $invoice);
+
         if (! $invoice->isPurchaseInvoice()) {
             abort(404);
         }
