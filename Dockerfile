@@ -64,4 +64,4 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["frankenphp", "php-server"]
+CMD ["frankenphp", "php-server", "--document-root", "public"]
