@@ -59,9 +59,12 @@ COPY --from=builder /app /var/www/html
 # Set permissions for Laravel
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+# Caddyfile
+COPY Caddyfile /etc/caddy/Caddyfile
+
 # Entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["frankenphp", "php-server", "--document-root", "public"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
