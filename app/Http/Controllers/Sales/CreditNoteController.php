@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\CreditNoteRequest;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
@@ -42,24 +43,10 @@ class CreditNoteController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(CreditNoteRequest $request)
     {
-        $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'date' => 'required|date',
-            'reference' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'lines' => 'required|array|min:1',
-            'lines.*.account_id' => 'required|exists:accounts,id',
-            'lines.*.description' => 'required|string',
-            'lines.*.quantity' => 'required|numeric|min:0.0001',
-            'lines.*.unit_price' => 'required|numeric|min:0',
-            'lines.*.discount_percent' => 'nullable|numeric|between:0,100',
-            'lines.*.tax_code_id' => 'nullable|exists:tax_codes,id',
-        ]);
-
         $business = $request->user()->currentBusiness();
-        $creditNote = $this->invoiceService->createCreditNote($business, $validated);
+        $creditNote = $this->invoiceService->createCreditNote($business, $request->validated());
 
         return redirect()->route('sales.credit-notes.show', $creditNote)
             ->with('success', 'Credit note created successfully.');
@@ -90,27 +77,13 @@ class CreditNoteController extends Controller
         ]);
     }
 
-    public function update(Request $request, Invoice $creditNote)
+    public function update(CreditNoteRequest $request, Invoice $creditNote)
     {
         if (! $creditNote->isCreditNote()) {
             abort(404);
         }
 
-        $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'date' => 'required|date',
-            'reference' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'lines' => 'required|array|min:1',
-            'lines.*.account_id' => 'required|exists:accounts,id',
-            'lines.*.description' => 'required|string',
-            'lines.*.quantity' => 'required|numeric|min:0.0001',
-            'lines.*.unit_price' => 'required|numeric|min:0',
-            'lines.*.discount_percent' => 'nullable|numeric|between:0,100',
-            'lines.*.tax_code_id' => 'nullable|exists:tax_codes,id',
-        ]);
-
-        $this->invoiceService->update($creditNote, $validated);
+        $this->invoiceService->update($creditNote, $request->validated());
 
         return redirect()->route('sales.credit-notes.show', $creditNote)
             ->with('success', 'Credit note updated successfully.');

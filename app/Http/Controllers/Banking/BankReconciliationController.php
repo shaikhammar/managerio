@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Banking;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Banking\BankReconciliationRequest;
 use App\Models\Account;
 use App\Models\BankReconciliation;
 use App\Models\BankTransaction;
@@ -34,16 +35,12 @@ class BankReconciliationController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(BankReconciliationRequest $request)
     {
-        $validated = $request->validate([
-            'bank_account_id' => 'required|exists:accounts,id',
-            'statement_date' => 'required|date',
-            'statement_balance' => 'required|numeric',
-        ]);
+        $validated = $request->validated();
 
         $account = Account::findOrFail($validated['bank_account_id']);
-        
+
         // Calculate the actual ledger balance as of that date
         $ledgerBalance = $this->ledger->getAccountBalance($account, Carbon::parse($validated['statement_date']));
 
@@ -69,7 +66,7 @@ class BankReconciliationController extends Controller
             ->where('date', '<=', $reconciliation->statement_date)
             ->where(function ($q) use ($reconciliation) {
                 $q->where('is_reconciled', false)
-                  ->orWhere('reconciled_at', '>', $reconciliation->completed_at ?? now());
+                    ->orWhere('reconciled_at', '>', $reconciliation->completed_at ?? now());
             })
             ->orderBy('date')
             ->get();
@@ -107,6 +104,7 @@ class BankReconciliationController extends Controller
     public function destroy(BankReconciliation $reconciliation)
     {
         $reconciliation->delete();
+
         return redirect()->route('banking.reconciliations.index');
     }
 }

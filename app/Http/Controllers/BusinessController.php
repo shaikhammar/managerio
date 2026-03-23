@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BusinessRequest;
 use App\Models\Business;
 use App\Services\Business\BusinessSetupService;
 use Illuminate\Http\Request;
@@ -48,23 +49,9 @@ class BusinessController extends Controller
     /**
      * Create a new business.
      */
-    public function store(Request $request)
+    public function store(BusinessRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'legal_name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'country' => 'required|string|size:2',
-            'currency_code' => 'required|string|size:3',
-            'fiscal_year_start' => 'nullable|integer|between:1,12',
-            'address_line_1' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-        ]);
-
-        $business = $this->setupService->createBusiness($request->user(), $validated);
+        $business = $this->setupService->createBusiness($request->user(), $request->validated());
 
         // Set as current business
         session(['current_business_id' => $business->id]);

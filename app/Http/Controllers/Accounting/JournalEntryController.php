@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Accounting\JournalEntryRequest;
 use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Services\Accounting\JournalService;
@@ -40,19 +41,9 @@ class JournalEntryController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(JournalEntryRequest $request)
     {
-        $validated = $request->validate([
-            'date' => 'required|date',
-            'description' => 'required|string|max:255',
-            'reference' => 'nullable|string|max:255',
-            'lines' => 'required|array|min:2',
-            'lines.*.account_id' => 'required|exists:accounts,id',
-            'lines.*.debit' => 'required|numeric|min:0',
-            'lines.*.credit' => 'required|numeric|min:0',
-            'lines.*.description' => 'nullable|string',
-        ]);
-
+        $validated = $request->validated();
         $business = $request->user()->currentBusiness();
 
         $entry = $this->journalService->createDraft(

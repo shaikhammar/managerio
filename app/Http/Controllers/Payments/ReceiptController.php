@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Payments;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payments\PaymentRequest;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
@@ -38,22 +39,10 @@ class ReceiptController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(PaymentRequest $request)
     {
-        $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'date' => 'required|date',
-            'amount' => 'required|numeric|min:0.01',
-            'bank_account_id' => 'required|exists:accounts,id',
-            'reference' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'allocations' => 'nullable|array',
-            'allocations.*.invoice_id' => 'required_with:allocations|exists:invoices,id',
-            'allocations.*.amount' => 'required_with:allocations|numeric|min:0.01',
-        ]);
-
         $business = $request->user()->currentBusiness();
-        $payment = $this->paymentService->receivePayment($business, $validated);
+        $payment = $this->paymentService->receivePayment($business, $request->validated());
 
         return redirect()->route('payments.receipts.show', $payment)
             ->with('success', 'Payment received successfully.');

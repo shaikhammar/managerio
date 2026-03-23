@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Accounting;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Accounting\TaxCodeRequest;
 use App\Models\TaxCode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,15 +28,9 @@ class TaxCodeController extends Controller
         return Inertia::render('accounting/tax-codes/create');
     }
 
-    public function store(Request $request)
+    public function store(TaxCodeRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'rate' => 'required|numeric|between:0,100',
-            'description' => 'nullable|string',
-        ]);
-
-        TaxCode::create($validated);
+        TaxCode::create($request->validated());
 
         return redirect()->route('accounting.tax-codes.index')
             ->with('success', 'Tax code created successfully.');
@@ -48,16 +43,9 @@ class TaxCodeController extends Controller
         ]);
     }
 
-    public function update(Request $request, TaxCode $taxCode)
+    public function update(TaxCodeRequest $request, TaxCode $taxCode)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'rate' => 'required|numeric|between:0,100',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-        ]);
-
-        $taxCode->update($validated);
+        $taxCode->update($request->validated());
 
         return redirect()->route('accounting.tax-codes.index')
             ->with('success', 'Tax code updated successfully.');

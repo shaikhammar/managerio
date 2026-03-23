@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\InvoiceRequest;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
@@ -42,26 +43,10 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(InvoiceRequest $request)
     {
-        $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'date' => 'required|date',
-            'due_date' => 'nullable|date|after_or_equal:date',
-            'reference' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'terms' => 'nullable|string',
-            'lines' => 'required|array|min:1',
-            'lines.*.account_id' => 'required|exists:accounts,id',
-            'lines.*.description' => 'required|string',
-            'lines.*.quantity' => 'required|numeric|min:0.0001',
-            'lines.*.unit_price' => 'required|numeric|min:0',
-            'lines.*.discount_percent' => 'nullable|numeric|between:0,100',
-            'lines.*.tax_code_id' => 'nullable|exists:tax_codes,id',
-        ]);
-
         $business = $request->user()->currentBusiness();
-        $invoice = $this->invoiceService->create($business, $validated);
+        $invoice = $this->invoiceService->create($business, $request->validated());
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', 'Invoice created successfully.');
@@ -84,25 +69,9 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function update(Request $request, Invoice $invoice)
+    public function update(InvoiceRequest $request, Invoice $invoice)
     {
-        $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'date' => 'required|date',
-            'due_date' => 'nullable|date|after_or_equal:date',
-            'reference' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
-            'terms' => 'nullable|string',
-            'lines' => 'required|array|min:1',
-            'lines.*.account_id' => 'required|exists:accounts,id',
-            'lines.*.description' => 'required|string',
-            'lines.*.quantity' => 'required|numeric|min:0.0001',
-            'lines.*.unit_price' => 'required|numeric|min:0',
-            'lines.*.discount_percent' => 'nullable|numeric|between:0,100',
-            'lines.*.tax_code_id' => 'nullable|exists:tax_codes,id',
-        ]);
-
-        $this->invoiceService->update($invoice, $validated);
+        $this->invoiceService->update($invoice, $request->validated());
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', 'Invoice updated successfully.');

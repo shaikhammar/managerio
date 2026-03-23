@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Payments;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payments\PaymentRequest;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Payment;
@@ -29,22 +30,10 @@ class SupplierPaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(PaymentRequest $request)
     {
-        $validated = $request->validate([
-            'contact_id' => 'required|exists:contacts,id',
-            'date' => 'required|date',
-            'amount' => 'required|numeric|min:0.01',
-            'bank_account_id' => 'required|exists:accounts,id',
-            'reference' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'allocations' => 'nullable|array',
-            'allocations.*.invoice_id' => 'required_with:allocations|exists:invoices,id',
-            'allocations.*.amount' => 'required_with:allocations|numeric|min:0.01',
-        ]);
-
         $business = $request->user()->currentBusiness();
-        $payment = $this->paymentService->makePayment($business, $validated);
+        $payment = $this->paymentService->makePayment($business, $request->validated());
 
         return redirect()->route('payments.supplier-payments.show', $payment)->with('success', 'Payment made successfully.');
     }

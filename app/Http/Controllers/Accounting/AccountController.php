@@ -4,7 +4,12 @@ namespace App\Http\Controllers\Accounting;
 
 use App\Domain\Accounting\Enums\AccountType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Accounting\AccountRequest;
 use App\Models\Account;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryLine;
+use App\Services\Accounting\LedgerService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -34,18 +39,9 @@ class AccountController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(AccountRequest $request)
     {
-        $validated = $request->validate([
-            'code' => 'required|string|max:20',
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|in:'.implode(',', array_column(AccountType::cases(), 'value')),
-            'sub_type' => 'nullable|string|max:50',
-            'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:accounts,id',
-        ]);
-
-        Account::create($validated);
+        Account::create($request->validated());
 
         return redirect()->route('accounting.accounts.index')
             ->with('success', 'Account created successfully.');
@@ -53,14 +49,14 @@ class AccountController extends Controller
 
     public function show(Account $account)
     {
-        $ledgerService = app(\App\Services\Accounting\LedgerService::class);
+        $ledgerService = app(LedgerService::class);
 
-        $transactions = \App\Models\JournalEntryLine::query()
+        $transactions = JournalEntryLine::query()
             ->where('account_id', $account->id)
             ->with('journalEntry')
             ->whereHas('journalEntry', fn ($q) => $q->where('is_posted', true))
             ->orderByDesc(
-                \App\Models\JournalEntry::select('date')
+                JournalEntry::select('date')
                     ->whereColumn('journal_entries.id', 'journal_entry_lines.journal_entry_id')
             )
             ->paginate(50);
@@ -68,7 +64,7 @@ class AccountController extends Controller
         return Inertia::render('accounting/accounts/show', [
             'account' => $account->load('parent', 'children'),
             'transactions' => $transactions,
-            'balance' => $ledgerService->getAccountBalance($account, \Carbon\Carbon::now()),
+            'balance' => $ledgerService->getAccountBalance($account, Carbon::now()),
         ]);
     }
 
@@ -86,23 +82,13 @@ class AccountController extends Controller
         ]);
     }
 
-    public function update(Request $request, Account $account)
+    public function update(AccountRequest $request, Account $account)
     {
         if ($account->is_system) {
             return back()->with('error', 'System accounts cannot be edited.');
         }
 
-        $validated = $request->validate([
-            'code' => 'required|string|max:20',
-            'name' => 'required|string|max:255',
-            'type' => 'required|string|in:'.implode(',', array_column(AccountType::cases(), 'value')),
-            'sub_type' => 'nullable|string|max:50',
-            'description' => 'nullable|string',
-            'parent_id' => 'nullable|exists:accounts,id',
-            'is_active' => 'boolean',
-        ]);
-
-        $account->update($validated);
+        $account->update($request->validated());
 
         return redirect()->route('accounting.accounts.index')
             ->with('success', 'Account updated successfully.');
