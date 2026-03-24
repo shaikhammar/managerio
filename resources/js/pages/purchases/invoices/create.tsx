@@ -9,13 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
+import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Purchase Invoices', href: '/purchases/purchase-invoices' },
-    { title: 'New Purchase Invoice', href: '/purchases/purchase-invoices/create' },
-];
 
 type LineItem = {
     account_id: string;
@@ -51,6 +46,17 @@ type Props = {
 export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, invoice }: Props) {
     const isEditing = !!invoice;
     const today = new Date().toISOString().split('T')[0];
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
+        ...(isEditing ? [
+            { title: invoice!.number, href: PurchaseInvoiceController.show.url(invoice!) },
+            { title: 'Edit', href: PurchaseInvoiceController.edit.url(invoice!) },
+        ] : [
+            { title: 'New Purchase Invoice', href: PurchaseInvoiceController.create.url() },
+        ]),
+    ];
 
     const { data, setData, post, put, processing, errors, transform } = useForm({
         contact_id: invoice?.contact_id?.toString() || '',

@@ -8,13 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import InvoiceController from '@/actions/App/Http/Controllers/Sales/InvoiceController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Invoices', href: '/sales/invoices' },
-    { title: 'New Invoice', href: '/sales/invoices/create' },
-];
 
 type LineItem = {
     account_id: string;
@@ -50,6 +45,17 @@ type Props = {
 export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: Props) {
     const isEditing = !!invoice;
     const today = new Date().toISOString().split('T')[0];
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Invoices', href: InvoiceController.index.url() },
+        ...(isEditing ? [
+            { title: invoice!.number, href: InvoiceController.show.url(invoice!) },
+            { title: 'Edit', href: InvoiceController.edit.url(invoice!) },
+        ] : [
+            { title: 'New Invoice', href: InvoiceController.create.url() },
+        ]),
+    ];
 
     const { data, setData, post, put, processing, errors, transform } = useForm({
         contact_id: invoice?.contact_id?.toString() || '',

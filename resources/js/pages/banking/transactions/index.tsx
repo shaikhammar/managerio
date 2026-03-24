@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Search, FileText, CheckCircle2, XCircle, Landmark } from 'lucide-react';
+import { Search, FileText, CheckCircle2, XCircle, Landmark, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,9 @@ export default function BankTransactionIndex({ transactions, filters, bankAccoun
                         <h1 className="text-2xl font-bold tracking-tight">Bank Transactions</h1>
                         <p className="text-muted-foreground text-sm">All activity across your bank accounts</p>
                     </div>
+                    <Button asChild>
+                        <Link href="/banking/transactions/create"><Plus className="mr-2 size-4" /> New Transaction</Link>
+                    </Button>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -90,7 +93,7 @@ export default function BankTransactionIndex({ transactions, filters, bankAccoun
                                 </tr>
                             ) : (
                                 transactions.data.map((tx) => (
-                                    <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                                    <tr key={tx.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => router.visit(`/banking/transactions/${tx.id}`)}>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{tx.date}</td>
                                         <td className="py-3 px-4 text-sm font-medium">
                                             <div className="flex items-center gap-2">

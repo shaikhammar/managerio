@@ -65,8 +65,10 @@ export default function SupplierPaymentIndex({ payments, filters }: Props) {
                                 </td></tr>
                             ) : (
                                 payments.data.map((payment) => (
-                                    <tr key={payment.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                        <td className="py-3 px-4 font-mono text-sm font-medium">{payment.number}</td>
+                                    <tr key={payment.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => router.visit(`/payments/supplier-payments/${payment.id}`)}>
+                                        <td className="py-3 px-4 font-mono text-sm font-medium">
+                                            <Link href={`/payments/supplier-payments/${payment.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{payment.number}</Link>
+                                        </td>
                                         <td className="py-3 px-4 text-sm">{payment.contact?.name || '—'}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{payment.date}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{payment.reference || '—'}</td>

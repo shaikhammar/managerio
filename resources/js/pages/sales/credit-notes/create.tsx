@@ -8,13 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import CreditNoteController from '@/actions/App/Http/Controllers/Sales/CreditNoteController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Credit Notes', href: '/sales/credit-notes' },
-    { title: 'New Credit Note', href: '/sales/credit-notes/create' },
-];
 
 type LineItem = {
     account_id: string;
@@ -50,6 +45,17 @@ type Props = {
 export default function CreditNoteForm({ customers, accounts, taxCodes, creditNote }: Props) {
     const isEditing = !!creditNote;
     const today = new Date().toISOString().split('T')[0];
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Credit Notes', href: CreditNoteController.index.url() },
+        ...(isEditing ? [
+            { title: creditNote!.number, href: CreditNoteController.show.url(creditNote!) },
+            { title: 'Edit', href: CreditNoteController.edit.url(creditNote!) },
+        ] : [
+            { title: 'New Credit Note', href: CreditNoteController.create.url() },
+        ]),
+    ];
 
     const { data, setData, post, put, processing, errors, transform } = useForm({
         contact_id: creditNote?.contact_id?.toString() || '',

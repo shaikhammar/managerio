@@ -63,8 +63,10 @@ export default function SupplierIndex({ suppliers, filters }: Props) {
                                 <tr><td colSpan={5} className="py-12 text-center text-muted-foreground">No suppliers found.</td></tr>
                             ) : (
                                 suppliers.data.map((supplier) => (
-                                    <tr key={supplier.id} className="border-    b last:border-0 hover:bg-muted/30 transition-colors">
-                                        <td className="py-3 px-4 font-medium">{supplier.name}</td>
+                                    <tr key={supplier.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => router.visit(`/purchases/suppliers/${supplier.id}`)}>
+                                        <td className="py-3 px-4 font-medium">
+                                            <Link href={`/purchases/suppliers/${supplier.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{supplier.name}</Link>
+                                        </td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{supplier.email || '—'}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{supplier.phone || '—'}</td>
                                         <td className="py-3 px-4">

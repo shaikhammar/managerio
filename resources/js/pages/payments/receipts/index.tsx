@@ -65,8 +65,10 @@ export default function ReceiptIndex({ receipts, filters }: Props) {
                                 </td></tr>
                             ) : (
                                 receipts.data.map((receipt) => (
-                                    <tr key={receipt.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                                        <td className="py-3 px-4 font-mono text-sm font-medium">{receipt.number}</td>
+                                    <tr key={receipt.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => router.visit(`/payments/receipts/${receipt.id}`)}>
+                                        <td className="py-3 px-4 font-mono text-sm font-medium">
+                                            <Link href={`/payments/receipts/${receipt.id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{receipt.number}</Link>
+                                        </td>
                                         <td className="py-3 px-4 text-sm">{receipt.contact?.name || '—'}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{receipt.date}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{receipt.reference || '—'}</td>

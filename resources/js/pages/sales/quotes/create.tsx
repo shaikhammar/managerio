@@ -9,13 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { formatCurrency } from '@/lib/utils';
+import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Quotes', href: '/sales/quotes' },
-    { title: 'New Quote', href: '/sales/quotes/create' },
-];
 
 type LineItem = {
     account_id: string;
@@ -51,6 +46,17 @@ type Props = {
 export default function QuoteForm({ customers, accounts, taxCodes, quote }: Props) {
     const isEditing = !!quote;
     const today = new Date().toISOString().split('T')[0];
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: '/dashboard' },
+        { title: 'Quotes', href: QuoteController.index.url() },
+        ...(isEditing ? [
+            { title: quote!.number, href: QuoteController.show.url(quote!) },
+            { title: 'Edit', href: QuoteController.edit.url(quote!) },
+        ] : [
+            { title: 'New Quote', href: QuoteController.create.url() },
+        ]),
+    ];
 
     const { data, setData, post, put, processing, errors, transform } = useForm({
         contact_id: quote?.contact_id?.toString() || '',
