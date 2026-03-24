@@ -103,6 +103,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/general-ledger', [ReportController::class, 'generalLedger'])->name('general-ledger');
             Route::get('/aged-receivables', [ReportController::class, 'agedReceivables'])->name('aged-receivables');
             Route::get('/aged-payables', [ReportController::class, 'agedPayables'])->name('aged-payables');
+            Route::get('/account-transactions', [ReportController::class, 'accountTransactions'])->name('account-transactions');
+            Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->name('cash-flow');
+            Route::get('/equity-statement', [ReportController::class, 'equityStatement'])->name('equity-statement');
             Route::post('/generate', [ReportController::class, 'generate'])->name('generate');
             Route::get('/status', [ReportController::class, 'status'])->name('status');
         });

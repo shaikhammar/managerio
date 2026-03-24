@@ -87,8 +87,10 @@ const navGroups: NavGroup[] = [
             { title: 'All Reports', href: '/reports' },
             { title: 'Profit & Loss', href: '/reports/profit-and-loss' },
             { title: 'Balance Sheet', href: '/reports/balance-sheet' },
+            { title: 'Cash Flow', href: '/reports/cash-flow' },
             { title: 'Trial Balance', href: '/reports/trial-balance' },
             { title: 'Aged Receivables', href: '/reports/aged-receivables' },
+            { title: 'Account Transactions', href: '/reports/account-transactions' },
         ],
     },
 ];

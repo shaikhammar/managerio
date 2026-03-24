@@ -50,14 +50,14 @@
 > Goal: Feature parity with Manager.io's core modules. No translation-specific work yet.
 
 ### 1.1 Missing Document Types
-- [ ] **Purchase Orders** — PO workflow separate from purchase invoices. Statuses: draft → sent → partially received → received → invoiced. Linked to purchase invoices on receipt.
-- [ ] **Debit Notes** — Purchase-side equivalent of credit notes. Issue when returning goods/services to a supplier. Auto-creates journal entry and reduces AP balance.
+- [x] **Purchase Orders** — PO workflow separate from purchase invoices. Statuses: draft → sent → invoiced. Convert to Purchase Invoice posts journal entry and links back to PO.
+- [x] **Debit Notes** — Purchase-side equivalent of credit notes. Auto-creates journal entry (DR AP, CR Expense/Tax Receivable) and reduces AP balance.
 - [ ] **Delivery Notes** (optional) — Sales-side document confirming service/goods delivery before invoicing.
 
 ### 1.2 Missing Reports
-- [ ] **Cash Flow Statement** — Operating, investing, and financing activities for a period. Both direct and indirect method.
-- [ ] **Statement of Changes in Equity** — Movement in equity accounts over a period.
-- [ ] **Account Transactions Report** — All transactions for a single account with running balance (similar to a bank statement view per account).
+- [x] **Cash Flow Statement** — Operating (indirect method: net income + depreciation addback + working capital changes), investing (fixed asset changes), and financing (equity changes) activities for a period.
+- [x] **Statement of Changes in Equity** — Opening equity balance, net income, owner contributions/withdrawals, closing balance per equity account.
+- [x] **Account Transactions Report** — All transactions for a single account with opening balance and running balance (bank statement view per account).
 
 ### 1.3 Missing Accounting Features
 - [ ] **Recurring Journal Entries** — Schedule a journal entry to auto-post on a regular interval (monthly, quarterly). Essential for prepayments, depreciation.
@@ -73,9 +73,9 @@
 
 ### 1.5 UX / Platform
 - [ ] **Bulk actions** — Mark multiple invoices as sent, bulk delete drafts
-- [ ] **Document PDF generation** — Generate/download professional PDF for invoices, quotes, and statements
+- [x] **Document PDF generation** — Generate/download professional PDF for invoices, quotes, credit notes, debit notes, and purchase orders.
 - [ ] **Email sending** — Send invoices and quotes directly from the app via configurable SMTP
-- [ ] **Currency formatting** — Configurable base currency per business (currently USD hardcoded)
+- [x] **Currency formatting** — Configurable base currency per business with symbol and formatting.
 - [ ] **Audit log** — Who changed what and when across all documents
 
 ---

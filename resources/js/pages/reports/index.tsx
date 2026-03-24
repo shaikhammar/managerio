@@ -8,6 +8,9 @@ import {
     FileText,
     Users,
     Truck,
+    Droplets,
+    PieChart,
+    ListOrdered,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -66,6 +69,30 @@ const reports = [
         icon: Truck,
         color: 'text-pink-600 dark:text-pink-400',
         bg: 'bg-pink-50 dark:bg-pink-900/20',
+    },
+    {
+        title: 'Account Transactions',
+        description: 'All transactions for a single account with running balance',
+        href: '/reports/account-transactions',
+        icon: ListOrdered,
+        color: 'text-teal-600 dark:text-teal-400',
+        bg: 'bg-teal-50 dark:bg-teal-900/20',
+    },
+    {
+        title: 'Cash Flow Statement',
+        description: 'Operating, investing, and financing cash movements',
+        href: '/reports/cash-flow',
+        icon: Droplets,
+        color: 'text-sky-600 dark:text-sky-400',
+        bg: 'bg-sky-50 dark:bg-sky-900/20',
+    },
+    {
+        title: 'Changes in Equity',
+        description: 'Movement in equity accounts including net income',
+        href: '/reports/equity-statement',
+        icon: PieChart,
+        color: 'text-violet-600 dark:text-violet-400',
+        bg: 'bg-violet-50 dark:bg-violet-900/20',
     },
 ];
 
