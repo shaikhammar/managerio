@@ -27,6 +27,7 @@ Route::inertia('/', 'marketing/home', [
 Route::inertia('/features', 'marketing/features')->name('features');
 Route::inertia('/pricing', 'marketing/pricing')->name('pricing');
 Route::inertia('/about', 'marketing/about')->name('about');
+Route::inertia('/docs', 'docs/getting-started')->name('docs');
 
 // ── Authenticated Routes ──────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {

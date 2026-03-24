@@ -1,8 +1,13 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     ArrowRight,
     BarChart3,
+    BookOpen,
     Calculator,
+    CheckCircle2,
+    CreditCard,
+    FileText,
+    Globe2,
     Landmark,
     Receipt,
     Shield,
@@ -11,163 +16,223 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import MarketingLayout from '@/layouts/marketing-layout';
 
-type Props = {
-    canRegister: boolean;
-};
+type Props = { canRegister: boolean };
 
 export default function Home({ canRegister }: Props) {
-    const { auth } = usePage<{ auth: { user?: unknown } }>().props;
-    const isLoggedIn = !!auth?.user;
+    const registerHref = canRegister ? '/register' : '/login';
 
     return (
-        <>
-            <Head title="ManagerIO — Modern Accounting for Service Businesses">
-                <meta name="description" content="All-in-one cloud accounting platform. Invoicing, expense tracking, double-entry bookkeeping, and financial reports for freelancers, consultants, and agencies." />
+        <MarketingLayout>
+            <Head title="ManagerIO — Business Management for Translation Agencies">
+                <meta name="description" content="The complete business platform for translation agencies and freelance translators. Client invoicing, supplier payments, bookkeeping, and financial reports — all in one place." />
             </Head>
 
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
-                {/* Navigation */}
-                <nav className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg dark:bg-slate-900/80">
-                    <div className="mx-auto max-w-7xl flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-                        <div className="flex items-center gap-2">
-                            <div className="size-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                                <Calculator className="size-4 text-white" />
+            {/* Hero */}
+            <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 py-24 sm:py-36">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(99,102,241,0.12),transparent)]" />
+                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-800/60 px-4 py-1.5 text-sm text-blue-700 dark:text-blue-300 mb-8">
+                        <Globe2 className="size-3.5" />
+                        Built for language service providers
+                    </div>
+
+                    <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
+                        Business management
+                        <br />
+                        <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
+                            for translation
+                        </span>
+                    </h1>
+
+                    <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                        Invoice clients, pay your translators, reconcile your bank, and generate financial reports — the complete back-office platform designed for translation agencies and freelancers.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+                        <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-base px-8 h-12">
+                            <Link href={registerHref}>
+                                Start for Free
+                                <ArrowRight className="ml-2 size-4" />
+                            </Link>
+                        </Button>
+                        <Button variant="outline" size="lg" asChild className="text-base px-8 h-12">
+                            <Link href="/features">See All Features</Link>
+                        </Button>
+                    </div>
+
+                    <div className="mt-14 flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
+                        {['No credit card required', 'Free during beta', 'Multi-business support', 'Double-entry bookkeeping'].map((item) => (
+                            <div key={item} className="flex items-center gap-1.5">
+                                <CheckCircle2 className="size-4 text-emerald-500" />
+                                {item}
                             </div>
-                            <span className="text-xl font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
-                                ManagerIO
-                            </span>
-                        </div>
-                        <div className="hidden md:flex items-center gap-8">
-                            <Link href="/features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Features</Link>
-                            <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Pricing</Link>
-                            <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">About</Link>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            {isLoggedIn ? (
-                                <Button asChild>
-                                    <Link href="/dashboard">Go to Dashboard</Link>
-                                </Button>
-                            ) : (
-                                <>
-                                    <Button variant="ghost" asChild>
-                                        <Link href="/login">Sign In</Link>
-                                    </Button>
-                                    {canRegister && (
-                                        <Button asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-                                            <Link href="/register">Get Started Free</Link>
-                                        </Button>
-                                    )}
-                                </>
-                            )}
-                        </div>
+                        ))}
                     </div>
-                </nav>
+                </div>
+            </section>
 
-                {/* Hero Section */}
-                <section className="relative overflow-hidden py-20 sm:py-32">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent dark:from-blue-900/20" />
-                    <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 dark:bg-blue-900/30 px-4 py-1.5 text-sm text-blue-700 dark:text-blue-300 mb-6 border border-blue-200/50 dark:border-blue-800/50">
-                            <Zap className="size-3.5" />
-                            Built for service businesses
-                        </div>
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-                            Accounting that
-                            <br />
-                            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">works for you</span>
-                        </h1>
-                        <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            Professional invoicing, double-entry bookkeeping, and financial reports — all in one platform designed for freelancers, consultants, and agencies.
-                        </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-                            <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-base px-8">
-                                <Link href={canRegister ? '/register' : '/login'}>
-                                    Start Free Trial
-                                    <ArrowRight className="ml-2 size-4" />
-                                </Link>
-                            </Button>
-                            <Button variant="outline" size="lg" asChild className="text-base px-8">
-                                <Link href="/features">See Features</Link>
-                            </Button>
-                        </div>
+            {/* Industry context */}
+            <section className="py-16 border-b bg-white dark:bg-slate-950">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-10">
+                        <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2">Built for your workflow</p>
+                        <h2 className="text-2xl sm:text-3xl font-bold">
+                            Everything a translation business needs
+                        </h2>
                     </div>
-                </section>
-
-                {/* Features Grid */}
-                <section className="py-20 bg-white/50 dark:bg-slate-900/50">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                Everything you need to manage your finances
-                            </h2>
-                            <p className="mt-4 text-lg text-muted-foreground">
-                                Professional-grade accounting tools without the complexity
-                            </p>
-                        </div>
-                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {[
-                                { icon: Receipt, title: 'Professional Invoicing', desc: 'Create and send beautiful invoices. Track payments and overdue balances automatically.', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-                                { icon: Calculator, title: 'Double-Entry Bookkeeping', desc: 'True double-entry accounting with automated journal entries for every transaction.', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-                                { icon: BarChart3, title: 'Financial Reports', desc: 'P&L, Balance Sheet, Trial Balance, and Aged Receivables — generated instantly.', color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-                                { icon: Users, title: 'Customer & Supplier Management', desc: 'Manage contacts, track outstanding balances, and maintain a complete transaction history.', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-                                { icon: Landmark, title: 'Bank Reconciliation', desc: 'Match transactions, reconcile bank statements, and keep your books accurate.', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-                                { icon: Shield, title: 'Multi-Business Support', desc: 'Manage multiple businesses from one account with role-based access control.', color: 'text-pink-600', bg: 'bg-pink-50 dark:bg-pink-900/20' },
-                            ].map((feature, i) => (
-                                <Card key={i} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-0 bg-white dark:bg-slate-800/50">
-                                    <CardHeader>
-                                        <div className={`rounded-xl p-3 w-fit ${feature.bg}`}>
-                                            <feature.icon className={`size-6 ${feature.color}`} />
-                                        </div>
-                                        <CardTitle className="text-lg mt-2">{feature.title}</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <CardDescription className="text-sm leading-relaxed">{feature.desc}</CardDescription>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                {/* CTA */}
-                <section className="py-20">
-                    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-                        <div className="rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 p-12 sm:p-16">
-                            <h2 className="text-3xl font-bold text-white">Ready to simplify your accounting?</h2>
-                            <p className="mt-4 text-blue-100 text-lg">
-                                Join thousands of service businesses managing their finances with confidence.
-                            </p>
-                            <Button size="lg" variant="secondary" asChild className="mt-8 text-base px-8">
-                                <Link href={canRegister ? '/register' : '/login'}>
-                                    Get Started — It's Free
-                                    <ArrowRight className="ml-2 size-4" />
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Footer */}
-                <footer className="border-t py-12 bg-white/50 dark:bg-slate-900/50">
-                    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="size-6 rounded bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                                    <Calculator className="size-3 text-white" />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        {[
+                            {
+                                icon: FileText,
+                                title: 'Client Invoicing',
+                                desc: 'Issue professional invoices to your clients, track payment status, and send quotes before a project begins. Credit notes for corrections included.',
+                                color: 'text-blue-600',
+                                bg: 'bg-blue-50 dark:bg-blue-900/20',
+                            },
+                            {
+                                icon: Users,
+                                title: 'Freelancer Payments',
+                                desc: 'Record purchase invoices from your translators and editors. Process payments and maintain a full history of what you owe to every vendor.',
+                                color: 'text-indigo-600',
+                                bg: 'bg-indigo-50 dark:bg-indigo-900/20',
+                            },
+                            {
+                                icon: BarChart3,
+                                title: 'Financial Reporting',
+                                desc: 'Profit & Loss, Balance Sheet, Aged Receivables, and General Ledger — know exactly how your business is performing at any moment.',
+                                color: 'text-emerald-600',
+                                bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                            },
+                        ].map((item) => (
+                            <div key={item.title} className="flex gap-4 p-6 rounded-xl border bg-white dark:bg-slate-900 hover:shadow-md transition-shadow">
+                                <div className={`rounded-xl p-3 h-fit ${item.bg}`}>
+                                    <item.icon className={`size-6 ${item.color}`} />
                                 </div>
-                                <span className="font-semibold text-muted-foreground">ManagerIO</span>
+                                <div>
+                                    <h3 className="font-semibold mb-1">{item.title}</h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                                <Link href="/features" className="hover:text-foreground transition-colors">Features</Link>
-                                <Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-                                <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Feature Grid */}
+            <section className="py-20 bg-slate-50 dark:bg-slate-900/40">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-14">
+                        <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2">Full feature set</p>
+                        <h2 className="text-3xl font-bold tracking-tight">
+                            All the tools, none of the complexity
+                        </h2>
+                        <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
+                            Professional-grade accounting and business management in one clean, fast interface.
+                        </p>
+                    </div>
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {[
+                            { icon: Receipt, title: 'Sales & Purchase Invoices', desc: 'Full invoice lifecycle — draft, send, and track payment status for both client bills and vendor costs.', color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+                            { icon: Calculator, title: 'Double-Entry Bookkeeping', desc: 'Every transaction automatically posts a journal entry. Your books stay accurate without any manual effort.', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+                            { icon: Landmark, title: 'Bank Reconciliation', desc: 'Record bank transactions and reconcile your accounts against bank statements to catch discrepancies.', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+                            { icon: CreditCard, title: 'Payments & Receipts', desc: 'Record customer receipts and supplier payments with partial payment support and automatic allocation.', color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+                            { icon: BookOpen, title: 'Chart of Accounts', desc: 'Fully customizable chart of accounts with asset, liability, equity, revenue, and expense categories.', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-900/20' },
+                            { icon: Shield, title: 'Multi-Business & Roles', desc: 'Manage multiple entities from one login with owner, admin, editor, and viewer role-based permissions.', color: 'text-pink-600', bg: 'bg-pink-50 dark:bg-pink-900/20' },
+                        ].map((feature) => (
+                            <Card key={feature.title} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border bg-white dark:bg-slate-800/60">
+                                <CardHeader className="pb-2">
+                                    <div className={`rounded-xl p-3 w-fit ${feature.bg}`}>
+                                        <feature.icon className={`size-5 ${feature.color}`} />
+                                    </div>
+                                    <CardTitle className="text-base mt-3">{feature.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <CardDescription className="text-sm leading-relaxed">{feature.desc}</CardDescription>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    <div className="text-center mt-10">
+                        <Button variant="outline" asChild>
+                            <Link href="/features">
+                                View all features
+                                <ArrowRight className="ml-2 size-4" />
+                            </Link>
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            {/* How it works */}
+            <section className="py-20 bg-white dark:bg-slate-950">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-14">
+                        <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2">Simple workflow</p>
+                        <h2 className="text-3xl font-bold">Up and running in minutes</h2>
+                    </div>
+                    <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-5xl mx-auto">
+                        {[
+                            { step: '01', title: 'Create your business', desc: 'Set up your agency or freelance profile with your business details and chart of accounts.' },
+                            { step: '02', title: 'Add your clients', desc: 'Import or create customer profiles for every client you work with.' },
+                            { step: '03', title: 'Manage your translators', desc: 'Add your freelance translators and editors as suppliers to track what you owe them.' },
+                            { step: '04', title: 'Invoice and report', desc: 'Issue client invoices, record vendor bills, and generate financial reports in real time.' },
+                        ].map((item) => (
+                            <div key={item.step} className="text-center">
+                                <div className="mx-auto mb-4 size-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                                    {item.step}
+                                </div>
+                                <h3 className="font-semibold mb-2">{item.title}</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} ManagerIO</p>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Coming soon banner */}
+            <section className="py-12 bg-indigo-50 dark:bg-indigo-950/30 border-y border-indigo-100 dark:border-indigo-900">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-full bg-indigo-100 dark:bg-indigo-900 p-2.5">
+                                <Zap className="size-5 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <div>
+                                <p className="font-semibold">Translation-specific features coming soon</p>
+                                <p className="text-sm text-muted-foreground">Projects, language pairs, rate cards, CAT tool analysis, and more.</p>
+                            </div>
+                        </div>
+                        <Button variant="outline" asChild className="shrink-0 border-indigo-300 dark:border-indigo-700">
+                            <Link href="/features">See the roadmap</Link>
+                        </Button>
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA */}
+            <section className="py-24 bg-white dark:bg-slate-950">
+                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+                    <div className="rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-12 sm:p-16 shadow-xl">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-white">Ready to take control of your finances?</h2>
+                        <p className="mt-4 text-blue-100 text-lg max-w-xl mx-auto">
+                            Start managing your translation business like a pro. Free during our beta period.
+                        </p>
+                        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+                            <Button size="lg" variant="secondary" asChild className="text-base px-8 h-12">
+                                <Link href={registerHref}>
+                                    Create Free Account
+                                    <ArrowRight className="ml-2 size-4" />
+                                </Link>
+                            </Button>
+                            <Button size="lg" variant="outline" asChild className="text-base px-8 h-12 border-white/40 text-white hover:bg-white/10">
+                                <Link href="/docs">Read the Docs</Link>
+                            </Button>
                         </div>
                     </div>
-                </footer>
-            </div>
-        </>
+                </div>
+            </section>
+        </MarketingLayout>
     );
 }
