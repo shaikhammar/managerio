@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, BankAccountSummary, DashboardInvoice, DashboardPayment } from '@/types';
 
@@ -26,14 +27,6 @@ type DashboardProps = {
     recentInvoices: DashboardInvoice[];
     recentPayments: DashboardPayment[];
 };
-
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-    }).format(amount);
-}
 
 function StatusBadge({ status }: { status: string }) {
     const colors: Record<string, string> = {
@@ -53,6 +46,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function Dashboard() {
+    const { format } = useCurrency();
     const {
         bankAccounts = [],
         receivables = 0,
@@ -80,7 +74,7 @@ export default function Dashboard() {
                             <DollarSign className="size-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(totalBankBalance)}</div>
+                            <div className="text-2xl font-bold">{format(totalBankBalance)}</div>
                             <p className="text-xs text-muted-foreground mt-1">
                                 {bankAccounts.length} account{bankAccounts.length !== 1 ? 's' : ''}
                             </p>
@@ -96,7 +90,7 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                                {formatCurrency(receivables)}
+                                {format(receivables)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">Owed by customers</p>
                         </CardContent>
@@ -111,7 +105,7 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                                {formatCurrency(payables)}
+                                {format(payables)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">Owed to suppliers</p>
                         </CardContent>
@@ -130,10 +124,10 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className={`text-2xl font-bold ${netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                {formatCurrency(netProfit)}
+                                {format(netProfit)}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                Revenue {formatCurrency(monthlyRevenue)} · Expenses {formatCurrency(monthlyExpenses)}
+                                Revenue {format(monthlyRevenue)} · Expenses {format(monthlyExpenses)}
                             </p>
                         </CardContent>
                     </Card>
@@ -171,10 +165,10 @@ export default function Dashboard() {
                                                 </p>
                                             </div>
                                             <div className="text-right ml-4">
-                                                <p className="text-sm font-semibold">{formatCurrency(invoice.total)}</p>
+                                                <p className="text-sm font-semibold">{format(invoice.total)}</p>
                                                 {invoice.balance_due > 0 && (
                                                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                                                        Due: {formatCurrency(invoice.balance_due)}
+                                                        Due: {format(invoice.balance_due)}
                                                     </p>
                                                 )}
                                             </div>
@@ -226,7 +220,7 @@ export default function Dashboard() {
                                                         ? 'text-emerald-600 dark:text-emerald-400'
                                                         : 'text-red-600 dark:text-red-400'
                                                 }`}>
-                                                    {payment.type === 'receipt' ? '+' : '-'}{formatCurrency(payment.amount)}
+                                                    {payment.type === 'receipt' ? '+' : '-'}{format(payment.amount)}
                                                 </p>
                                             </div>
                                         </div>
@@ -251,7 +245,7 @@ export default function Dashboard() {
                                             <p className="font-medium">{account.name}</p>
                                         </div>
                                         <p className={`text-lg font-bold ${account.balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                            {formatCurrency(account.balance)}
+                                            {format(account.balance)}
                                         </p>
                                     </div>
                                 ))}

@@ -3,7 +3,7 @@ import { ArrowLeft, Edit, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { Account, BreadcrumbItem, JournalEntryLine, PaginatedData } from '@/types';
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
 };
 
 export default function AccountShow({ account, transactions, balance }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Chart of Accounts', href: '/accounting/accounts' },
@@ -46,7 +47,7 @@ export default function AccountShow({ account, transactions, balance }: Props) {
                     <div className="flex items-center gap-4">
                         <div className="text-right mr-4 border-r pr-4 hidden sm:block">
                             <p className="text-xs text-muted-foreground font-medium uppercase">Current Balance</p>
-                            <p className="text-xl font-bold">{formatCurrency(balance)}</p>
+                            <p className="text-xl font-bold">{format(balance)}</p>
                         </div>
                         {!account.is_system && (
                             <Button asChild variant="outline" size="sm">
@@ -106,10 +107,10 @@ export default function AccountShow({ account, transactions, balance }: Props) {
                                             </Link>
                                         </td>
                                         <td className="py-3 px-4 text-right text-sm">
-                                            {line.debit > 0 ? formatCurrency(line.debit) : '—'}
+                                            {line.debit > 0 ? format(line.debit) : '—'}
                                         </td>
                                         <td className="py-3 px-4 text-right text-sm">
-                                            {line.credit > 0 ? formatCurrency(line.credit) : '—'}
+                                            {line.credit > 0 ? format(line.credit) : '—'}
                                         </td>
                                     </tr>
                                 ))

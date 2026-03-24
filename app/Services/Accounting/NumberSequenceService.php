@@ -42,6 +42,8 @@ class NumberSequenceService
             'quote' => 'QT',
             'credit_note' => 'CN',
             'purchase_invoice' => 'PI',
+            'debit_note' => 'DN',
+            'purchase_order' => 'PO',
             'payment', 'receipt' => 'PAY',
             'journal_entry' => 'JE',
             default => strtoupper(substr($type, 0, 3)),

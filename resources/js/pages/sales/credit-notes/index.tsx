@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -18,16 +19,13 @@ const statusColors: Record<string, string> = {
     void: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
 };
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
-}
-
 type Props = {
     creditNotes: PaginatedData<Invoice>;
     filters: { search?: string; status?: string };
 };
 
 export default function CreditNoteIndex({ creditNotes, filters }: Props) {
+    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -111,7 +109,7 @@ export default function CreditNoteIndex({ creditNotes, filters }: Props) {
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-right font-medium text-sm text-red-600 dark:text-red-400">
-                                            ({formatCurrency(note.total)})
+                                            ({format(note.total)})
                                         </td>
                                     </tr>
                                 ))

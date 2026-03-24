@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 
@@ -44,6 +44,7 @@ type Props = {
 };
 
 export default function QuoteForm({ customers, accounts, taxCodes, quote }: Props) {
+    const { format } = useCurrency();
     const isEditing = !!quote;
     const today = new Date().toISOString().split('T')[0];
 
@@ -266,7 +267,7 @@ return;
                                                         </Select>
                                                     </td>
                                                     <td className="py-2 pr-2 text-right text-sm font-medium pt-4">
-                                                        {formatCurrency(calc.total)}
+                                                        {format(calc.total)}
                                                     </td>
                                                     <td className="py-2 pt-3">
                                                         <Button
@@ -292,17 +293,17 @@ return;
                                 <div className="w-64 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Subtotal</span>
-                                        <span className="font-medium">{formatCurrency(totals.subtotal)}</span>
+                                        <span className="font-medium">{format(totals.subtotal)}</span>
                                     </div>
                                     {totals.tax > 0 && (
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Tax</span>
-                                            <span className="font-medium">{formatCurrency(totals.tax)}</span>
+                                            <span className="font-medium">{format(totals.tax)}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                                         <span>Total</span>
-                                        <span>{formatCurrency(totals.total)}</span>
+                                        <span>{format(totals.total)}</span>
                                     </div>
                                 </div>
                             </div>

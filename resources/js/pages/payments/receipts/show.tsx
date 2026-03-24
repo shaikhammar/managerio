@@ -3,7 +3,7 @@ import { ArrowLeft, Landmark, User, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { Payment, BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
 };
 
 export default function ReceiptShow({ receipt }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Receipts', href: '/payments/receipts' },
@@ -40,7 +41,7 @@ export default function ReceiptShow({ receipt }: Props) {
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-muted-foreground font-medium uppercase">Amount Received</p>
-                        <p className="text-3xl font-bold text-emerald-600">{formatCurrency(receipt.amount)}</p>
+                        <p className="text-3xl font-bold text-emerald-600">{format(receipt.amount)}</p>
                     </div>
                 </div>
 
@@ -108,7 +109,7 @@ export default function ReceiptShow({ receipt }: Props) {
                                                 </Link>
                                             </td>
                                             <td className="py-3 px-4 text-right text-sm font-medium">
-                                                {formatCurrency(alloc.amount)}
+                                                {format(alloc.amount)}
                                             </td>
                                         </tr>
                                     ))}

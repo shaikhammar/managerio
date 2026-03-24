@@ -10,7 +10,9 @@ use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Payments\ReceiptController;
 use App\Http\Controllers\Payments\SupplierPaymentController;
+use App\Http\Controllers\Purchases\DebitNoteController;
 use App\Http\Controllers\Purchases\PurchaseInvoiceController;
+use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\SupplierController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CreditNoteController;
@@ -59,15 +61,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('customers', CustomerController::class);
             Route::resource('quotes', QuoteController::class);
             Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+            Route::get('quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->name('quotes.pdf');
             Route::resource('invoices', InvoiceController::class);
             Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+            Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
             Route::resource('credit-notes', CreditNoteController::class);
+            Route::get('credit-notes/{credit_note}/pdf', [CreditNoteController::class, 'pdf'])->name('credit-notes.pdf');
         });
 
         // ── Purchases ──────────────────────────────────────
         Route::prefix('purchases')->name('purchases.')->group(function () {
             Route::resource('suppliers', SupplierController::class);
             Route::resource('invoices', PurchaseInvoiceController::class)->names('purchase-invoices');
+            Route::resource('debit-notes', DebitNoteController::class);
+            Route::get('debit-notes/{debit_note}/pdf', [DebitNoteController::class, 'pdf'])->name('debit-notes.pdf');
+            Route::resource('purchase-orders', PurchaseOrderController::class);
+            Route::post('purchase-orders/{purchase_order}/send', [PurchaseOrderController::class, 'send'])->name('purchase-orders.send');
+            Route::post('purchase-orders/{purchase_order}/convert', [PurchaseOrderController::class, 'convert'])->name('purchase-orders.convert');
+            Route::get('purchase-orders/{purchase_order}/pdf', [PurchaseOrderController::class, 'pdf'])->name('purchase-orders.pdf');
         });
 
         // ── Payments ───────────────────────────────────────
@@ -78,7 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // ── Banking ────────────────────────────────────────
         Route::prefix('banking')->name('banking.')->group(function () {
-            Route::resource('accounts', BankAccountController::class)->only(['index', 'show']);
+            Route::resource('accounts', BankAccountController::class)->only(['index', 'create', 'store', 'show']);
             Route::resource('transactions', BankTransactionController::class);
             Route::resource('reconciliations', BankReconciliationController::class);
         });
@@ -92,6 +103,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/general-ledger', [ReportController::class, 'generalLedger'])->name('general-ledger');
             Route::get('/aged-receivables', [ReportController::class, 'agedReceivables'])->name('aged-receivables');
             Route::get('/aged-payables', [ReportController::class, 'agedPayables'])->name('aged-payables');
+            Route::get('/account-transactions', [ReportController::class, 'accountTransactions'])->name('account-transactions');
+            Route::get('/cash-flow', [ReportController::class, 'cashFlow'])->name('cash-flow');
+            Route::get('/equity-statement', [ReportController::class, 'equityStatement'])->name('equity-statement');
             Route::post('/generate', [ReportController::class, 'generate'])->name('generate');
             Route::get('/status', [ReportController::class, 'status'])->name('status');
         });

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { Account, BankTransaction, BreadcrumbItem, PaginatedData } from '@/types';
 
 type Props = {
@@ -20,6 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function BankTransactionIndex({ transactions, filters, bankAccounts }: Props) {
+    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -123,7 +124,7 @@ export default function BankTransactionIndex({ transactions, filters, bankAccoun
                                             )}
                                         </td>
                                         <td className={`py-3 px-4 text-right font-medium text-sm ${tx.amount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                            {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
+                                            {tx.amount > 0 ? '+' : ''}{format(tx.amount)}
                                         </td>
                                     </tr>
                                 ))

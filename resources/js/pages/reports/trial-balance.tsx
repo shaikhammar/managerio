@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, TrialBalanceEntry } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -13,16 +14,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Trial Balance', href: '/reports/trial-balance' },
 ];
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
-}
-
 type Props = {
     trialBalance: TrialBalanceEntry[];
     filters: { as_of_date: string };
 };
 
 export default function TrialBalance({ trialBalance, filters }: Props) {
+    const { format } = useCurrency();
     const [asOfDate, setAsOfDate] = useState(filters.as_of_date);
     const totalDebit = trialBalance.reduce((sum, e) => sum + e.debit, 0);
     const totalCredit = trialBalance.reduce((sum, e) => sum + e.credit, 0);
@@ -68,8 +66,8 @@ export default function TrialBalance({ trialBalance, filters }: Props) {
                                         <tr key={entry.account.id} className="border-b last:border-0">
                                             <td className="py-2 px-4 font-mono text-sm text-muted-foreground">{entry.account.code}</td>
                                             <td className="py-2 px-4 text-sm">{entry.account.name}</td>
-                                            <td className="py-2 px-4 text-right text-sm font-medium">{entry.debit > 0 ? formatCurrency(entry.debit) : ''}</td>
-                                            <td className="py-2 px-4 text-right text-sm font-medium">{entry.credit > 0 ? formatCurrency(entry.credit) : ''}</td>
+                                            <td className="py-2 px-4 text-right text-sm font-medium">{entry.debit > 0 ? format(entry.debit) : ''}</td>
+                                            <td className="py-2 px-4 text-right text-sm font-medium">{entry.credit > 0 ? format(entry.credit) : ''}</td>
                                         </tr>
                                     ))
                                 )}
@@ -77,14 +75,14 @@ export default function TrialBalance({ trialBalance, filters }: Props) {
                             <tfoot>
                                 <tr className="border-t-2 font-bold">
                                     <td colSpan={2} className="py-3 px-4">Totals</td>
-                                    <td className="py-3 px-4 text-right">{formatCurrency(totalDebit)}</td>
-                                    <td className="py-3 px-4 text-right">{formatCurrency(totalCredit)}</td>
+                                    <td className="py-3 px-4 text-right">{format(totalDebit)}</td>
+                                    <td className="py-3 px-4 text-right">{format(totalCredit)}</td>
                                 </tr>
                             </tfoot>
                         </table>
                         {totalDebit !== totalCredit && (
                             <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400">
-                                ⚠️ Trial balance does not balance! Difference: {formatCurrency(Math.abs(totalDebit - totalCredit))}
+                                ⚠️ Trial balance does not balance! Difference: {format(Math.abs(totalDebit - totalCredit))}
                             </div>
                         )}
                     </CardContent>

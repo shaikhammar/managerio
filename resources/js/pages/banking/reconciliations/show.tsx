@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BankReconciliation, BankTransaction, BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -13,6 +13,7 @@ type Props = {
 };
 
 export default function ReconciliationShow({ reconciliation, transactions }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Bank Reconciliations', href: '/banking/reconciliations' },
@@ -83,7 +84,7 @@ return;
                             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Statement Balance</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold">{formatCurrency(reconciliation.statement_balance)}</p>
+                            <p className="text-2xl font-bold">{format(reconciliation.statement_balance)}</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -91,7 +92,7 @@ return;
                             <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Reconciled Balance</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold">{formatCurrency(parseFloat(reconciliation.reconciled_balance.toString()) + reconciledSum)}</p>
+                            <p className="text-2xl font-bold">{format(parseFloat(reconciliation.reconciled_balance.toString()) + reconciledSum)}</p>
                         </CardContent>
                     </Card>
                     <Card className={isBalanced ? 'bg-emerald-50 dark:bg-emerald-900/10' : 'bg-red-50 dark:bg-red-900/10'}>
@@ -101,7 +102,7 @@ return;
                         <CardContent>
                             <div className="flex items-center justify-between">
                                 <p className={`text-2xl font-bold ${isBalanced ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    {formatCurrency(currentDifference)}
+                                    {format(currentDifference)}
                                 </p>
                                 {isBalanced ? (
                                     <CheckCircle2 className="size-6 text-emerald-600" />
@@ -154,7 +155,7 @@ return;
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{tx.date}</td>
                                         <td className="py-3 px-4 text-sm font-medium">{tx.description}</td>
                                         <td className={`py-3 px-4 text-right font-medium text-sm ${tx.amount > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                            {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
+                                            {tx.amount > 0 ? '+' : ''}{format(tx.amount)}
                                         </td>
                                     </tr>
                                 ))

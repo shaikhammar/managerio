@@ -1,8 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import { Landmark } from 'lucide-react';
+import { Landmark, Plus } from 'lucide-react';
+import BankAccountController from '@/actions/App/Http/Controllers/Banking/BankAccountController';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Account } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export default function BankAccountIndex({ bankAccounts }: Props) {
+    const { format } = useCurrency();
     const totalBalance = bankAccounts.reduce((sum, a) => sum + a.balance, 0);
 
     return (
@@ -27,9 +29,15 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Bank Accounts</h1>
                         <p className="text-muted-foreground text-sm">
-                            Total balance: <span className={`font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(totalBalance)}</span>
+                            Total balance: <span className={`font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{format(totalBalance)}</span>
                         </p>
                     </div>
+                    <Button asChild>
+                        <Link href={BankAccountController.create.url()}>
+                            <Plus className="mr-2 size-4" />
+                            Add Bank Account
+                        </Link>
+                    </Button>
                 </div>
 
                 {bankAccounts.length === 0 ? (
@@ -37,10 +45,10 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                         <Landmark className="size-12 mb-4 text-muted-foreground/30" />
                         <h3 className="text-lg font-semibold">No bank accounts</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                            Create a bank account in Chart of Accounts to track balances
+                            Add a bank account to start tracking your balances
                         </p>
                         <Button className="mt-4" asChild>
-                            <Link href="/accounting/accounts/create">Create Account</Link>
+                            <Link href={BankAccountController.create.url()}>Add Bank Account</Link>
                         </Button>
                     </div>
                 ) : (
@@ -58,7 +66,7 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                                         </div>
                                     </div>
                                     <p className={`text-2xl font-bold ${account.balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                        {formatCurrency(account.balance)}
+                                        {format(account.balance)}
                                     </p>
                                 </div>
                             </Link>

@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, FileText, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { Account, BankTransaction, BreadcrumbItem, PaginatedData } from '@/types';
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
 };
 
 export default function BankAccountShow({ account, balance, transactions }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Bank Accounts', href: '/banking/accounts' },
@@ -40,7 +41,7 @@ export default function BankAccountShow({ account, balance, transactions }: Prop
                     <div className="text-right">
                         <p className="text-sm text-muted-foreground font-medium">Ledger Balance</p>
                         <p className={`text-3xl font-bold ${balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                            {formatCurrency(balance)}
+                            {format(balance)}
                         </p>
                     </div>
                 </div>
@@ -94,7 +95,7 @@ export default function BankAccountShow({ account, balance, transactions }: Prop
                                             )}
                                         </td>
                                         <td className={`py-3 px-4 text-right font-medium text-sm ${tx.amount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                                            {tx.amount > 0 ? '+' : ''}{formatCurrency(tx.amount)}
+                                            {tx.amount > 0 ? '+' : ''}{format(tx.amount)}
                                         </td>
                                     </tr>
                                 ))

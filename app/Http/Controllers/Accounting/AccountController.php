@@ -11,18 +11,49 @@ use App\Models\JournalEntryLine;
 use App\Services\Accounting\LedgerService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class AccountController extends Controller
 {
     public function index(Request $request)
     {
+        $business = $request->user()->currentBusiness();
+
         $accounts = Account::query()
             ->with('parent')
             ->when($request->type, fn ($q, $type) => $q->where('type', $type))
             ->when($request->search, fn ($q, $s) => $q->where('name', 'ilike', "%{$s}%")->orWhere('code', 'ilike', "%{$s}%"))
             ->orderBy('code')
             ->paginate(50);
+
+        // Aggregate debit/credit sums in a single query for all accounts on this page
+        $accountIds = $accounts->pluck('id');
+        $rawBalances = DB::table('journal_entry_lines')
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
+            ->whereIn('journal_entry_lines.account_id', $accountIds)
+            ->where('journal_entries.is_posted', true)
+            ->where('journal_entries.business_id', $business->id)
+            ->groupBy('journal_entry_lines.account_id')
+            ->select(
+                'journal_entry_lines.account_id',
+                DB::raw('SUM(debit) as total_debit'),
+                DB::raw('SUM(credit) as total_credit'),
+            )
+            ->get()
+            ->keyBy('account_id');
+
+        // Attach balance to each account using its normal balance side
+        $accounts->getCollection()->transform(function (Account $account) use ($rawBalances) {
+            $row = $rawBalances->get($account->id);
+            $debit = $row ? (float) $row->total_debit : 0.0;
+            $credit = $row ? (float) $row->total_credit : 0.0;
+            $account->balance = $account->type->normalBalance() === 'debit'
+                ? $debit - $credit
+                : $credit - $debit;
+
+            return $account;
+        });
 
         return Inertia::render('accounting/accounts/index', [
             'accounts' => $accounts,

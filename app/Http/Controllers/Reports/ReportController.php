@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\GenerateReport;
+use App\Models\Account;
 use App\Services\Accounting\LedgerService;
 use App\Services\Accounting\ReportService;
 use Carbon\Carbon;
@@ -122,6 +123,66 @@ class ReportController extends Controller
         return Inertia::render('reports/aged-receivables', [
             'report' => $report,
             'filters' => ['as_of_date' => $asOfDate->toDateString()],
+        ]);
+    }
+
+    public function accountTransactions(Request $request): Response
+    {
+        $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()));
+        $endDate = Carbon::parse($request->input('end_date', now()->endOfMonth()->toDateString()));
+        $business = $request->user()->currentBusiness();
+
+        $accounts = Account::withoutGlobalScopes()
+            ->where('business_id', $business->id)
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get(['id', 'code', 'name', 'type']);
+
+        $report = null;
+        $selectedAccountId = $request->input('account_id');
+
+        if ($selectedAccountId) {
+            $account = Account::withoutGlobalScopes()
+                ->where('business_id', $business->id)
+                ->findOrFail($selectedAccountId);
+
+            $report = $this->reportService->accountTransactions($business, $account, $startDate, $endDate);
+        }
+
+        return Inertia::render('reports/account-transactions', [
+            'accounts' => $accounts,
+            'report' => $report,
+            'filters' => [
+                'account_id' => $selectedAccountId,
+                'start_date' => $startDate->toDateString(),
+                'end_date' => $endDate->toDateString(),
+            ],
+        ]);
+    }
+
+    public function cashFlow(Request $request): Response
+    {
+        $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()));
+        $endDate = Carbon::parse($request->input('end_date', now()->endOfMonth()->toDateString()));
+        $business = $request->user()->currentBusiness();
+        $report = $this->reportService->cashFlow($business, $startDate, $endDate);
+
+        return Inertia::render('reports/cash-flow', [
+            'report' => $report,
+            'filters' => ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()],
+        ]);
+    }
+
+    public function equityStatement(Request $request): Response
+    {
+        $startDate = Carbon::parse($request->input('start_date', now()->startOfYear()->toDateString()));
+        $endDate = Carbon::parse($request->input('end_date', now()->toDateString()));
+        $business = $request->user()->currentBusiness();
+        $report = $this->reportService->equityStatement($business, $startDate, $endDate);
+
+        return Inertia::render('reports/equity-statement', [
+            'report' => $report,
+            'filters' => ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()],
         ]);
     }
 

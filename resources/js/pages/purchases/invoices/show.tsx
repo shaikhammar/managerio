@@ -1,9 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, CreditCard } from 'lucide-react';
+import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { invoice: Invoice };
@@ -18,10 +19,11 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PurchaseInvoiceShow({ invoice }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Purchase Invoices', href: '/purchases/purchase-invoices' },
-        { title: invoice.number, href: `/purchases/purchase-invoices/${invoice.id}` },
+        { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
+        { title: invoice.number, href: PurchaseInvoiceController.show.url(invoice) },
     ];
 
     const canEdit = invoice.status === 'draft';
@@ -34,7 +36,7 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href="/purchases/purchase-invoices"><ArrowLeft className="size-4" /></Link>
+                            <Link href={PurchaseInvoiceController.index.url()}><ArrowLeft className="size-4" /></Link>
                         </Button>
                         <div>
                             <div className="flex items-center gap-3">
@@ -52,7 +54,7 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                     <div className="flex gap-2">
                         {canEdit && (
                             <Button variant="outline" asChild>
-                                <Link href={`/purchases/purchase-invoices/${invoice.id}/edit`}>Edit</Link>
+                                <Link href={PurchaseInvoiceController.edit.url(invoice)}>Edit</Link>
                             </Button>
                         )}
                         {invoice.balance_due > 0 && invoice.status !== 'void' && (
@@ -90,10 +92,10 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -103,27 +105,27 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{formatCurrency(invoice.subtotal)}</span>
+                                    <span>{format(invoice.subtotal)}</span>
                                 </div>
                                 {invoice.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{formatCurrency(invoice.tax_amount)}</span>
+                                        <span>{format(invoice.tax_amount)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{formatCurrency(invoice.total)}</span>
+                                    <span>{format(invoice.total)}</span>
                                 </div>
                                 {invoice.amount_paid > 0 && (
                                     <>
                                         <div className="flex justify-between text-sm text-red-600">
                                             <span>Paid</span>
-                                            <span>-{formatCurrency(invoice.amount_paid)}</span>
+                                            <span>-{format(invoice.amount_paid)}</span>
                                         </div>
                                         <div className="flex justify-between font-bold border-t pt-1 text-amber-600">
                                             <span>Balance Due</span>
-                                            <span>{formatCurrency(invoice.balance_due)}</span>
+                                            <span>{format(invoice.balance_due)}</span>
                                         </div>
                                     </>
                                 )}

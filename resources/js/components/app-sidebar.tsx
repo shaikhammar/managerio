@@ -49,7 +49,9 @@ const navGroups: NavGroup[] = [
         icon: ShoppingCart,
         items: [
             { title: 'Suppliers', href: '/purchases/suppliers' },
+            { title: 'Purchase Orders', href: '/purchases/purchase-orders' },
             { title: 'Purchase Invoices', href: '/purchases/invoices' },
+            { title: 'Debit Notes', href: '/purchases/debit-notes' },
         ],
     },
     {
@@ -85,8 +87,10 @@ const navGroups: NavGroup[] = [
             { title: 'All Reports', href: '/reports' },
             { title: 'Profit & Loss', href: '/reports/profit-and-loss' },
             { title: 'Balance Sheet', href: '/reports/balance-sheet' },
+            { title: 'Cash Flow', href: '/reports/cash-flow' },
             { title: 'Trial Balance', href: '/reports/trial-balance' },
             { title: 'Aged Receivables', href: '/reports/aged-receivables' },
+            { title: 'Account Transactions', href: '/reports/account-transactions' },
         ],
     },
 ];

@@ -1,9 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Ban, FileCheck } from 'lucide-react';
+import { ArrowLeft, Ban, Download, FileCheck } from 'lucide-react';
+import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { quote: Invoice };
@@ -15,6 +16,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default function QuoteShow({ quote }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Quotes', href: '/sales/quotes' },
@@ -54,6 +56,12 @@ export default function QuoteShow({ quote }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={QuoteController.pdf.url(quote)} target="_blank" rel="noreferrer">
+                                <Download className="mr-2 size-4" />
+                                PDF
+                            </a>
+                        </Button>
                         {isDraft && (
                             <>
                                 <Button variant="outline" asChild>
@@ -98,10 +106,10 @@ export default function QuoteShow({ quote }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -111,17 +119,17 @@ export default function QuoteShow({ quote }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{formatCurrency(quote.subtotal)}</span>
+                                    <span>{format(quote.subtotal)}</span>
                                 </div>
                                 {quote.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{formatCurrency(quote.tax_amount)}</span>
+                                        <span>{format(quote.tax_amount)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{formatCurrency(quote.total)}</span>
+                                    <span>{format(quote.total)}</span>
                                 </div>
                             </div>
                         </div>

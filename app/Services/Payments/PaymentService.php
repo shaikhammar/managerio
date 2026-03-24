@@ -182,7 +182,7 @@ class PaymentService
         foreach ($allocations as $allocation) {
             $invoice = Invoice::withoutGlobalScopes()->findOrFail($allocation['invoice_id']);
 
-            if ((float) $allocation['amount'] > (float) $invoice->balance_due) {
+            if (bccomp((string) $allocation['amount'], (string) $invoice->balance_due, 2) > 0) {
                 throw new DomainException(
                     "Allocation amount ({$allocation['amount']}) exceeds invoice balance due ({$invoice->balance_due})."
                 );

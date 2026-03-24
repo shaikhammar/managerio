@@ -9,8 +9,10 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\QuoteService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class QuoteController extends Controller
 {
@@ -95,6 +97,18 @@ class QuoteController extends Controller
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', "Quote #{$quote->number} converted to Invoice #{$invoice->number}.");
+    }
+
+    public function pdf(Invoice $quote): Response
+    {
+        $this->authorize('view', $quote);
+
+        $quote->load(['lines.account', 'lines.taxCode', 'contact']);
+        $business = $quote->business;
+
+        $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $quote, 'business' => $business]);
+
+        return $pdf->download("{$quote->number}.pdf");
     }
 
     public function destroy(Invoice $quote)

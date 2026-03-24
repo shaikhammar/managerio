@@ -1,15 +1,17 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, FileText } from 'lucide-react';
 import { useState } from 'react';
+import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Purchase Invoices', href: '/purchases/purchase-invoices' },
+    { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
 ];
 
 const statusColors: Record<string, string> = {
@@ -21,25 +23,22 @@ const statusColors: Record<string, string> = {
     void: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
 };
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
-}
-
 type Props = {
     invoices: PaginatedData<Invoice>;
     filters: { search?: string; status?: string };
 };
 
 export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
+    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
         e.preventDefault();
-        router.get('/purchases/purchase-invoices', { search, status: filters.status }, { preserveState: true });
+        router.get(PurchaseInvoiceController.index.url(), { search, status: filters.status }, { preserveState: true });
     }
 
     function handleStatusChange(status: string) {
-        router.get('/purchases/purchase-invoices', { search: filters.search, status: status === 'all' ? undefined : status }, { preserveState: true });
+        router.get(PurchaseInvoiceController.index.url(), { search: filters.search, status: status === 'all' ? undefined : status }, { preserveState: true });
     }
 
     return (
@@ -52,7 +51,7 @@ export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
                         <p className="text-muted-foreground text-sm">Manage bills and purchase invoices</p>
                     </div>
                     <Button asChild>
-                        <Link href="/purchases/purchase-invoices/create">
+                        <Link href={PurchaseInvoiceController.create.url()}>
                             <Plus className="mr-2 size-4" />
                             New Purchase Invoice
                         </Link>
@@ -107,7 +106,7 @@ export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
                                 invoices.data.map((invoice) => (
                                     <tr key={invoice.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                                         <td className="py-3 px-4">
-                                            <Link href={`/purchases/purchase-invoices/${invoice.id}`} className="font-mono text-sm font-medium hover:underline">
+                                            <Link href={PurchaseInvoiceController.show.url(invoice)} className="font-mono text-sm font-medium hover:underline">
                                                 {invoice.number}
                                             </Link>
                                         </td>
@@ -119,10 +118,10 @@ export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
                                                 {invoice.status.replace('_', ' ')}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 text-right font-medium text-sm">{formatCurrency(invoice.total)}</td>
+                                        <td className="py-3 px-4 text-right font-medium text-sm">{format(invoice.total)}</td>
                                         <td className="py-3 px-4 text-right text-sm">
                                             <span className={invoice.balance_due > 0 ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-muted-foreground'}>
-                                                {formatCurrency(invoice.balance_due)}
+                                                {format(invoice.balance_due)}
                                             </span>
                                         </td>
                                     </tr>

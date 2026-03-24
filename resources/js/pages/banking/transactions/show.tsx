@@ -3,7 +3,7 @@ import { ArrowLeft, Pencil, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { Account, BankTransaction, BreadcrumbItem, JournalEntry, Payment } from '@/types';
 
 type TransactionWithRelations = BankTransaction & {
@@ -17,6 +17,7 @@ type TransactionWithRelations = BankTransaction & {
 type Props = { transaction: TransactionWithRelations };
 
 export default function BankTransactionShow({ transaction }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Bank Transactions', href: '/banking/transactions' },
@@ -64,7 +65,7 @@ export default function BankTransactionShow({ transaction }: Props) {
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Amount</span>
                             <span className={`font-bold text-lg ${transaction.amount >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                {transaction.amount >= 0 ? '+' : ''}{formatCurrency(transaction.amount)}
+                                {transaction.amount >= 0 ? '+' : ''}{format(transaction.amount)}
                             </span>
                         </div>
                         <div className="flex justify-between">
@@ -127,8 +128,8 @@ export default function BankTransactionShow({ transaction }: Props) {
                                         <tr key={line.id} className="border-b last:border-0">
                                             <td className="py-2">{line.account?.code} · {line.account?.name}</td>
                                             <td className="py-2 text-muted-foreground">{line.description}</td>
-                                            <td className="py-2 text-right">{line.debit > 0 ? formatCurrency(line.debit) : '—'}</td>
-                                            <td className="py-2 text-right">{line.credit > 0 ? formatCurrency(line.credit) : '—'}</td>
+                                            <td className="py-2 text-right">{line.debit > 0 ? format(line.debit) : '—'}</td>
+                                            <td className="py-2 text-right">{line.credit > 0 ? format(line.credit) : '—'}</td>
                                         </tr>
                                     ))}
                                 </tbody>

@@ -33,6 +33,7 @@ class Invoice extends Model
         'currency_code',
         'exchange_rate',
         'journal_entry_id',
+        'purchase_order_id',
     ];
 
     protected function casts(): array
@@ -100,6 +101,16 @@ class Invoice extends Model
         return $query->where('type', InvoiceType::PURCHASE_INVOICE);
     }
 
+    public function scopeDebitNotes($query)
+    {
+        return $query->where('type', InvoiceType::DEBIT_NOTE);
+    }
+
+    public function scopePurchaseOrders($query)
+    {
+        return $query->where('type', InvoiceType::PURCHASE_ORDER);
+    }
+
     public function scopeUnpaid($query)
     {
         return $query->where('balance_due', '>', 0)
@@ -138,5 +149,25 @@ class Invoice extends Model
     public function isPurchaseInvoice(): bool
     {
         return $this->type === InvoiceType::PURCHASE_INVOICE;
+    }
+
+    public function isDebitNote(): bool
+    {
+        return $this->type === InvoiceType::DEBIT_NOTE;
+    }
+
+    public function isPurchaseOrder(): bool
+    {
+        return $this->type === InvoiceType::PURCHASE_ORDER;
+    }
+
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, 'purchase_order_id');
+    }
+
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class, 'purchase_order_id');
     }
 }
