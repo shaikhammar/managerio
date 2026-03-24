@@ -46,6 +46,114 @@ class InvoiceService
         return $this->createInvoice($business, $data, InvoiceType::CREDIT_NOTE);
     }
 
+    /**
+     * Create a new debit note with line items and post journal entries.
+     */
+    public function createDebitNote(Business $business, array $data): Invoice
+    {
+        return $this->createInvoice($business, $data, InvoiceType::DEBIT_NOTE);
+    }
+
+    /**
+     * Create a new purchase order (no journal entry — commitment document only).
+     */
+    public function createPurchaseOrder(Business $business, array $data): Invoice
+    {
+        return DB::transaction(function () use ($business, $data) {
+            $purchaseOrder = Invoice::withoutGlobalScopes()->create([
+                'business_id' => $business->id,
+                'contact_id' => $data['contact_id'],
+                'type' => InvoiceType::PURCHASE_ORDER,
+                'number' => $this->numberSequence->getNext($business, 'purchase_order'),
+                'date' => $data['date'],
+                'due_date' => $data['due_date'] ?? null,
+                'reference' => $data['reference'] ?? null,
+                'status' => InvoiceStatus::DRAFT,
+                'currency_code' => $business->currency_code,
+                'subtotal' => 0,
+                'tax_amount' => 0,
+                'total' => 0,
+                'amount_paid' => 0,
+                'balance_due' => 0,
+                'notes' => $data['notes'] ?? null,
+                'terms' => $data['terms'] ?? null,
+            ]);
+
+            [$subtotal, $taxTotal] = $this->createLines($purchaseOrder, $data['lines']);
+
+            $total = round($subtotal + $taxTotal, 2);
+
+            $purchaseOrder->update([
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxTotal,
+                'total' => $total,
+                'balance_due' => $total,
+            ]);
+
+            return $purchaseOrder->fresh(['lines', 'contact']);
+        });
+    }
+
+    /**
+     * Convert a purchase order to a purchase invoice, posting journal entries.
+     */
+    public function convertPurchaseOrderToInvoice(Invoice $purchaseOrder): Invoice
+    {
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            throw new DomainException('Only purchase orders can be converted to purchase invoices.');
+        }
+
+        if ($purchaseOrder->status === InvoiceStatus::INVOICED) {
+            throw new DomainException('This purchase order has already been invoiced.');
+        }
+
+        return DB::transaction(function () use ($purchaseOrder) {
+            $business = $purchaseOrder->business;
+
+            $linesData = $purchaseOrder->lines->map(fn ($line) => [
+                'account_id' => $line->account_id,
+                'description' => $line->description,
+                'quantity' => $line->quantity,
+                'unit_price' => $line->unit_price,
+                'discount_percent' => $line->discount_percent,
+                'tax_code_id' => $line->tax_code_id,
+            ])->all();
+
+            $invoiceData = [
+                'contact_id' => $purchaseOrder->contact_id,
+                'date' => now()->format('Y-m-d'),
+                'due_date' => $purchaseOrder->due_date?->format('Y-m-d'),
+                'reference' => $purchaseOrder->reference ?? $purchaseOrder->number,
+                'notes' => $purchaseOrder->notes,
+                'terms' => $purchaseOrder->terms,
+                'lines' => $linesData,
+            ];
+
+            $purchaseInvoice = $this->createPurchaseInvoice($business, $invoiceData);
+
+            $purchaseInvoice->update(['purchase_order_id' => $purchaseOrder->id]);
+            $purchaseOrder->update(['status' => InvoiceStatus::INVOICED]);
+
+            return $purchaseInvoice;
+        });
+    }
+
+    /**
+     * Mark a purchase order as sent.
+     */
+    public function sendPurchaseOrder(Invoice $purchaseOrder): void
+    {
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            throw new DomainException('Only purchase orders can be marked as sent.');
+        }
+
+        if ($purchaseOrder->status !== InvoiceStatus::DRAFT) {
+            throw new DomainException('Only draft purchase orders can be marked as sent.');
+        }
+
+        $purchaseOrder->update(['status' => InvoiceStatus::SENT]);
+    }
+
     private function createInvoice(Business $business, array $data, InvoiceType $type): Invoice
     {
         return DB::transaction(function () use ($business, $data, $type) {
@@ -53,6 +161,7 @@ class InvoiceService
                 InvoiceType::INVOICE => 'invoice',
                 InvoiceType::PURCHASE_INVOICE => 'purchase_invoice',
                 InvoiceType::CREDIT_NOTE => 'credit_note',
+                InvoiceType::DEBIT_NOTE => 'debit_note',
                 default => 'invoice',
             };
 
@@ -90,6 +199,7 @@ class InvoiceService
                 InvoiceType::INVOICE => $this->postInvoice($invoice),
                 InvoiceType::PURCHASE_INVOICE => $this->postPurchaseInvoice($invoice),
                 InvoiceType::CREDIT_NOTE => $this->postCreditNote($invoice),
+                InvoiceType::DEBIT_NOTE => $this->postDebitNote($invoice),
                 default => null,
             };
 
@@ -317,6 +427,72 @@ class InvoiceService
             lines: $lines,
             description: "Credit Note {$invoice->number}",
             sourceType: 'credit_note',
+            sourceId: $invoice->id,
+        );
+
+        $invoice->update([
+            'journal_entry_id' => $journalEntry->id,
+            'status' => InvoiceStatus::SENT,
+        ]);
+
+        InvoicePosted::dispatch($invoice->fresh());
+    }
+
+    /**
+     * Post a debit note — generates the accounting journal entry.
+     * Purchase-side equivalent of a credit note: reduces AP and reverses the expense.
+     */
+    public function postDebitNote(Invoice $invoice): void
+    {
+        $business = $invoice->business;
+        $apAccount = Account::withoutGlobalScopes()
+            ->where('business_id', $business->id)
+            ->where('sub_type', AccountSubType::ACCOUNTS_PAYABLE)
+            ->firstOrFail();
+
+        $lines = [];
+
+        // DR: Accounts Payable (total including tax) - Reducing what we owe the supplier
+        $lines[] = [
+            'account_id' => $apAccount->id,
+            'contact_id' => $invoice->contact_id,
+            'debit' => (float) $invoice->total,
+            'credit' => 0,
+            'description' => "Debit Note {$invoice->number}",
+        ];
+
+        // CR: Expense accounts (per line) - Reducing expense
+        foreach ($invoice->lines as $invoiceLine) {
+            $lines[] = [
+                'account_id' => $invoiceLine->account_id,
+                'debit' => 0,
+                'credit' => (float) $invoiceLine->line_total,
+                'description' => $invoiceLine->description,
+            ];
+
+            // CR: Tax Receivable (if applicable) - Reducing tax receivable
+            if ($invoiceLine->tax_amount > 0) {
+                $taxAccount = Account::withoutGlobalScopes()
+                    ->where('business_id', $business->id)
+                    ->where('sub_type', AccountSubType::TAX_RECEIVABLE)
+                    ->firstOrFail();
+
+                $lines[] = [
+                    'account_id' => $taxAccount->id,
+                    'debit' => 0,
+                    'credit' => (float) $invoiceLine->tax_amount,
+                    'description' => "Tax on {$invoiceLine->description}",
+                    'tax_code_id' => $invoiceLine->tax_code_id,
+                ];
+            }
+        }
+
+        $journalEntry = $this->journalService->createAndPost(
+            business: $business,
+            date: $invoice->date,
+            lines: $lines,
+            description: "Debit Note {$invoice->number}",
+            sourceType: 'debit_note',
             sourceId: $invoice->id,
         );
 

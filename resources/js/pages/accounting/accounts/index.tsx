@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Account, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export default function AccountIndex({ accounts, filters, accountTypes }: Props) {
+    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -95,13 +97,14 @@ export default function AccountIndex({ accounts, filters, accountTypes }: Props)
                                 <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Name</th>
                                 <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Type</th>
                                 <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Status</th>
+                                <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Balance</th>
                                 <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {accounts.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="py-12 text-center text-muted-foreground">
+                                    <td colSpan={6} className="py-12 text-center text-muted-foreground">
                                         No accounts found
                                     </td>
                                 </tr>
@@ -126,6 +129,12 @@ export default function AccountIndex({ accounts, filters, accountTypes }: Props)
                                             <span className={`text-xs ${account.is_active ? 'text-emerald-600' : 'text-muted-foreground'}`}>
                                                 {account.is_active ? 'Active' : 'Inactive'}
                                             </span>
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-mono text-sm">
+                                            {account.balance !== undefined && account.balance !== 0
+                                                ? format(account.balance)
+                                                : <span className="text-muted-foreground">—</span>
+                                            }
                                         </td>
                                         <td className="py-3 px-4 text-right">
                                             {!account.is_system && (

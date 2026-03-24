@@ -60,6 +60,7 @@ export type Account = {
     parent_id: number | null;
     parent?: Account;
     children?: Account[];
+    balance?: number;
     created_at: string;
     updated_at: string;
 };
@@ -143,8 +144,8 @@ export type JournalEntryLine = {
 };
 
 // ── Invoice ──────────────────────────────────────────────
-export type InvoiceType = 'quote' | 'invoice' | 'credit_note' | 'purchase_invoice';
-export type InvoiceStatus = 'draft' | 'sent' | 'approved' | 'paid' | 'partially_paid' | 'overdue' | 'void' | 'cancelled';
+export type InvoiceType = 'quote' | 'invoice' | 'credit_note' | 'purchase_invoice' | 'debit_note' | 'purchase_order';
+export type InvoiceStatus = 'draft' | 'sent' | 'approved' | 'paid' | 'partially_paid' | 'overdue' | 'void' | 'cancelled' | 'partially_received' | 'received' | 'invoiced';
 
 export type Invoice = {
     id: number;

@@ -271,17 +271,19 @@
     </div>
     <div class="header-right">
         <div class="doc-type">
-            @switch($invoice->type)
+            @php $type = $invoice->type->value ?? $invoice->type; @endphp
+        @switch($type)
                 @case('quote') Quote @break
                 @case('credit_note') Credit Note @break
                 @case('purchase_invoice') Purchase Invoice @break
+                @case('debit_note') Debit Note @break
                 @default Invoice
             @endswitch
         </div>
         <div class="doc-number">{{ $invoice->number }}</div>
         <div>
-            <span class="status-badge status-{{ str_replace('_', '_', $invoice->status) }}">
-                {{ str_replace('_', ' ', $invoice->status) }}
+            <span class="status-badge status-{{ $invoice->status->value ?? $invoice->status }}">
+                {{ str_replace('_', ' ', $invoice->status->value ?? $invoice->status) }}
             </span>
         </div>
     </div>
@@ -293,7 +295,7 @@
 <div class="billing">
     <div class="billing-col">
         <div class="billing-label">
-            @if($invoice->type === 'purchase_invoice') From @else Bill To @endif
+            @if(in_array($type, ['purchase_invoice', 'debit_note'])) From @else Bill To @endif
         </div>
         @if($invoice->contact)
             <div class="billing-name">{{ $invoice->contact->name }}</div>
@@ -318,8 +320,8 @@
     <tr>
         <td>
             <span class="meta-label">
-                @if($invoice->type === 'quote') Quote Date
-                @elseif($invoice->type === 'credit_note') Issue Date
+                @if($type === 'quote') Quote Date
+                @elseif($type === 'credit_note') Issue Date
                 @else Invoice Date
                 @endif
             </span>

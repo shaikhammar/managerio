@@ -49,7 +49,7 @@ export default function CreditNoteShow({ creditNote }: Props) {
                     </div>
                     <div className="flex gap-2">
                         <Button variant="outline" size="sm" asChild>
-                            <a href={CreditNoteController.pdf.url(creditNote)} target="_blank" rel="noreferrer">
+                            <a href={CreditNoteController.pdf.url(creditNote.id)} target="_blank" rel="noreferrer">
                                 <Download className="mr-2 size-4" />
                                 PDF
                             </a>

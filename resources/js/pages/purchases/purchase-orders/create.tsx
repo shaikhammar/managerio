@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
-import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
+import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 
 type LineItem = {
@@ -22,7 +22,7 @@ type LineItem = {
 };
 
 function emptyLine(): LineItem {
-    return { account_id: '', description: '', quantity: '1', unit_price: '0', discount_percent: '0', tax_code_id: '' };
+    return { account_id: '', description: '', quantity: '1', unit_price: '0', discount_percent: '0', tax_code_id: 'none' };
 }
 
 function calcLineTotal(line: LineItem, taxCodes: TaxCodeOption[]): { subtotal: number; tax: number; total: number } {
@@ -40,33 +40,33 @@ type Props = {
     suppliers: ContactOption[];
     accounts: AccountOption[];
     taxCodes: TaxCodeOption[];
-    invoice?: Invoice;
+    purchaseOrder?: Invoice;
 };
 
-export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, invoice }: Props) {
+export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purchaseOrder }: Props) {
     const { format } = useCurrency();
-    const isEditing = !!invoice;
+    const isEditing = !!purchaseOrder;
     const today = new Date().toISOString().split('T')[0];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
+        { title: 'Purchase Orders', href: PurchaseOrderController.index.url() },
         ...(isEditing ? [
-            { title: invoice!.number, href: PurchaseInvoiceController.show.url(invoice!) },
-            { title: 'Edit', href: PurchaseInvoiceController.edit.url(invoice!) },
+            { title: purchaseOrder!.number, href: PurchaseOrderController.show.url(purchaseOrder!) },
+            { title: 'Edit', href: PurchaseOrderController.edit.url(purchaseOrder!) },
         ] : [
-            { title: 'New Purchase Invoice', href: PurchaseInvoiceController.create.url() },
+            { title: 'New Purchase Order', href: PurchaseOrderController.create.url() },
         ]),
     ];
 
     const { data, setData, post, put, processing, errors, transform } = useForm({
-        contact_id: invoice?.contact_id?.toString() || '',
-        date: invoice?.date || today,
-        due_date: invoice?.due_date || '',
-        reference: invoice?.reference || '',
-        notes: invoice?.notes || '',
-        terms: invoice?.terms || '',
-        lines: (invoice?.lines || [emptyLine()]).map((l: any) => ({
+        contact_id: purchaseOrder?.contact_id?.toString() || '',
+        date: purchaseOrder?.date || today,
+        due_date: purchaseOrder?.due_date || '',
+        reference: purchaseOrder?.reference || '',
+        notes: purchaseOrder?.notes || '',
+        terms: purchaseOrder?.terms || '',
+        lines: (purchaseOrder?.lines || [emptyLine()]).map((l: any) => ({
             account_id: l.account_id?.toString() || '',
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',
@@ -77,14 +77,13 @@ export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, inv
     });
 
     const addLine = useCallback(() => {
-        setData('lines', [...data.lines, { ...emptyLine(), tax_code_id: 'none' }]);
+        setData('lines', [...data.lines, emptyLine()]);
     }, [data.lines, setData]);
 
     const removeLine = useCallback((index: number) => {
         if (data.lines.length <= 1) {
-return;
-}
-
+            return;
+        }
         setData('lines', data.lines.filter((_, i) => i !== index));
     }, [data.lines, setData]);
 
@@ -108,30 +107,30 @@ return;
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        transform((data) => ({
-            ...data,
-            lines: data.lines.map(line => ({
+        transform((d) => ({
+            ...d,
+            lines: d.lines.map((line) => ({
                 ...line,
-                tax_code_id: line.tax_code_id === 'none' ? null : line.tax_code_id
-            }))
+                tax_code_id: line.tax_code_id === 'none' ? null : line.tax_code_id,
+            })),
         }));
 
         if (isEditing) {
-            put(PurchaseInvoiceController.update.url(invoice!));
+            put(PurchaseOrderController.update.url(purchaseOrder!));
         } else {
-            post(PurchaseInvoiceController.store.url());
+            post(PurchaseOrderController.store.url());
         }
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEditing ? `Edit Purchase Invoice ${invoice!.number}` : 'New Purchase Invoice'} />
+            <Head title={isEditing ? `Edit Purchase Order ${purchaseOrder!.number}` : 'New Purchase Order'} />
             <div className="max-w-5xl mx-auto p-4 md:p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Header */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>{isEditing ? `Edit Purchase Invoice ${invoice!.number}` : 'New Purchase Invoice'}</CardTitle>
+                            <CardTitle>{isEditing ? `Edit Purchase Order ${purchaseOrder!.number}` : 'New Purchase Order'}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -148,20 +147,20 @@ return;
                                     <InputError message={errors.contact_id} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="date">Invoice Date *</Label>
+                                    <Label htmlFor="date">Date *</Label>
                                     <Input id="date" type="date" value={data.date} onChange={(e) => setData('date', e.target.value)} />
                                     <InputError message={errors.date} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="due_date">Due Date</Label>
+                                    <Label htmlFor="due_date">Expected Delivery</Label>
                                     <Input id="due_date" type="date" value={data.due_date} onChange={(e) => setData('due_date', e.target.value)} />
                                     <InputError message={errors.due_date} />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="reference">Supplier Invoice # / Reference</Label>
-                                    <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
+                                    <Label htmlFor="reference">Reference</Label>
+                                    <Input id="reference" placeholder="Supplier reference or internal ref" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
                                     <InputError message={errors.reference} />
                                 </div>
                             </div>
@@ -182,7 +181,7 @@ return;
                                 <table className="w-full min-w-[800px]">
                                     <thead>
                                         <tr className="border-b text-sm text-muted-foreground">
-                                            <th className="text-left py-2 pr-2 w-[180px]">Account (Expense/Asset)</th>
+                                            <th className="text-left py-2 pr-2 w-[180px]">Account</th>
                                             <th className="text-left py-2 pr-2">Description</th>
                                             <th className="text-right py-2 pr-2 w-[80px]">Qty</th>
                                             <th className="text-right py-2 pr-2 w-[110px]">Unit Price</th>
@@ -286,7 +285,6 @@ return;
                                 </table>
                             </div>
 
-                            {/* Totals */}
                             <div className="flex justify-end mt-6">
                                 <div className="w-64 space-y-2">
                                     <div className="flex justify-between text-sm">
@@ -308,13 +306,39 @@ return;
                         </CardContent>
                     </Card>
 
+                    {/* Notes & Terms */}
+                    <Card>
+                        <CardContent className="pt-6 grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="notes">Notes</Label>
+                                <textarea
+                                    id="notes"
+                                    className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    placeholder="Internal notes..."
+                                    value={data.notes}
+                                    onChange={(e) => setData('notes', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="terms">Terms & Conditions</Label>
+                                <textarea
+                                    id="terms"
+                                    className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    placeholder="Delivery terms, payment terms..."
+                                    value={data.terms}
+                                    onChange={(e) => setData('terms', e.target.value)}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* Actions */}
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" type="button" asChild>
-                            <Link href={PurchaseInvoiceController.index.url()}>Cancel</Link>
+                            <Link href={PurchaseOrderController.index.url()}>Cancel</Link>
                         </Button>
                         <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : isEditing ? 'Update Invoice' : 'Create Invoice'}
+                            {processing ? 'Saving...' : isEditing ? 'Update Purchase Order' : 'Create Purchase Order'}
                         </Button>
                     </div>
                 </form>

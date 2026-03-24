@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
-import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
+import DebitNoteController from '@/actions/App/Http/Controllers/Purchases/DebitNoteController';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 
 type LineItem = {
@@ -40,33 +40,31 @@ type Props = {
     suppliers: ContactOption[];
     accounts: AccountOption[];
     taxCodes: TaxCodeOption[];
-    invoice?: Invoice;
+    debitNote?: Invoice;
 };
 
-export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, invoice }: Props) {
+export default function DebitNoteForm({ suppliers, accounts, taxCodes, debitNote }: Props) {
     const { format } = useCurrency();
-    const isEditing = !!invoice;
+    const isEditing = !!debitNote;
     const today = new Date().toISOString().split('T')[0];
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
+        { title: 'Debit Notes', href: DebitNoteController.index.url() },
         ...(isEditing ? [
-            { title: invoice!.number, href: PurchaseInvoiceController.show.url(invoice!) },
-            { title: 'Edit', href: PurchaseInvoiceController.edit.url(invoice!) },
+            { title: debitNote!.number, href: DebitNoteController.show.url(debitNote!) },
+            { title: 'Edit', href: DebitNoteController.edit.url(debitNote!) },
         ] : [
-            { title: 'New Purchase Invoice', href: PurchaseInvoiceController.create.url() },
+            { title: 'New Debit Note', href: DebitNoteController.create.url() },
         ]),
     ];
 
     const { data, setData, post, put, processing, errors, transform } = useForm({
-        contact_id: invoice?.contact_id?.toString() || '',
-        date: invoice?.date || today,
-        due_date: invoice?.due_date || '',
-        reference: invoice?.reference || '',
-        notes: invoice?.notes || '',
-        terms: invoice?.terms || '',
-        lines: (invoice?.lines || [emptyLine()]).map((l: any) => ({
+        contact_id: debitNote?.contact_id?.toString() || '',
+        date: debitNote?.date || today,
+        reference: debitNote?.reference || '',
+        notes: debitNote?.notes || '',
+        lines: (debitNote?.lines || [emptyLine()]).map((l: any) => ({
             account_id: l.account_id?.toString() || '',
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',
@@ -82,8 +80,8 @@ export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, inv
 
     const removeLine = useCallback((index: number) => {
         if (data.lines.length <= 1) {
-return;
-}
+            return;
+        }
 
         setData('lines', data.lines.filter((_, i) => i !== index));
     }, [data.lines, setData]);
@@ -112,30 +110,30 @@ return;
             ...data,
             lines: data.lines.map(line => ({
                 ...line,
-                tax_code_id: line.tax_code_id === 'none' ? null : line.tax_code_id
-            }))
+                tax_code_id: line.tax_code_id === 'none' ? null : line.tax_code_id,
+            })),
         }));
 
         if (isEditing) {
-            put(PurchaseInvoiceController.update.url(invoice!));
+            put(DebitNoteController.update.url(debitNote!));
         } else {
-            post(PurchaseInvoiceController.store.url());
+            post(DebitNoteController.store.url());
         }
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEditing ? `Edit Purchase Invoice ${invoice!.number}` : 'New Purchase Invoice'} />
+            <Head title={isEditing ? `Edit Debit Note ${debitNote!.number}` : 'New Debit Note'} />
             <div className="max-w-5xl mx-auto p-4 md:p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Header */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>{isEditing ? `Edit Purchase Invoice ${invoice!.number}` : 'New Purchase Invoice'}</CardTitle>
+                            <CardTitle>{isEditing ? `Edit Debit Note ${debitNote!.number}` : 'New Debit Note'}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                <div className="col-span-2 space-y-2">
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="col-span-2 lg:col-span-1 space-y-2">
                                     <Label htmlFor="contact_id">Supplier *</Label>
                                     <Select value={data.contact_id} onValueChange={(v) => setData('contact_id', v)}>
                                         <SelectTrigger id="contact_id"><SelectValue placeholder="Select supplier" /></SelectTrigger>
@@ -148,19 +146,12 @@ return;
                                     <InputError message={errors.contact_id} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="date">Invoice Date *</Label>
+                                    <Label htmlFor="date">Date *</Label>
                                     <Input id="date" type="date" value={data.date} onChange={(e) => setData('date', e.target.value)} />
                                     <InputError message={errors.date} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="due_date">Due Date</Label>
-                                    <Input id="due_date" type="date" value={data.due_date} onChange={(e) => setData('due_date', e.target.value)} />
-                                    <InputError message={errors.due_date} />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="reference">Supplier Invoice # / Reference</Label>
+                                    <Label htmlFor="reference">Reference</Label>
                                     <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
                                     <InputError message={errors.reference} />
                                 </div>
@@ -299,8 +290,8 @@ return;
                                             <span className="font-medium">{format(totals.tax)}</span>
                                         </div>
                                     )}
-                                    <div className="flex justify-between text-lg font-bold border-t pt-2">
-                                        <span>Total</span>
+                                    <div className="flex justify-between text-lg font-bold border-t pt-2 text-amber-600 dark:text-amber-400">
+                                        <span>Total Debit</span>
                                         <span>{format(totals.total)}</span>
                                     </div>
                                 </div>
@@ -308,13 +299,29 @@ return;
                         </CardContent>
                     </Card>
 
+                    {/* Notes */}
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="notes">Notes</Label>
+                                <textarea
+                                    id="notes"
+                                    className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    placeholder="Internal notes or reason for debit note..."
+                                    value={data.notes}
+                                    onChange={(e) => setData('notes', e.target.value)}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* Actions */}
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" type="button" asChild>
-                            <Link href={PurchaseInvoiceController.index.url()}>Cancel</Link>
+                            <Link href={DebitNoteController.index.url()}>Cancel</Link>
                         </Button>
                         <Button type="submit" disabled={processing}>
-                            {processing ? 'Saving...' : isEditing ? 'Update Invoice' : 'Create Invoice'}
+                            {processing ? 'Saving...' : isEditing ? 'Update Debit Note' : 'Create Debit Note'}
                         </Button>
                     </div>
                 </form>

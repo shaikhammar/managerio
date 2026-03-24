@@ -1,68 +1,88 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, CreditCard } from 'lucide-react';
-import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
+import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeft, Download, Send, FileCheck } from 'lucide-react';
+import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
-type Props = { invoice: Invoice };
+type Props = { purchaseOrder: Invoice & { purchase_invoices?: Invoice[] } };
 
 const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-    partially_paid: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    overdue: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    void: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
+    partially_received: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    received: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+    invoiced: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    cancelled: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
 };
 
-export default function PurchaseInvoiceShow({ invoice }: Props) {
+export default function PurchaseOrderShow({ purchaseOrder }: Props) {
     const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
-        { title: invoice.number, href: PurchaseInvoiceController.show.url(invoice) },
+        { title: 'Purchase Orders', href: PurchaseOrderController.index.url() },
+        { title: purchaseOrder.number, href: PurchaseOrderController.show.url(purchaseOrder) },
     ];
 
-    const canEdit = invoice.status === 'draft';
+    const canEdit = purchaseOrder.status === 'draft';
+    const canSend = purchaseOrder.status === 'draft';
+    const canConvert = purchaseOrder.status !== 'invoiced' && purchaseOrder.status !== 'cancelled';
+
+    function handleSend() {
+        router.post(PurchaseOrderController.send.url(purchaseOrder));
+    }
+
+    function handleConvert() {
+        router.post(PurchaseOrderController.convert.url(purchaseOrder));
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Purchase Invoice ${invoice.number}`} />
+            <Head title={`Purchase Order ${purchaseOrder.number}`} />
             <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href={PurchaseInvoiceController.index.url()}><ArrowLeft className="size-4" /></Link>
+                            <Link href={PurchaseOrderController.index.url()}><ArrowLeft className="size-4" /></Link>
                         </Button>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold font-mono">{invoice.number}</h1>
-                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColors[invoice.status] || ''}`}>
-                                    {invoice.status.replace('_', ' ')}
+                                <h1 className="text-2xl font-bold font-mono">{purchaseOrder.number}</h1>
+                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${statusColors[purchaseOrder.status] || ''}`}>
+                                    {purchaseOrder.status.replace(/_/g, ' ')}
                                 </span>
                             </div>
                             <p className="text-sm text-muted-foreground">
-                                {invoice.contact?.name || 'No supplier'} · {invoice.date}
-                                {invoice.due_date && ` · Due ${invoice.due_date}`}
+                                {purchaseOrder.contact?.name || 'No supplier'} · {purchaseOrder.date}
+                                {purchaseOrder.due_date && ` · Expected ${purchaseOrder.due_date}`}
                             </p>
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={PurchaseOrderController.pdf.url(purchaseOrder.id)} target="_blank" rel="noreferrer">
+                                <Download className="mr-2 size-4" />
+                                PDF
+                            </a>
+                        </Button>
                         {canEdit && (
                             <Button variant="outline" asChild>
-                                <Link href={PurchaseInvoiceController.edit.url(invoice)}>Edit</Link>
+                                <Link href={PurchaseOrderController.edit.url(purchaseOrder)}>Edit</Link>
                             </Button>
                         )}
-                        {invoice.balance_due > 0 && invoice.status !== 'void' && (
-                            <Button variant="outline" asChild>
-                                <Link href={`/payments/supplier-payments/create?invoice_id=${invoice.id}`}>
-                                    <CreditCard className="mr-2 size-4" />
-                                    Make Payment
-                                </Link>
+                        {canSend && (
+                            <Button variant="outline" onClick={handleSend}>
+                                <Send className="mr-2 size-4" />
+                                Mark as Sent
+                            </Button>
+                        )}
+                        {canConvert && (
+                            <Button onClick={handleConvert}>
+                                <FileCheck className="mr-2 size-4" />
+                                Convert to Invoice
                             </Button>
                         )}
                     </div>
@@ -83,7 +103,7 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {invoice.lines?.map((line) => (
+                                {purchaseOrder.lines?.map((line) => (
                                     <tr key={line.id} className="border-b last:border-0">
                                         <td className="py-3">
                                             <p className="font-medium text-sm">{line.description}</p>
@@ -105,51 +125,56 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{format(invoice.subtotal)}</span>
+                                    <span>{format(purchaseOrder.subtotal)}</span>
                                 </div>
-                                {invoice.tax_amount > 0 && (
+                                {purchaseOrder.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{format(invoice.tax_amount)}</span>
+                                        <span>{format(purchaseOrder.tax_amount)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{format(invoice.total)}</span>
+                                    <span>{format(purchaseOrder.total)}</span>
                                 </div>
-                                {invoice.amount_paid > 0 && (
-                                    <>
-                                        <div className="flex justify-between text-sm text-red-600">
-                                            <span>Paid</span>
-                                            <span>-{format(invoice.amount_paid)}</span>
-                                        </div>
-                                        <div className="flex justify-between font-bold border-t pt-1 text-amber-600">
-                                            <span>Balance Due</span>
-                                            <span>{format(invoice.balance_due)}</span>
-                                        </div>
-                                    </>
-                                )}
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Notes & Terms */}
-                {(invoice.notes || invoice.terms) && (
+                {(purchaseOrder.notes || purchaseOrder.terms) && (
                     <div className="grid grid-cols-2 gap-6">
-                        {invoice.notes && (
+                        {purchaseOrder.notes && (
                             <Card>
                                 <CardHeader><CardTitle className="text-sm">Notes</CardTitle></CardHeader>
-                                <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{invoice.notes}</p></CardContent>
+                                <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{purchaseOrder.notes}</p></CardContent>
                             </Card>
                         )}
-                        {invoice.terms && (
+                        {purchaseOrder.terms && (
                             <Card>
                                 <CardHeader><CardTitle className="text-sm">Terms & Conditions</CardTitle></CardHeader>
-                                <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{invoice.terms}</p></CardContent>
+                                <CardContent><p className="text-sm text-muted-foreground whitespace-pre-wrap">{purchaseOrder.terms}</p></CardContent>
                             </Card>
                         )}
                     </div>
+                )}
+
+                {/* Linked Purchase Invoices */}
+                {purchaseOrder.purchase_invoices && purchaseOrder.purchase_invoices.length > 0 && (
+                    <Card>
+                        <CardHeader><CardTitle className="text-sm">Linked Purchase Invoice</CardTitle></CardHeader>
+                        <CardContent>
+                            {purchaseOrder.purchase_invoices.map((inv) => (
+                                <div key={inv.id} className="flex items-center justify-between py-2">
+                                    <Link href={`/purchases/invoices/${inv.id}`} className="font-mono text-sm font-medium hover:underline">
+                                        {inv.number}
+                                    </Link>
+                                    <span className="text-sm text-muted-foreground">{format(inv.total)}</span>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
                 )}
             </div>
         </AppLayout>

@@ -49,7 +49,9 @@ const navGroups: NavGroup[] = [
         icon: ShoppingCart,
         items: [
             { title: 'Suppliers', href: '/purchases/suppliers' },
+            { title: 'Purchase Orders', href: '/purchases/purchase-orders' },
             { title: 'Purchase Invoices', href: '/purchases/invoices' },
+            { title: 'Debit Notes', href: '/purchases/debit-notes' },
         ],
     },
     {

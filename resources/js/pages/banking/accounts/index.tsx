@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { Landmark } from 'lucide-react';
+import { Landmark, Plus } from 'lucide-react';
+import BankAccountController from '@/actions/App/Http/Controllers/Banking/BankAccountController';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
@@ -31,6 +32,12 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                             Total balance: <span className={`font-bold ${totalBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{format(totalBalance)}</span>
                         </p>
                     </div>
+                    <Button asChild>
+                        <Link href={BankAccountController.create.url()}>
+                            <Plus className="mr-2 size-4" />
+                            Add Bank Account
+                        </Link>
+                    </Button>
                 </div>
 
                 {bankAccounts.length === 0 ? (
@@ -38,10 +45,10 @@ export default function BankAccountIndex({ bankAccounts }: Props) {
                         <Landmark className="size-12 mb-4 text-muted-foreground/30" />
                         <h3 className="text-lg font-semibold">No bank accounts</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                            Create a bank account in Chart of Accounts to track balances
+                            Add a bank account to start tracking your balances
                         </p>
                         <Button className="mt-4" asChild>
-                            <Link href="/accounting/accounts/create">Create Account</Link>
+                            <Link href={BankAccountController.create.url()}>Add Bank Account</Link>
                         </Button>
                     </div>
                 ) : (
