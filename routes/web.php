@@ -4,6 +4,7 @@ use App\Http\Controllers\Accounting\AccountController;
 use App\Http\Controllers\Accounting\JournalEntryController;
 use App\Http\Controllers\Accounting\TaxCodeController;
 use App\Http\Controllers\Banking\BankAccountController;
+use App\Http\Controllers\Banking\BankReconciliationController;
 use App\Http\Controllers\Banking\BankTransactionController;
 use App\Http\Controllers\BusinessController;
 use App\Http\Controllers\DashboardController;
@@ -79,7 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('banking')->name('banking.')->group(function () {
             Route::resource('accounts', BankAccountController::class)->only(['index', 'show']);
             Route::resource('transactions', BankTransactionController::class);
-            Route::resource('reconciliations', \App\Http\Controllers\Banking\BankReconciliationController::class);
+            Route::resource('reconciliations', BankReconciliationController::class);
         });
 
         // ── Reports ────────────────────────────────────────
@@ -91,6 +92,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/general-ledger', [ReportController::class, 'generalLedger'])->name('general-ledger');
             Route::get('/aged-receivables', [ReportController::class, 'agedReceivables'])->name('aged-receivables');
             Route::get('/aged-payables', [ReportController::class, 'agedPayables'])->name('aged-payables');
+            Route::post('/generate', [ReportController::class, 'generate'])->name('generate');
+            Route::get('/status', [ReportController::class, 'status'])->name('status');
         });
     });
 });

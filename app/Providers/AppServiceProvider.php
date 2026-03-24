@@ -2,9 +2,16 @@
 
 namespace App\Providers;
 
+use App\Events\BusinessCreated;
+use App\Events\InvoicePosted;
+use App\Events\JournalEntryPosted;
+use App\Events\PaymentReceived;
+use App\Listeners\InvalidateReportCache;
+use App\Listeners\SendWelcomeEmail;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->registerEventListeners();
     }
 
     /**
@@ -48,5 +56,19 @@ class AppServiceProvider extends ServiceProvider
                 ? $rule->uncompromised()
                 : $rule;
         });
+    }
+
+    /**
+     * Register domain event → listener mappings.
+     */
+    protected function registerEventListeners(): void
+    {
+        // Invalidate cached reports whenever financial data changes.
+        Event::listen(InvoicePosted::class, InvalidateReportCache::class);
+        Event::listen(PaymentReceived::class, InvalidateReportCache::class);
+        Event::listen(JournalEntryPosted::class, InvalidateReportCache::class);
+
+        // Send a welcome email when a new business workspace is created.
+        Event::listen(BusinessCreated::class, SendWelcomeEmail::class);
     }
 }

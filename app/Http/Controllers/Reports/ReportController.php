@@ -3,11 +3,15 @@
 namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\GenerateReport;
 use App\Services\Accounting\LedgerService;
 use App\Services\Accounting\ReportService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ReportController extends Controller
 {
@@ -16,12 +20,12 @@ class ReportController extends Controller
         private LedgerService $ledgerService,
     ) {}
 
-    public function index()
+    public function index(): Response
     {
         return Inertia::render('reports/index');
     }
 
-    public function profitAndLoss(Request $request)
+    public function profitAndLoss(Request $request): Response
     {
         $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()));
         $endDate = Carbon::parse($request->input('end_date', now()->endOfMonth()->toDateString()));
@@ -35,7 +39,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function balanceSheet(Request $request)
+    public function balanceSheet(Request $request): Response
     {
         $asOfDate = Carbon::parse($request->input('as_of_date', now()->toDateString()));
         $business = $request->user()->currentBusiness();
@@ -47,7 +51,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function trialBalance(Request $request)
+    public function trialBalance(Request $request): Response
     {
         $asOfDate = Carbon::parse($request->input('as_of_date', now()->toDateString()));
         $business = $request->user()->currentBusiness();
@@ -59,20 +63,57 @@ class ReportController extends Controller
         ]);
     }
 
-    public function generalLedger(Request $request)
+    public function generalLedger(Request $request): Response
     {
         $startDate = Carbon::parse($request->input('start_date', now()->startOfMonth()->toDateString()));
         $endDate = Carbon::parse($request->input('end_date', now()->endOfMonth()->toDateString()));
         $business = $request->user()->currentBusiness();
-        $ledger = $this->ledgerService->getGeneralLedger($business, $startDate, $endDate);
+
+        $filters = [
+            'start_date' => $startDate->toDateString(),
+            'end_date' => $endDate->toDateString(),
+        ];
+
+        // Build the cache key the same way GenerateReport::cacheKey() does.
+        $cacheKey = 'report:'
+            .$business->id.':'
+            .$request->user()->id
+            .':general_ledger:'
+            .md5(serialize($filters));
+
+        $cached = Cache::get($cacheKey);
+
+        // Serve from cache if available and data is not invalidated.
+        if ($cached && ($cached['status'] ?? '') === 'completed') {
+            $invalidatedAt = Cache::get("report_invalidated_at:{$business->id}");
+            $generatedAt = $cached['generated_at'] ?? null;
+
+            $isStale = $invalidatedAt && $generatedAt && $invalidatedAt > $generatedAt;
+
+            if (! $isStale) {
+                return Inertia::render('reports/general-ledger', [
+                    'ledger' => $cached['data'],
+                    'filters' => $filters,
+                    'asyncStatus' => 'completed',
+                    'cacheKey' => $cacheKey,
+                ]);
+            }
+        }
+
+        // No valid cache — dispatch the job and return a loading state.
+        Cache::put($cacheKey, ['status' => 'queued'], GenerateReport::CACHE_TTL);
+
+        GenerateReport::dispatch($business, $request->user(), 'general_ledger', $filters);
 
         return Inertia::render('reports/general-ledger', [
-            'ledger' => $ledger,
-            'filters' => ['start_date' => $startDate->toDateString(), 'end_date' => $endDate->toDateString()],
+            'ledger' => [],
+            'filters' => $filters,
+            'asyncStatus' => 'queued',
+            'cacheKey' => $cacheKey,
         ]);
     }
 
-    public function agedReceivables(Request $request)
+    public function agedReceivables(Request $request): Response
     {
         $asOfDate = Carbon::parse($request->input('as_of_date', now()->toDateString()));
         $business = $request->user()->currentBusiness();
@@ -84,7 +125,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function agedPayables(Request $request)
+    public function agedPayables(Request $request): Response
     {
         $asOfDate = Carbon::parse($request->input('as_of_date', now()->toDateString()));
         $business = $request->user()->currentBusiness();
@@ -94,5 +135,49 @@ class ReportController extends Controller
             'report' => $report,
             'filters' => ['as_of_date' => $asOfDate->toDateString()],
         ]);
+    }
+
+    /**
+     * Dispatch an async report generation job.
+     * Returns the cache key that the frontend can poll via status().
+     */
+    public function generate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'report_type' => ['required', 'string', 'in:profit_and_loss,balance_sheet,aged_receivables,aged_payables,trial_balance,general_ledger'],
+            'filters' => ['sometimes', 'array'],
+        ]);
+
+        $business = $request->user()->currentBusiness();
+        $filters = $request->input('filters', []);
+
+        $job = new GenerateReport($business, $request->user(), $request->input('report_type'), $filters);
+
+        Cache::put($job->cacheKey(), ['status' => 'queued'], GenerateReport::CACHE_TTL);
+
+        dispatch($job);
+
+        return response()->json([
+            'key' => $job->cacheKey(),
+            'status' => 'queued',
+        ]);
+    }
+
+    /**
+     * Poll the status of an async report by its cache key.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        $request->validate([
+            'key' => ['required', 'string'],
+        ]);
+
+        $cached = Cache::get($request->input('key'));
+
+        if (! $cached) {
+            return response()->json(['status' => 'not_found'], 404);
+        }
+
+        return response()->json($cached);
     }
 }

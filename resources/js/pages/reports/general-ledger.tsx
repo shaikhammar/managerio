@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,6 +29,8 @@ type LedgerAccount = {
 type Props = {
     ledger: LedgerAccount[];
     filters: { start_date: string; end_date: string };
+    asyncStatus?: 'queued' | 'processing' | 'completed' | 'failed';
+    cacheKey?: string;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -37,9 +39,37 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'General Ledger', href: ReportController.generalLedger.url() },
 ];
 
-export default function GeneralLedger({ ledger, filters }: Props) {
+export default function GeneralLedger({ ledger, filters, asyncStatus, cacheKey }: Props) {
     const [startDate, setStartDate] = useState(filters.start_date);
     const [endDate, setEndDate] = useState(filters.end_date);
+    const [status, setStatus] = useState(asyncStatus ?? 'completed');
+    const [currentLedger, setCurrentLedger] = useState<LedgerAccount[]>(ledger);
+
+    useEffect(() => {
+        if (status === 'completed' || status === 'failed' || !cacheKey) {
+            return;
+        }
+
+        const interval = setInterval(async () => {
+            try {
+                const response = await fetch(`${ReportController.status.url()}?key=${encodeURIComponent(cacheKey)}`);
+                const data = await response.json();
+
+                if (data.status === 'completed') {
+                    setCurrentLedger(data.data ?? []);
+                    setStatus('completed');
+                    clearInterval(interval);
+                } else if (data.status === 'failed') {
+                    setStatus('failed');
+                    clearInterval(interval);
+                }
+            } catch {
+                // network error — keep polling
+            }
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [status, cacheKey]);
 
     function handleFilter(e: React.FormEvent) {
         e.preventDefault();
@@ -95,13 +125,39 @@ export default function GeneralLedger({ ledger, filters }: Props) {
                     </CardContent>
                 </Card>
 
-                {ledger.length === 0 ? (
+                {status === 'failed' && (
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/10 py-10 text-center text-destructive">
+                        Report generation failed. Please try again.
+                    </div>
+                )}
+
+                {(status === 'queued' || status === 'processing') && (
+                    <div className="space-y-4">
+                        <p className="text-sm text-muted-foreground text-center animate-pulse">
+                            Generating report… this may take a moment.
+                        </p>
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="rounded-lg border overflow-hidden">
+                                <div className="bg-muted/50 px-4 py-3 h-11 animate-pulse" />
+                                <div className="p-4 space-y-2">
+                                    {[1, 2, 3, 4].map((j) => (
+                                        <div key={j} className="h-8 bg-muted/40 rounded animate-pulse" />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {status === 'completed' && currentLedger.length === 0 && (
                     <div className="rounded-lg border py-16 text-center text-muted-foreground">
                         No transactions found for this period.
                     </div>
-                ) : (
+                )}
+
+                {status === 'completed' && currentLedger.length > 0 && (
                     <div className="space-y-6">
-                        {ledger.map((item) => {
+                        {currentLedger.map((item) => {
                             const totalDebit = item.transactions.reduce((s, t) => s + t.debit, 0);
                             const totalCredit = item.transactions.reduce((s, t) => s + t.credit, 0);
 
