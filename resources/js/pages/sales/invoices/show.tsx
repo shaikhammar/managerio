@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Send, Ban, CreditCard } from 'lucide-react';
+import { ArrowLeft, Ban, CreditCard, Download, Send } from 'lucide-react';
+import InvoiceController from '@/actions/App/Http/Controllers/Sales/InvoiceController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -61,6 +62,12 @@ export default function InvoiceShow({ invoice }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={InvoiceController.pdf.url(invoice)} target="_blank" rel="noreferrer">
+                                <Download className="mr-2 size-4" />
+                                PDF
+                            </a>
+                        </Button>
                         {canEdit && (
                             <>
                                 <Button variant="outline" asChild>

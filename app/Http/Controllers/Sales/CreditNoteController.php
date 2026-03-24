@@ -9,8 +9,10 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class CreditNoteController extends Controller
 {
@@ -91,6 +93,18 @@ class CreditNoteController extends Controller
 
         return redirect()->route('sales.credit-notes.show', $creditNote)
             ->with('success', 'Credit note updated successfully.');
+    }
+
+    public function pdf(Invoice $creditNote): Response
+    {
+        $this->authorize('view', $creditNote);
+
+        $creditNote->load(['lines.account', 'lines.taxCode', 'contact']);
+        $business = $creditNote->business;
+
+        $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $creditNote, 'business' => $business]);
+
+        return $pdf->download("{$creditNote->number}.pdf");
     }
 
     public function destroy(Invoice $creditNote)

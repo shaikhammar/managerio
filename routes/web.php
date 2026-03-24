@@ -59,9 +59,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('customers', CustomerController::class);
             Route::resource('quotes', QuoteController::class);
             Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+            Route::get('quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->name('quotes.pdf');
             Route::resource('invoices', InvoiceController::class);
             Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+            Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
             Route::resource('credit-notes', CreditNoteController::class);
+            Route::get('credit-notes/{credit_note}/pdf', [CreditNoteController::class, 'pdf'])->name('credit-notes.pdf');
         });
 
         // ── Purchases ──────────────────────────────────────

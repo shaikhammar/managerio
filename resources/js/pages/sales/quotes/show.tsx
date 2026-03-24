@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Ban, FileCheck } from 'lucide-react';
+import { ArrowLeft, Ban, Download, FileCheck } from 'lucide-react';
+import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -55,6 +56,12 @@ export default function QuoteShow({ quote }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={QuoteController.pdf.url(quote)} target="_blank" rel="noreferrer">
+                                <Download className="mr-2 size-4" />
+                                PDF
+                            </a>
+                        </Button>
                         {isDraft && (
                             <>
                                 <Button variant="outline" asChild>

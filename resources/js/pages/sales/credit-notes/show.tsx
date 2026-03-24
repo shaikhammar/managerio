@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Download, Printer } from 'lucide-react';
+import CreditNoteController from '@/actions/App/Http/Controllers/Sales/CreditNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -47,6 +48,12 @@ export default function CreditNoteShow({ creditNote }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={CreditNoteController.pdf.url(creditNote)} target="_blank" rel="noreferrer">
+                                <Download className="mr-2 size-4" />
+                                PDF
+                            </a>
+                        </Button>
                         {canEdit && (
                             <Button variant="outline" asChild>
                                 <Link href={`/sales/credit-notes/${creditNote.id}/edit`}>Edit</Link>

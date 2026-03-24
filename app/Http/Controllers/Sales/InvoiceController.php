@@ -9,8 +9,10 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
@@ -88,6 +90,18 @@ class InvoiceController extends Controller
         $this->invoiceService->void($invoice);
 
         return back()->with('success', 'Invoice voided successfully.');
+    }
+
+    public function pdf(Invoice $invoice): Response
+    {
+        $this->authorize('view', $invoice);
+
+        $invoice->load(['lines.account', 'lines.taxCode', 'contact']);
+        $business = $invoice->business;
+
+        $pdf = Pdf::loadView('pdf.invoice', compact('invoice', 'business'));
+
+        return $pdf->download("{$invoice->number}.pdf");
     }
 
     public function destroy(Invoice $invoice)
