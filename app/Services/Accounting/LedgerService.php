@@ -81,21 +81,12 @@ class LedgerService
             ->orderBy('code')
             ->get();
 
-        return $accounts->map(function ($account) use ($asOfDate) {
-            $query = JournalEntryLine::query()
-                ->where('account_id', $account->id)
-                ->whereHas('journalEntry', function ($q) use ($account, $asOfDate) {
-                    $q->withoutGlobalScopes()
-                        ->where('business_id', $account->business_id)
-                        ->where('is_posted', true);
+        $totals = $this->fetchBatchTotals($accounts->pluck('id'), $business->id, $asOfDate);
 
-                    if ($asOfDate) {
-                        $q->where('date', '<=', $asOfDate);
-                    }
-                });
-
-            $totalDebit = (float) $query->sum('debit');
-            $totalCredit = (float) $query->sum('credit');
+        return $accounts->map(function ($account) use ($totals) {
+            $row = $totals->get($account->id);
+            $totalDebit = (float) ($row?->total_debit ?? 0);
+            $totalCredit = (float) ($row?->total_credit ?? 0);
             $balance = $totalDebit - $totalCredit;
 
             return [
@@ -145,8 +136,57 @@ class LedgerService
         $accounts = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
             ->where('sub_type', $subType)
-            ->get();
+            ->get(['id', 'type']);
 
-        return $accounts->sum(fn ($account) => $this->getAccountBalance($account, $asOfDate));
+        if ($accounts->isEmpty()) {
+            return 0.0;
+        }
+
+        $totals = $this->fetchBatchTotals($accounts->pluck('id'), $business->id, $asOfDate);
+
+        return $accounts->sum(function ($account) use ($totals) {
+            $row = $totals->get($account->id);
+            $totalDebit = (float) ($row?->total_debit ?? 0);
+            $totalCredit = (float) ($row?->total_credit ?? 0);
+
+            return $account->type->normalBalance() === 'debit'
+                ? $totalDebit - $totalCredit
+                : $totalCredit - $totalDebit;
+        });
+    }
+
+    /**
+     * Fetch aggregate debit/credit totals for multiple accounts in a single query.
+     * Returns a collection keyed by account_id.
+     *
+     * @param  Collection|array  $accountIds
+     */
+    public function fetchBatchTotals(
+        Collection|array $accountIds,
+        int $businessId,
+        ?Carbon $asOfDate,
+        ?Carbon $startDate = null,
+    ): Collection {
+        $ids = $accountIds instanceof Collection ? $accountIds->all() : $accountIds;
+
+        if (empty($ids)) {
+            return collect();
+        }
+
+        return JournalEntryLine::query()
+            ->select(
+                'journal_entry_lines.account_id',
+                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+                DB::raw('SUM(journal_entry_lines.credit) as total_credit'),
+            )
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
+            ->whereIn('journal_entry_lines.account_id', $ids)
+            ->where('journal_entries.business_id', $businessId)
+            ->where('journal_entries.is_posted', true)
+            ->when($asOfDate, fn ($q) => $q->where('journal_entries.date', '<=', $asOfDate))
+            ->when($startDate, fn ($q) => $q->where('journal_entries.date', '>=', $startDate))
+            ->groupBy('journal_entry_lines.account_id')
+            ->get()
+            ->keyBy('account_id');
     }
 }
