@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem } from '@/types';
 
 type AgedItem = {
@@ -38,6 +38,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function AgedPayables({ report, filters }: Props) {
+    const { format } = useCurrency();
     const [asOfDate, setAsOfDate] = useState(filters.as_of_date);
 
     const grandTotal = Object.values(report).reduce((sum, b) => sum + b.total, 0);
@@ -98,7 +99,7 @@ export default function AgedPayables({ report, filters }: Props) {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-xl font-bold">{formatCurrency(bucket.total)}</p>
+                                <p className="text-xl font-bold">{format(bucket.total)}</p>
                                 <p className="text-[10px] text-muted-foreground mt-1">
                                     {bucket.items.length} invoice(s)
                                 </p>
@@ -147,7 +148,7 @@ export default function AgedPayables({ report, filters }: Props) {
                                                     <td className="py-3 px-4 text-sm text-muted-foreground">{item.date}</td>
                                                     <td className="py-3 px-4 text-sm text-muted-foreground">{item.due_date}</td>
                                                     <td className="py-3 px-4 text-right text-sm font-medium text-red-600 dark:text-red-400">
-                                                        ({formatCurrency(item.amount)})
+                                                        ({format(item.amount)})
                                                     </td>
                                                 </tr>
                                             ))}
@@ -159,7 +160,7 @@ export default function AgedPayables({ report, filters }: Props) {
                         <tfoot>
                             <tr className="bg-muted/30 font-bold border-t-2">
                                 <td colSpan={3} className="py-3 px-4 text-sm text-right uppercase tracking-wider">Total Outstanding</td>
-                                <td className="py-3 px-4 text-right text-sm text-red-600 dark:text-red-400">({formatCurrency(grandTotal)})</td>
+                                <td className="py-3 px-4 text-right text-sm text-red-600 dark:text-red-400">({format(grandTotal)})</td>
                             </tr>
                         </tfoot>
                     </table>

@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, BalanceSheetReport } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -13,16 +14,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Balance Sheet', href: '/reports/balance-sheet' },
 ];
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
-}
-
 type Props = {
     report: BalanceSheetReport;
     filters: { as_of_date: string };
 };
 
 function Section({ title, color, accounts, total }: { title: string; color: string; accounts: { id: number; code: string; name: string; balance: number }[]; total: number }) {
+    const { format } = useCurrency();
     return (
         <div className="mb-6">
             <h3 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${color}`}>{title}</h3>
@@ -37,14 +35,14 @@ function Section({ title, color, accounts, total }: { title: string; color: stri
                                     <span className="text-muted-foreground mr-3">{account.code}</span>
                                     {account.name}
                                 </td>
-                                <td className="py-2 pr-4 text-right text-sm font-medium">{formatCurrency(account.balance)}</td>
+                                <td className="py-2 pr-4 text-right text-sm font-medium">{format(account.balance)}</td>
                             </tr>
                         ))}
                     </tbody>
                     <tfoot>
                         <tr className="border-t-2 font-bold">
                             <td className="py-2 pl-4">Total {title}</td>
-                            <td className={`py-2 pr-4 text-right ${color}`}>{formatCurrency(total)}</td>
+                            <td className={`py-2 pr-4 text-right ${color}`}>{format(total)}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -54,6 +52,7 @@ function Section({ title, color, accounts, total }: { title: string; color: stri
 }
 
 export default function BalanceSheet({ report, filters }: Props) {
+    const { format } = useCurrency();
     const [asOfDate, setAsOfDate] = useState(filters.as_of_date);
 
     function handleFilter(e: React.FormEvent) {
@@ -87,7 +86,7 @@ export default function BalanceSheet({ report, filters }: Props) {
                         <div className="border-t-4 border-double pt-4 mt-4">
                             <div className="flex items-center justify-between px-4">
                                 <span className="text-lg font-bold">Total Liabilities & Equity</span>
-                                <span className="text-xl font-bold">{formatCurrency(report.total_liabilities_and_equity)}</span>
+                                <span className="text-xl font-bold">{format(report.total_liabilities_and_equity)}</span>
                             </div>
                         </div>
                     </CardContent>

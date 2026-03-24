@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,16 +22,13 @@ const statusColors: Record<string, string> = {
     void: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
 };
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
-}
-
 type Props = {
     invoices: PaginatedData<Invoice>;
     filters: { search?: string; status?: string };
 };
 
 export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
+    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -119,10 +117,10 @@ export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
                                                 {invoice.status.replace('_', ' ')}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 text-right font-medium text-sm">{formatCurrency(invoice.total)}</td>
+                                        <td className="py-3 px-4 text-right font-medium text-sm">{format(invoice.total)}</td>
                                         <td className="py-3 px-4 text-right text-sm">
                                             <span className={invoice.balance_due > 0 ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-muted-foreground'}>
-                                                {formatCurrency(invoice.balance_due)}
+                                                {format(invoice.balance_due)}
                                             </span>
                                         </td>
                                     </tr>

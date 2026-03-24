@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { AccountOption, BreadcrumbItem } from '@/types';
 
 
@@ -32,6 +32,7 @@ function emptyLine(): JournalLine {
 type Props = { accounts: AccountOption[] };
 
 export default function JournalEntryCreate({ accounts }: Props) {
+    const { format } = useCurrency();
     const { data, setData, post, processing, errors, transform } = useForm({
         date: new Date().toISOString().split('T')[0],
         description: '',
@@ -169,8 +170,8 @@ updated[index].debit = '';
                                 <tfoot>
                                     <tr className="border-t-2 font-bold">
                                         <td colSpan={2} className="py-2">Totals</td>
-                                        <td className="py-2 text-right">{formatCurrency(totals.debit)}</td>
-                                        <td className="py-2 text-right">{formatCurrency(totals.credit)}</td>
+                                        <td className="py-2 text-right">{format(totals.debit)}</td>
+                                        <td className="py-2 text-right">{format(totals.credit)}</td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -178,7 +179,7 @@ updated[index].debit = '';
 
                             {!totals.balanced && totals.debit + totals.credit > 0 && (
                                 <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-700 dark:text-red-400">
-                                    ⚠️ Entry is unbalanced. Difference: {formatCurrency(Math.abs(totals.debit - totals.credit))}
+                                    ⚠️ Entry is unbalanced. Difference: {format(Math.abs(totals.debit - totals.credit))}
                                 </div>
                             )}
                         </CardContent>

@@ -3,7 +3,7 @@ import { ArrowLeft, CheckCircle2, History, RotateCcw, User } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { JournalEntry, BreadcrumbItem } from '@/types';
 
 type Props = {
@@ -11,6 +11,7 @@ type Props = {
 };
 
 export default function JournalEntryShow({ entry }: Props) {
+    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Journal Entries', href: '/accounting/journal-entries' },
@@ -149,10 +150,10 @@ export default function JournalEntryShow({ entry }: Props) {
                                         {line.description || '—'}
                                     </td>
                                     <td className="py-3 px-4 text-right text-sm font-medium">
-                                        {line.debit > 0 ? formatCurrency(line.debit) : '—'}
+                                        {line.debit > 0 ? format(line.debit) : '—'}
                                     </td>
                                     <td className="py-3 px-4 text-right text-sm font-medium">
-                                        {line.credit > 0 ? formatCurrency(line.credit) : '—'}
+                                        {line.credit > 0 ? format(line.credit) : '—'}
                                     </td>
                                 </tr>
                             ))}
@@ -160,8 +161,8 @@ export default function JournalEntryShow({ entry }: Props) {
                         <tfoot>
                             <tr className="bg-muted/30 font-bold border-t-2">
                                 <td colSpan={2} className="py-3 px-4 text-sm text-right uppercase tracking-wider">Total</td>
-                                <td className="py-3 px-4 text-right text-sm">{formatCurrency(totalDebit)}</td>
-                                <td className="py-3 px-4 text-right text-sm">{formatCurrency(totalCredit)}</td>
+                                <td className="py-3 px-4 text-right text-sm">{format(totalDebit)}</td>
+                                <td className="py-3 px-4 text-right text-sm">{format(totalCredit)}</td>
                             </tr>
                         </tfoot>
                     </table>

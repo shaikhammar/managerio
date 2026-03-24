@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { Plus, CheckCircle2, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BankReconciliation, BreadcrumbItem, PaginatedData } from '@/types';
 
 type Props = {
@@ -15,6 +15,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function ReconciliationIndex({ reconciliations }: Props) {
+    const { format } = useCurrency();
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Bank Reconciliations" />
@@ -61,7 +62,7 @@ export default function ReconciliationIndex({ reconciliations }: Props) {
                                         </td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{rec.statement_date}</td>
                                         <td className="py-3 px-4 text-right text-sm font-medium">
-                                            {formatCurrency(rec.statement_balance)}
+                                            {format(rec.statement_balance)}
                                         </td>
                                         <td className="py-3 px-4 text-center">
                                             {rec.is_completed ? (

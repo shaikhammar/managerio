@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, ProfitAndLossReport } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -13,16 +14,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Profit & Loss', href: '/reports/profit-and-loss' },
 ];
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(amount);
-}
-
 type Props = {
     report: ProfitAndLossReport;
     filters: { start_date: string; end_date: string };
 };
 
 export default function ProfitAndLoss({ report, filters }: Props) {
+    const { format } = useCurrency();
     const [startDate, setStartDate] = useState(filters.start_date);
     const [endDate, setEndDate] = useState(filters.end_date);
 
@@ -74,14 +72,14 @@ export default function ProfitAndLoss({ report, filters }: Props) {
                                                     <span className="text-muted-foreground mr-3">{account.code}</span>
                                                     {account.name}
                                                 </td>
-                                                <td className="py-2 pr-4 text-right text-sm font-medium">{formatCurrency(account.balance)}</td>
+                                                <td className="py-2 pr-4 text-right text-sm font-medium">{format(account.balance)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                     <tfoot>
                                         <tr className="border-t-2 font-bold">
                                             <td className="py-2 pl-4">Total Revenue</td>
-                                            <td className="py-2 pr-4 text-right text-emerald-700 dark:text-emerald-400">{formatCurrency(report.revenue.total)}</td>
+                                            <td className="py-2 pr-4 text-right text-emerald-700 dark:text-emerald-400">{format(report.revenue.total)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -102,14 +100,14 @@ export default function ProfitAndLoss({ report, filters }: Props) {
                                                     <span className="text-muted-foreground mr-3">{account.code}</span>
                                                     {account.name}
                                                 </td>
-                                                <td className="py-2 pr-4 text-right text-sm font-medium">{formatCurrency(account.balance)}</td>
+                                                <td className="py-2 pr-4 text-right text-sm font-medium">{format(account.balance)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                     <tfoot>
                                         <tr className="border-t-2 font-bold">
                                             <td className="py-2 pl-4">Total Expenses</td>
-                                            <td className="py-2 pr-4 text-right text-red-700 dark:text-red-400">{formatCurrency(report.expenses.total)}</td>
+                                            <td className="py-2 pr-4 text-right text-red-700 dark:text-red-400">{format(report.expenses.total)}</td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -121,7 +119,7 @@ export default function ProfitAndLoss({ report, filters }: Props) {
                             <div className="flex items-center justify-between px-4">
                                 <span className="text-lg font-bold">Net Profit</span>
                                 <span className={`text-xl font-bold ${report.net_profit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
-                                    {formatCurrency(report.net_profit)}
+                                    {format(report.net_profit)}
                                 </span>
                             </div>
                         </div>

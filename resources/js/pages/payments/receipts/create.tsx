@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, ContactOption, AccountOption, Invoice } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -23,6 +23,7 @@ type Props = {
 };
 
 export default function ReceiptCreate({ customers, bankAccounts, outstandingInvoices }: Props) {
+    const { format } = useCurrency();
     const { data, setData, post, processing, errors, transform } = useForm({
         contact_id: 'none',
         bank_account_id: 'none',
@@ -145,7 +146,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                                         />
                                                     </td>
                                                     <td className="py-2 font-mono text-sm">{inv.number} <span className="text-muted-foreground ml-1">({inv.date})</span></td>
-                                                    <td className="py-2 text-right text-sm">{formatCurrency(inv.balance_due)}</td>
+                                                    <td className="py-2 text-right text-sm">{format(inv.balance_due)}</td>
                                                     <td className="py-2 text-right">
                                                         {alloc && (
                                                             <Input
@@ -164,7 +165,7 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                 </table>
                                 <div className="flex justify-end mt-4 text-sm">
                                     <span className="text-muted-foreground mr-4">Total Allocated:</span>
-                                    <span className="font-bold">{formatCurrency(totalAllocated)}</span>
+                                    <span className="font-bold">{format(totalAllocated)}</span>
                                 </div>
                             </CardContent>
                         </Card>

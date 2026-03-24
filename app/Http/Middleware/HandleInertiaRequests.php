@@ -35,6 +35,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $business = $request->user()?->currentBusiness();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -42,6 +44,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'currency' => $business?->currency_code ?? 'USD',
         ];
     }
 }

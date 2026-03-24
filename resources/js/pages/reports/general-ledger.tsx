@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { useCurrency } from '@/hooks/use-currency';
 import ReportController from '@/actions/App/Http/Controllers/Reports/ReportController';
 import type { BreadcrumbItem } from '@/types';
 
@@ -40,6 +40,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function GeneralLedger({ ledger, filters, asyncStatus, cacheKey }: Props) {
+    const { format } = useCurrency();
     const [startDate, setStartDate] = useState(filters.start_date);
     const [endDate, setEndDate] = useState(filters.end_date);
     const [status, setStatus] = useState(asyncStatus ?? 'completed');
@@ -169,7 +170,7 @@ export default function GeneralLedger({ ledger, filters, asyncStatus, cacheKey }
                                             <span className="font-semibold">{item.account.name}</span>
                                         </div>
                                         <span className={`text-sm font-medium ${item.closing_balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                            Balance: {formatCurrency(Math.abs(item.closing_balance))}
+                                            Balance: {format(Math.abs(item.closing_balance))}
                                             {item.closing_balance < 0 ? ' CR' : ' DR'}
                                         </span>
                                     </div>
@@ -199,10 +200,10 @@ export default function GeneralLedger({ ledger, filters, asyncStatus, cacheKey }
                                                         {tx.journalEntry.reference || '—'}
                                                     </td>
                                                     <td className="py-2 px-4 text-right font-medium">
-                                                        {tx.debit > 0 ? formatCurrency(tx.debit) : ''}
+                                                        {tx.debit > 0 ? format(tx.debit) : ''}
                                                     </td>
                                                     <td className="py-2 px-4 text-right font-medium">
-                                                        {tx.credit > 0 ? formatCurrency(tx.credit) : ''}
+                                                        {tx.credit > 0 ? format(tx.credit) : ''}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -210,8 +211,8 @@ export default function GeneralLedger({ ledger, filters, asyncStatus, cacheKey }
                                         <tfoot>
                                             <tr className="border-t-2 font-semibold bg-muted/10">
                                                 <td colSpan={3} className="py-2 px-4 text-right text-xs uppercase text-muted-foreground">Totals</td>
-                                                <td className="py-2 px-4 text-right">{formatCurrency(totalDebit)}</td>
-                                                <td className="py-2 px-4 text-right">{formatCurrency(totalCredit)}</td>
+                                                <td className="py-2 px-4 text-right">{format(totalDebit)}</td>
+                                                <td className="py-2 px-4 text-right">{format(totalCredit)}</td>
                                             </tr>
                                         </tfoot>
                                     </table>
