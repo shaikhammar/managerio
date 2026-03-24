@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Accounting\Enums\AccountSubType;
+use App\Domain\Accounting\Enums\AccountType;
+use App\Domain\Sales\Enums\InvoiceType;
 use App\Models\Account;
 use App\Models\Business;
 use App\Models\Invoice;
@@ -57,7 +59,7 @@ class DashboardController extends Controller
         // Revenue & Expenses this month — one batch query per type with date range
         $revenueAccountIds = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->where('type', 'revenue')
+            ->where('type', AccountType::REVENUE)
             ->pluck('id');
 
         $revenueTotals = $this->ledger->fetchBatchTotals($revenueAccountIds, $business->id, $endOfMonth, $startOfMonth);
@@ -68,7 +70,7 @@ class DashboardController extends Controller
 
         $expenseAccountIds = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->where('type', 'expense')
+            ->where('type', AccountType::EXPENSE)
             ->pluck('id');
 
         $expenseTotals = $this->ledger->fetchBatchTotals($expenseAccountIds, $business->id, $endOfMonth, $startOfMonth);
@@ -80,7 +82,7 @@ class DashboardController extends Controller
         // Recent invoices
         $recentInvoices = Invoice::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->where('type', 'invoice')
+            ->where('type', InvoiceType::INVOICE)
             ->with('contact')
             ->orderByDesc('date')
             ->limit(5)

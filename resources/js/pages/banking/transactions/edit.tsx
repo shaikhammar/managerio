@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import type { Account, BankTransaction, BreadcrumbItem } from '@/types';
 
 type Props = {
     transaction: BankTransaction & { bank_account?: Account };
-    bankAccounts: Pick<Account, 'id' | 'name' | 'code'>[];
 };
 
-export default function BankTransactionEdit({ transaction, bankAccounts }: Props) {
+export default function BankTransactionEdit({ transaction }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Bank Transactions', href: '/banking/transactions' },

@@ -157,22 +157,23 @@ class QuoteService
 
     private function createLines(Invoice $invoice, array $linesData): array
     {
-        $subtotal = 0;
-        $taxTotal = 0;
+        $subtotal = '0';
+        $taxTotal = '0';
 
         foreach ($linesData as $index => $line) {
-            $lineTotal = round((float) $line['quantity'] * (float) $line['unit_price'], 2);
+            $lineTotal = bcmul((string) $line['quantity'], (string) $line['unit_price'], 2);
 
             if (isset($line['discount_percent']) && $line['discount_percent'] > 0) {
-                $lineTotal = round($lineTotal * (1 - (float) $line['discount_percent'] / 100), 2);
+                $discountMultiplier = bcsub('1', bcdiv((string) $line['discount_percent'], '100', 10), 10);
+                $lineTotal = bcmul($lineTotal, $discountMultiplier, 2);
             }
 
             $taxCodeId = $line['tax_code_id'] ?? 'none';
-            $taxAmount = 0;
+            $taxAmount = '0';
             if (! empty($taxCodeId) && $taxCodeId !== 'none') {
                 $taxCode = TaxCode::withoutGlobalScopes()->find($taxCodeId);
                 if ($taxCode) {
-                    $taxAmount = round($lineTotal * (float) $taxCode->rate / 100, 2);
+                    $taxAmount = bcmul($lineTotal, bcdiv((string) $taxCode->rate, '100', 10), 2);
                 }
             }
 
@@ -188,10 +189,10 @@ class QuoteService
                 'sort_order' => $index,
             ]);
 
-            $subtotal += $lineTotal;
-            $taxTotal += $taxAmount;
+            $subtotal = bcadd($subtotal, $lineTotal, 2);
+            $taxTotal = bcadd($taxTotal, $taxAmount, 2);
         }
 
-        return [$subtotal, $taxTotal];
+        return [(float) $subtotal, (float) $taxTotal];
     }
 }
