@@ -251,17 +251,29 @@ class ReportService
         $netIncome = $this->getTotalTypeBalance($business, AccountType::REVENUE, $startDate, $endDate)
             - $this->getTotalTypeBalance($business, AccountType::EXPENSE, $startDate, $endDate);
 
-        $accounts = $equityAccounts->map(function ($account) use ($startDate, $endDate) {
-            $openingBalance = $this->ledger->getAccountBalance($account, $startDate->copy()->subDay());
-            $closingBalance = $this->ledger->getAccountBalance($account, $endDate);
-            $movement = $closingBalance - $openingBalance;
+        $accountIds = $equityAccounts->pluck('id');
+        $openingTotals = $this->ledger->fetchBatchTotals($accountIds, $business->id, $startDate->copy()->subDay());
+        $closingTotals = $this->ledger->fetchBatchTotals($accountIds, $business->id, $endDate);
+
+        $accounts = $equityAccounts->map(function ($account) use ($openingTotals, $closingTotals) {
+            $isDebitNormal = $account->type->normalBalance() === 'debit';
+
+            $calcBalance = function ($row) use ($isDebitNormal) {
+                $d = (float) ($row?->total_debit ?? 0);
+                $c = (float) ($row?->total_credit ?? 0);
+
+                return $isDebitNormal ? $d - $c : $c - $d;
+            };
+
+            $openingBalance = $calcBalance($openingTotals->get($account->id));
+            $closingBalance = $calcBalance($closingTotals->get($account->id));
 
             return [
                 'id' => $account->id,
                 'code' => $account->code,
                 'name' => $account->name,
                 'opening_balance' => round($openingBalance, 2),
-                'movement' => round($movement, 2),
+                'movement' => round($closingBalance - $openingBalance, 2),
                 'closing_balance' => round($closingBalance, 2),
             ];
         })->values();
@@ -329,23 +341,21 @@ class ReportService
             ->orderBy('code')
             ->get();
 
-        return $accounts->map(function ($account) use ($startDate, $endDate) {
-            $query = JournalEntryLine::query()
-                ->where('account_id', $account->id)
-                ->whereHas('journalEntry', function ($q) use ($account, $startDate, $endDate) {
-                    $q->withoutGlobalScopes()
-                        ->where('business_id', $account->business_id)
-                        ->where('is_posted', true)
-                        ->where('date', '<=', $endDate);
+        if ($accounts->isEmpty()) {
+            return collect();
+        }
 
-                    if ($startDate) {
-                        $q->where('date', '>=', $startDate);
-                    }
-                });
+        $totals = $this->ledger->fetchBatchTotals(
+            $accounts->pluck('id'),
+            $business->id,
+            $endDate,
+            $startDate,
+        );
 
-            $totalDebit = (float) $query->sum('debit');
-            $totalCredit = (float) $query->sum('credit');
-
+        return $accounts->map(function ($account) use ($totals) {
+            $row = $totals->get($account->id);
+            $totalDebit = (float) ($row?->total_debit ?? 0);
+            $totalCredit = (float) ($row?->total_credit ?? 0);
             $balance = $account->type->normalBalance() === 'debit'
                 ? $totalDebit - $totalCredit
                 : $totalCredit - $totalDebit;
@@ -376,26 +386,28 @@ class ReportService
      */
     private function getSubTypeMovement(Business $business, AccountSubType $subType, Carbon $startDate, Carbon $endDate): float
     {
-        $accounts = Account::withoutGlobalScopes()
+        $accountIds = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
             ->where('sub_type', $subType)
-            ->get();
+            ->pluck('id');
 
-        $total = 0.0;
-        foreach ($accounts as $account) {
-            $lines = JournalEntryLine::query()
-                ->where('account_id', $account->id)
-                ->whereHas('journalEntry', function ($q) use ($account, $startDate, $endDate) {
-                    $q->withoutGlobalScopes()
-                        ->where('business_id', $account->business_id)
-                        ->where('is_posted', true)
-                        ->whereBetween('date', [$startDate, $endDate]);
-                });
-
-            $total += (float) $lines->sum('debit') - (float) $lines->sum('credit');
+        if ($accountIds->isEmpty()) {
+            return 0.0;
         }
 
-        return $total;
+        $row = JournalEntryLine::query()
+            ->select(
+                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+                DB::raw('SUM(journal_entry_lines.credit) as total_credit'),
+            )
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
+            ->whereIn('journal_entry_lines.account_id', $accountIds)
+            ->where('journal_entries.business_id', $business->id)
+            ->where('journal_entries.is_posted', true)
+            ->whereBetween('journal_entries.date', [$startDate, $endDate])
+            ->first();
+
+        return (float) ($row?->total_debit ?? 0) - (float) ($row?->total_credit ?? 0);
     }
 
     private function buildAgedReport(Collection $invoices, Carbon $asOfDate): array
