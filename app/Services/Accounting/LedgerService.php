@@ -28,16 +28,16 @@ class LedgerService
                 }
             });
 
-        $totalDebit = (float) $query->sum('debit');
-        $totalCredit = (float) $query->sum('credit');
+        $totalDebit = (string) $query->sum('debit');
+        $totalCredit = (string) $query->sum('credit');
 
         // For debit-normal accounts (assets, expenses): balance = debits - credits
         // For credit-normal accounts (liabilities, equity, revenue): balance = credits - debits
         if ($account->type->normalBalance() === 'debit') {
-            return $totalDebit - $totalCredit;
+            return (float) bcsub($totalDebit, $totalCredit, 2);
         }
 
-        return $totalCredit - $totalDebit;
+        return (float) bcsub($totalCredit, $totalDebit, 2);
     }
 
     /**
@@ -85,9 +85,9 @@ class LedgerService
 
         return $accounts->map(function ($account) use ($totals) {
             $row = $totals->get($account->id);
-            $totalDebit = (float) ($row?->total_debit ?? 0);
-            $totalCredit = (float) ($row?->total_credit ?? 0);
-            $balance = $totalDebit - $totalCredit;
+            $totalDebit = (string) ($row?->total_debit ?? '0');
+            $totalCredit = (string) ($row?->total_credit ?? '0');
+            $balance = (float) bcsub($totalDebit, $totalCredit, 2);
 
             return [
                 'account' => $account,
@@ -144,15 +144,17 @@ class LedgerService
 
         $totals = $this->fetchBatchTotals($accounts->pluck('id'), $business->id, $asOfDate);
 
-        return $accounts->sum(function ($account) use ($totals) {
+        return (float) $accounts->reduce(function ($carry, $account) use ($totals) {
             $row = $totals->get($account->id);
-            $totalDebit = (float) ($row?->total_debit ?? 0);
-            $totalCredit = (float) ($row?->total_credit ?? 0);
+            $totalDebit = (string) ($row?->total_debit ?? '0');
+            $totalCredit = (string) ($row?->total_credit ?? '0');
 
-            return $account->type->normalBalance() === 'debit'
-                ? $totalDebit - $totalCredit
-                : $totalCredit - $totalDebit;
-        });
+            $balance = $account->type->normalBalance() === 'debit'
+                ? bcsub($totalDebit, $totalCredit, 2)
+                : bcsub($totalCredit, $totalDebit, 2);
+
+            return bcadd($carry, $balance, 2);
+        }, '0');
     }
 
     /**

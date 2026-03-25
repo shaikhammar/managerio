@@ -10,13 +10,15 @@ use App\Models\Account;
 use App\Models\BankTransaction;
 use App\Services\Accounting\LedgerService;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BankAccountController extends Controller
 {
     public function __construct(private LedgerService $ledger) {}
 
-    public function index()
+    public function index(): Response
     {
         $bankAccounts = Account::query()
             ->where('sub_type', AccountSubType::BANK)
@@ -33,12 +35,12 @@ class BankAccountController extends Controller
         return Inertia::render('banking/accounts/index', ['bankAccounts' => $bankAccounts]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('banking/accounts/create');
     }
 
-    public function store(BankAccountRequest $request)
+    public function store(BankAccountRequest $request): RedirectResponse
     {
         $this->authorize('create', Account::class);
 
@@ -62,7 +64,7 @@ class BankAccountController extends Controller
             ->with('success', 'Bank account created successfully.');
     }
 
-    public function show(Account $account)
+    public function show(Account $account): Response
     {
         $transactions = BankTransaction::query()
             ->where('bank_account_id', $account->id)
