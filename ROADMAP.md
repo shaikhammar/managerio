@@ -60,16 +60,16 @@
 - [x] **Account Transactions Report** — All transactions for a single account with opening balance and running balance (bank statement view per account).
 
 ### 1.3 Missing Accounting Features
-- [ ] **Recurring Journal Entries** — Schedule a journal entry to auto-post on a regular interval (monthly, quarterly). Essential for prepayments, depreciation.
-- [ ] **Opening Balances** — Bulk import opening balances when migrating from another system. One-time journal entry per account with a start date.
-- [ ] **Inter-company Transactions** — Transfer funds or charge between businesses in the same account (relevant for agencies with subsidiaries).
-- [ ] **Budgets** — Set monthly/annual budget targets per account. Compare actuals vs budget in P&L.
+- [x] **Recurring Journal Entries** — Schedule a journal entry to auto-post on a regular interval (monthly, quarterly). Essential for prepayments, depreciation.
+- [x] **Opening Balances** — Bulk import opening balances when migrating from another system. One-time journal entry per account with a start date.
+- [x] **Inter-company Transactions** — Transfer funds or charge between businesses in the same account (relevant for agencies with subsidiaries).
+- [x] **Budgets** — Set monthly/annual budget targets per account. Compare actuals vs budget in P&L.
 
 ### 1.4 Fixed Assets Module
-- [ ] **Fixed Assets register** — Track assets (computers, equipment, vehicles, etc.)
-- [ ] **Depreciation schedules** — Straight-line and declining balance methods
-- [ ] **Asset disposal** — Record sale or write-off with gain/loss journal entry
-- [ ] **Depreciation run** — One-click post depreciation for a period
+- [x] **Fixed Assets register** — Track assets (computers, equipment, vehicles, etc.)
+- [x] **Depreciation schedules** — Straight-line and declining balance methods
+- [x] **Asset disposal** — Record sale or write-off with gain/loss journal entry
+- [x] **Depreciation run** — One-click post depreciation for a period
 
 ### 1.5 UX / Platform
 - [ ] **Bulk actions** — Mark multiple invoices as sent, bulk delete drafts
