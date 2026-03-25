@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Download, Send, FileCheck } from 'lucide-react';
 import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
+import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -23,7 +24,7 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Purchase Orders', href: PurchaseOrderController.index.url() },
-        { title: purchaseOrder.number, href: PurchaseOrderController.show.url(purchaseOrder) },
+        { title: purchaseOrder.number, href: PurchaseOrderController.show.url(purchaseOrder.id) },
     ];
 
     const canEdit = purchaseOrder.status === 'draft';
@@ -31,11 +32,11 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
     const canConvert = purchaseOrder.status !== 'invoiced' && purchaseOrder.status !== 'cancelled';
 
     function handleSend() {
-        router.post(PurchaseOrderController.send.url(purchaseOrder));
+        router.post(PurchaseOrderController.send.url(purchaseOrder.id));
     }
 
     function handleConvert() {
-        router.post(PurchaseOrderController.convert.url(purchaseOrder));
+        router.post(PurchaseOrderController.convert.url(purchaseOrder.id));
     }
 
     return (
@@ -70,7 +71,7 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                         </Button>
                         {canEdit && (
                             <Button variant="outline" asChild>
-                                <Link href={PurchaseOrderController.edit.url(purchaseOrder)}>Edit</Link>
+                                <Link href={PurchaseOrderController.edit.url(purchaseOrder.id)}>Edit</Link>
                             </Button>
                         )}
                         {canSend && (
@@ -167,7 +168,7 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                         <CardContent>
                             {purchaseOrder.purchase_invoices.map((inv) => (
                                 <div key={inv.id} className="flex items-center justify-between py-2">
-                                    <Link href={`/purchases/invoices/${inv.id}`} className="font-mono text-sm font-medium hover:underline">
+                                    <Link href={PurchaseInvoiceController.show.url(inv)} className="font-mono text-sm font-medium hover:underline">
                                         {inv.number}
                                     </Link>
                                     <span className="text-sm text-muted-foreground">{format(inv.total)}</span>

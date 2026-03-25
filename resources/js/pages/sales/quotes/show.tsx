@@ -1,8 +1,13 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Ban, Download, FileCheck } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { ArrowLeft, Ban, Download, FileCheck, Mail } from 'lucide-react';
 import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice } from '@/types';
@@ -19,17 +24,26 @@ export default function QuoteShow({ quote }: Props) {
     const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Quotes', href: '/sales/quotes' },
-        { title: quote.number, href: `/sales/quotes/${quote.id}` },
+        { title: 'Quotes', href: QuoteController.index.url() },
+        { title: quote.number, href: QuoteController.show.url(quote) },
     ];
 
     const isDraft = quote.status === 'draft';
     const isConverted = quote.status === 'approved';
 
+    const emailForm = useForm({ email: quote.contact?.email ?? '' });
+    const [emailOpen, setEmailOpen] = useState(false);
+
     function handleConvert() {
         if (confirm('Convert this quote into a sales invoice? This will generate accounting entries.')) {
-            router.post(`/sales/quotes/${quote.id}/convert`);
+            router.post(QuoteController.convert.url(quote));
         }
+    }
+    function handleSendEmail(e: React.FormEvent) {
+        e.preventDefault();
+        emailForm.post(QuoteController.sendEmail.url(quote), {
+            onSuccess: () => setEmailOpen(false),
+        });
     }
 
     return (
@@ -40,7 +54,7 @@ export default function QuoteShow({ quote }: Props) {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href="/sales/quotes"><ArrowLeft className="size-4" /></Link>
+                            <Link href={QuoteController.index.url()}><ArrowLeft className="size-4" /></Link>
                         </Button>
                         <div>
                             <div className="flex items-center gap-3">
@@ -62,10 +76,16 @@ export default function QuoteShow({ quote }: Props) {
                                 PDF
                             </a>
                         </Button>
+                        {quote.status !== 'cancelled' && (
+                            <Button variant="outline" size="sm" onClick={() => setEmailOpen(true)}>
+                                <Mail className="mr-2 size-4" />
+                                Send Email
+                            </Button>
+                        )}
                         {isDraft && (
                             <>
                                 <Button variant="outline" asChild>
-                                    <Link href={`/sales/quotes/${quote.id}/edit`}>Edit</Link>
+                                    <Link href={QuoteController.edit.url(quote)}>Edit</Link>
                                 </Button>
                                 <Button onClick={handleConvert}>
                                     <FileCheck className="mr-2 size-4" />
@@ -80,6 +100,35 @@ export default function QuoteShow({ quote }: Props) {
                             </Button>
                         )}
                     </div>
+
+                    <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Send Quote {quote.number}</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleSendEmail} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Recipient Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={emailForm.data.email}
+                                        onChange={(e) => emailForm.setData('email', e.target.value)}
+                                        placeholder="customer@example.com"
+                                        autoFocus
+                                    />
+                                    <InputError message={emailForm.errors.email} />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="button" variant="outline" onClick={() => setEmailOpen(false)}>Cancel</Button>
+                                    <Button type="submit" disabled={emailForm.processing}>
+                                        <Mail className="mr-2 size-4" />
+                                        {emailForm.processing ? 'Sending…' : 'Send'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 {/* Line Items */}
@@ -101,9 +150,6 @@ export default function QuoteShow({ quote }: Props) {
                                     <tr key={line.id} className="border-b last:border-0">
                                         <td className="py-3">
                                             <p className="font-medium text-sm">{line.description}</p>
-                                            {line.account && (
-                                                <p className="text-xs text-muted-foreground">{line.account.code} · {line.account.name}</p>
-                                            )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
                                         <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>

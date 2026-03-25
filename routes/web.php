@@ -3,6 +3,7 @@
 use App\Http\Controllers\Accounting\AccountController;
 use App\Http\Controllers\Accounting\JournalEntryController;
 use App\Http\Controllers\Accounting\TaxCodeController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Banking\BankAccountController;
 use App\Http\Controllers\Banking\BankReconciliationController;
 use App\Http\Controllers\Banking\BankTransactionController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\Purchases\PurchaseInvoiceController;
 use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\SupplierController;
 use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Sales\BulkInvoiceController;
+use App\Http\Controllers\Sales\BulkQuoteController;
 use App\Http\Controllers\Sales\CreditNoteController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\InvoiceController;
@@ -62,9 +65,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('quotes', QuoteController::class);
             Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
             Route::get('quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->name('quotes.pdf');
+            Route::post('quotes/{quote}/send-email', [QuoteController::class, 'sendEmail'])->name('quotes.send-email');
+            Route::delete('quotes/bulk/delete', [BulkQuoteController::class, 'deleteDrafts'])->name('quotes.bulk.delete');
             Route::resource('invoices', InvoiceController::class);
+            Route::post('invoices/{invoice}/post', [InvoiceController::class, 'post'])->name('invoices.post');
             Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
             Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+            Route::post('invoices/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.send-email');
+            Route::post('invoices/bulk/mark-sent', [BulkInvoiceController::class, 'markSent'])->name('invoices.bulk.mark-sent');
+            Route::delete('invoices/bulk/delete', [BulkInvoiceController::class, 'deleteDrafts'])->name('invoices.bulk.delete');
             Route::resource('credit-notes', CreditNoteController::class);
             Route::get('credit-notes/{credit_note}/pdf', [CreditNoteController::class, 'pdf'])->name('credit-notes.pdf');
         });
@@ -93,6 +102,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('transactions', BankTransactionController::class);
             Route::resource('reconciliations', BankReconciliationController::class);
         });
+
+        // ── Audit Log ──────────────────────────────────────
+        Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 
         // ── Reports ────────────────────────────────────────
         Route::prefix('reports')->name('reports.')->group(function () {

@@ -20,10 +20,10 @@ export default function DebitNoteShow({ debitNote }: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Debit Notes', href: DebitNoteController.index.url() },
-        { title: debitNote.number, href: DebitNoteController.show.url(debitNote) },
+        { title: debitNote.number, href: DebitNoteController.show.url(debitNote.id) },
     ];
 
-    const canEdit = debitNote.status === 'draft';
+    const canEdit = debitNote.status !== 'void';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -56,7 +56,7 @@ export default function DebitNoteShow({ debitNote }: Props) {
                         </Button>
                         {canEdit && (
                             <Button variant="outline" asChild>
-                                <Link href={DebitNoteController.edit.url(debitNote)}>Edit</Link>
+                                <Link href={DebitNoteController.edit.url(debitNote.id)}>Edit</Link>
                             </Button>
                         )}
                     </div>

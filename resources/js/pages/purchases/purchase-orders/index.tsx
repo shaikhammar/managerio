@@ -105,7 +105,7 @@ export default function PurchaseOrderIndex({ purchaseOrders, filters }: Props) {
                                 purchaseOrders.data.map((po) => (
                                     <tr key={po.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                                         <td className="py-3 px-4">
-                                            <Link href={PurchaseOrderController.show.url(po)} className="font-mono text-sm font-medium hover:underline">
+                                            <Link href={PurchaseOrderController.show.url(po.id)} className="font-mono text-sm font-medium hover:underline">
                                                 {po.number}
                                             </Link>
                                         </td>

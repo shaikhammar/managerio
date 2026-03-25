@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DomainException;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
@@ -89,7 +90,11 @@ class CreditNoteController extends Controller
             abort(404);
         }
 
-        $this->invoiceService->update($creditNote, $request->validated());
+        try {
+            $this->invoiceService->update($creditNote, $request->validated());
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('sales.credit-notes.show', $creditNote)
             ->with('success', 'Credit note updated successfully.');

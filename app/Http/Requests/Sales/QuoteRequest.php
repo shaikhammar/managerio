@@ -30,7 +30,6 @@ class QuoteRequest extends FormRequest
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'lines' => 'required|array|min:1',
-            'lines.*.account_id' => 'required|exists:accounts,id',
             'lines.*.description' => 'required|string',
             'lines.*.quantity' => 'required|numeric|min:0.0001',
             'lines.*.unit_price' => 'required|numeric|min:0',

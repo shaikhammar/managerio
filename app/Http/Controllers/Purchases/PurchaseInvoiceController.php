@@ -9,6 +9,7 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
+use DomainException;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -87,7 +88,11 @@ class PurchaseInvoiceController extends Controller
             abort(404);
         }
 
-        $this->invoiceService->update($invoice, $request->validated());
+        try {
+            $this->invoiceService->update($invoice, $request->validated());
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('purchases.purchase-invoices.show', $invoice)
             ->with('success', 'Purchase invoice updated successfully.');
