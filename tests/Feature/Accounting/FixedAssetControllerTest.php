@@ -17,9 +17,9 @@ beforeEach(function () {
     $this->actingAs($this->user);
     session(['current_business_id' => $this->business->id]);
 
-    $this->assetAccount = Account::factory()->create(['business_id' => $this->business->id, 'type' => 'asset']);
-    $this->accumDepAccount = Account::factory()->create(['business_id' => $this->business->id, 'type' => 'asset']);
-    $this->depExpenseAccount = Account::factory()->create(['business_id' => $this->business->id, 'type' => 'expense']);
+    $this->assetAccount = Account::factory()->create(['business_id' => $this->business->id, 'type' => 'asset', 'code' => '9001']);
+    $this->accumDepAccount = Account::factory()->create(['business_id' => $this->business->id, 'type' => 'asset', 'code' => '9002']);
+    $this->depExpenseAccount = Account::factory()->create(['business_id' => $this->business->id, 'type' => 'expense', 'code' => '9003']);
 });
 
 it('can load the fixed assets index page', function () {
