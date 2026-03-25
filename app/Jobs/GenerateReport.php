@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use App\Domain\Reports\Enums\ReportJobStatus;
 use InvalidArgumentException;
 
 class GenerateReport implements ShouldQueue
@@ -59,7 +60,7 @@ class GenerateReport implements ShouldQueue
         };
 
         Cache::put($this->cacheKey(), [
-            'status' => 'completed',
+            'status' => ReportJobStatus::Completed->value,
             'data' => $data,
             'generated_at' => now()->toIso8601String(),
         ], self::CACHE_TTL);
@@ -68,7 +69,7 @@ class GenerateReport implements ShouldQueue
     public function failed(\Throwable $exception): void
     {
         Cache::put($this->cacheKey(), [
-            'status' => 'failed',
+            'status' => ReportJobStatus::Failed->value,
             'error' => $exception->getMessage(),
         ], self::CACHE_TTL);
     }

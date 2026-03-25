@@ -56,20 +56,24 @@ class InvoiceLine extends Model
 
     public function calculateLineTotal(): float
     {
-        $subtotal = round((float) $this->quantity * (float) $this->unit_price, 2);
-        $discount = round($subtotal * (float) $this->discount_percent / 100, 2);
+        $subtotal = bcmul((string) $this->quantity, (string) $this->unit_price, 2);
 
-        return $subtotal - $discount;
+        if ((float) $this->discount_percent > 0) {
+            $discountMultiplier = bcsub('1', bcdiv((string) $this->discount_percent, '100', 10), 10);
+            $subtotal = bcmul($subtotal, $discountMultiplier, 2);
+        }
+
+        return (float) $subtotal;
     }
 
     public function calculateTaxAmount(): float
     {
         if (! $this->tax_code_id) {
-            return 0;
+            return 0.0;
         }
 
-        $lineTotal = $this->calculateLineTotal();
+        $lineTotal = (string) $this->calculateLineTotal();
 
-        return round($lineTotal * (float) $this->taxCode->rate / 100, 2);
+        return (float) bcmul($lineTotal, bcdiv((string) $this->taxCode->rate, '100', 10), 2);
     }
 }

@@ -6,12 +6,14 @@ use App\Domain\Contacts\Enums\ContactType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ContactRequest;
 use App\Models\Contact;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class SupplierController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $suppliers = Contact::query()
             ->suppliers()
@@ -25,12 +27,12 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('purchases/suppliers/create');
     }
 
-    public function store(ContactRequest $request)
+    public function store(ContactRequest $request): RedirectResponse
     {
         $this->authorize('create', Contact::class);
 
@@ -39,17 +41,17 @@ class SupplierController extends Controller
         return redirect()->route('purchases.suppliers.index')->with('success', 'Supplier created successfully.');
     }
 
-    public function show(Contact $supplier)
+    public function show(Contact $supplier): Response
     {
         return Inertia::render('purchases/suppliers/show', ['supplier' => $supplier]);
     }
 
-    public function edit(Contact $supplier)
+    public function edit(Contact $supplier): Response
     {
         return Inertia::render('purchases/suppliers/edit', ['supplier' => $supplier]);
     }
 
-    public function update(ContactRequest $request, Contact $supplier)
+    public function update(ContactRequest $request, Contact $supplier): RedirectResponse
     {
         $this->authorize('update', $supplier);
 
@@ -58,7 +60,7 @@ class SupplierController extends Controller
         return redirect()->route('purchases.suppliers.index')->with('success', 'Supplier updated.');
     }
 
-    public function destroy(Contact $supplier)
+    public function destroy(Contact $supplier): RedirectResponse
     {
         $this->authorize('delete', $supplier);
 

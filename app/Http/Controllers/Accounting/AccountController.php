@@ -10,13 +10,16 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Services\Accounting\LedgerService;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class AccountController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(private LedgerService $ledger) {}
+
+    public function index(Request $request): Response
     {
         $business = $request->user()->currentBusiness();
 
@@ -27,30 +30,16 @@ class AccountController extends Controller
             ->orderBy('code')
             ->paginate(50);
 
-        // Aggregate debit/credit sums in a single query for all accounts on this page
-        $accountIds = $accounts->pluck('id');
-        $rawBalances = DB::table('journal_entry_lines')
-            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
-            ->whereIn('journal_entry_lines.account_id', $accountIds)
-            ->where('journal_entries.is_posted', true)
-            ->where('journal_entries.business_id', $business->id)
-            ->groupBy('journal_entry_lines.account_id')
-            ->select(
-                'journal_entry_lines.account_id',
-                DB::raw('SUM(debit) as total_debit'),
-                DB::raw('SUM(credit) as total_credit'),
-            )
-            ->get()
-            ->keyBy('account_id');
+        $rawBalances = $this->ledger->fetchBatchTotals($accounts->pluck('id'), $business->id, null);
 
         // Attach balance to each account using its normal balance side
         $accounts->getCollection()->transform(function (Account $account) use ($rawBalances) {
             $row = $rawBalances->get($account->id);
-            $debit = $row ? (float) $row->total_debit : 0.0;
-            $credit = $row ? (float) $row->total_credit : 0.0;
-            $account->balance = $account->type->normalBalance() === 'debit'
-                ? $debit - $credit
-                : $credit - $debit;
+            $debit = (string) ($row?->total_debit ?? '0');
+            $credit = (string) ($row?->total_credit ?? '0');
+            $account->balance = (float) ($account->type->normalBalance() === 'debit'
+                ? bcsub($debit, $credit, 2)
+                : bcsub($credit, $debit, 2));
 
             return $account;
         });
@@ -62,7 +51,7 @@ class AccountController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('accounting/accounts/create', [
             'accountTypes' => collect(AccountType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
@@ -70,7 +59,7 @@ class AccountController extends Controller
         ]);
     }
 
-    public function store(AccountRequest $request)
+    public function store(AccountRequest $request): RedirectResponse
     {
         $this->authorize('create', Account::class);
 
@@ -80,9 +69,8 @@ class AccountController extends Controller
             ->with('success', 'Account created successfully.');
     }
 
-    public function show(Account $account)
+    public function show(Account $account): Response
     {
-        $ledgerService = app(LedgerService::class);
 
         $transactions = JournalEntryLine::query()
             ->where('account_id', $account->id)
@@ -97,11 +85,11 @@ class AccountController extends Controller
         return Inertia::render('accounting/accounts/show', [
             'account' => $account->load('parent', 'children'),
             'transactions' => $transactions,
-            'balance' => $ledgerService->getAccountBalance($account, Carbon::now()),
+            'balance' => $this->ledger->getAccountBalance($account, Carbon::now()),
         ]);
     }
 
-    public function edit(Account $account)
+    public function edit(Account $account): Response|RedirectResponse
     {
         if ($account->is_system) {
             return redirect()->route('accounting.accounts.index')
@@ -115,7 +103,7 @@ class AccountController extends Controller
         ]);
     }
 
-    public function update(AccountRequest $request, Account $account)
+    public function update(AccountRequest $request, Account $account): RedirectResponse
     {
         $this->authorize('update', $account);
 
@@ -129,7 +117,7 @@ class AccountController extends Controller
             ->with('success', 'Account updated successfully.');
     }
 
-    public function destroy(Account $account)
+    public function destroy(Account $account): RedirectResponse
     {
         $this->authorize('delete', $account);
 

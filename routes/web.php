@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Accounting\AccountController;
+use App\Http\Controllers\Accounting\BudgetController;
+use App\Http\Controllers\Accounting\IntercompanyController;
 use App\Http\Controllers\Accounting\JournalEntryController;
+use App\Http\Controllers\Accounting\OpeningBalanceController;
+use App\Http\Controllers\Accounting\RecurringJournalEntryController;
 use App\Http\Controllers\Accounting\TaxCodeController;
 use App\Http\Controllers\Banking\BankAccountController;
 use App\Http\Controllers\Banking\BankReconciliationController;
@@ -54,6 +58,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('journal-entries/{journal_entry}/post', [JournalEntryController::class, 'post'])->name('journal-entries.post');
             Route::post('journal-entries/{journal_entry}/reverse', [JournalEntryController::class, 'reverse'])->name('journal-entries.reverse');
             Route::resource('tax-codes', TaxCodeController::class)->except(['show']);
+            Route::resource('recurring-journal-entries', RecurringJournalEntryController::class);
+            Route::post('recurring-journal-entries/{recurring_journal_entry}/toggle-active', [RecurringJournalEntryController::class, 'toggleActive'])->name('recurring-journal-entries.toggle-active');
+            Route::get('opening-balances/create', [OpeningBalanceController::class, 'create'])->name('opening-balances.create');
+            Route::post('opening-balances', [OpeningBalanceController::class, 'store'])->name('opening-balances.store');
+            Route::get('budgets', [BudgetController::class, 'index'])->name('budgets.index');
+            Route::get('budgets/edit', [BudgetController::class, 'edit'])->name('budgets.edit');
+            Route::post('budgets', [BudgetController::class, 'save'])->name('budgets.save');
+            Route::get('intercompany', [IntercompanyController::class, 'index'])->name('intercompany.index');
+            Route::get('intercompany/create', [IntercompanyController::class, 'create'])->name('intercompany.create');
+            Route::get('intercompany/target-accounts', [IntercompanyController::class, 'targetAccounts'])->name('intercompany.target-accounts');
+            Route::post('intercompany', [IntercompanyController::class, 'store'])->name('intercompany.store');
+            Route::get('intercompany/{id}', [IntercompanyController::class, 'show'])->name('intercompany.show');
         });
 
         // ── Sales ──────────────────────────────────────────

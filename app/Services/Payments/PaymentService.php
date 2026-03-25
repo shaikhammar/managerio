@@ -179,10 +179,17 @@ class PaymentService
      */
     private function allocatePayment(Payment $payment, array $allocations): void
     {
-        foreach ($allocations as $allocation) {
-            $invoice = Invoice::withoutGlobalScopes()->findOrFail($allocation['invoice_id']);
+        $invoiceIds = array_column($allocations, 'invoice_id');
+        $invoices = Invoice::withoutGlobalScopes()
+            ->whereIn('id', $invoiceIds)
+            ->get()
+            ->keyBy('id');
 
-            if ((float) $allocation['amount'] > (float) $invoice->balance_due) {
+        foreach ($allocations as $allocation) {
+            /** @var Invoice $invoice */
+            $invoice = $invoices->get($allocation['invoice_id']);
+
+            if (bccomp((string) $allocation['amount'], (string) $invoice->balance_due, 2) > 0) {
                 throw new DomainException(
                     "Allocation amount ({$allocation['amount']}) exceeds invoice balance due ({$invoice->balance_due})."
                 );
@@ -194,15 +201,20 @@ class PaymentService
                 'amount' => $allocation['amount'],
             ]);
 
-            $invoice->increment('amount_paid', $allocation['amount']);
-            $invoice->decrement('balance_due', $allocation['amount']);
+            $newBalanceDue = bcsub((string) $invoice->balance_due, (string) $allocation['amount'], 2);
+            $newAmountPaid = bcadd((string) $invoice->amount_paid, (string) $allocation['amount'], 2);
 
-            // Update invoice status
-            if ($invoice->fresh()->balance_due <= 0) {
-                $invoice->update(['status' => InvoiceStatus::PAID]);
-            } elseif ($invoice->amount_paid > 0) {
-                $invoice->update(['status' => InvoiceStatus::PARTIALLY_PAID]);
-            }
+            $invoice->update([
+                'amount_paid' => $newAmountPaid,
+                'balance_due' => $newBalanceDue,
+                'status' => (float) $newBalanceDue <= 0
+                    ? InvoiceStatus::PAID
+                    : ((float) $newAmountPaid > 0 ? InvoiceStatus::PARTIALLY_PAID : $invoice->status),
+            ]);
+
+            // Sync in-memory model so subsequent allocations on the same invoice use the updated balance
+            $invoice->balance_due = $newBalanceDue;
+            $invoice->amount_paid = $newAmountPaid;
         }
     }
 }
