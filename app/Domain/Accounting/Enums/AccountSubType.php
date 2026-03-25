@@ -23,6 +23,7 @@ enum AccountSubType: string
     // Equity sub-types
     case OWNER_EQUITY = 'owner_equity';
     case RETAINED_EARNINGS = 'retained_earnings';
+    case INTERCOMPANY = 'intercompany';
 
     // Revenue sub-types
     case SALES_REVENUE = 'sales_revenue';
@@ -51,7 +52,7 @@ enum AccountSubType: string
             self::ACCOUNTS_PAYABLE, self::TAX_PAYABLE, self::CREDIT_CARD,
             self::OTHER_CURRENT_LIABILITY, self::LONG_TERM_LIABILITY => AccountType::LIABILITY,
 
-            self::OWNER_EQUITY, self::RETAINED_EARNINGS => AccountType::EQUITY,
+            self::OWNER_EQUITY, self::RETAINED_EARNINGS, self::INTERCOMPANY => AccountType::EQUITY,
 
             self::SALES_REVENUE, self::SERVICE_REVENUE, self::OTHER_REVENUE => AccountType::REVENUE,
 
