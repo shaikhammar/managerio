@@ -1,5 +1,5 @@
 import { Head, useForm } from '@inertiajs/react';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,22 +33,21 @@ export default function IntercompanyCreate({ sourceAccounts, otherBusinesses }: 
     const [targetAccounts, setTargetAccounts] = useState<AccountOption[]>([]);
     const [loadingTargetAccounts, setLoadingTargetAccounts] = useState(false);
 
-    useEffect(() => {
-        if (!data.target_business_id) {
+    function handleTargetBusinessChange(businessId: string) {
+        setData('target_business_id', businessId);
+        setData('target_account_id', '');
+
+        if (!businessId) {
             setTargetAccounts([]);
-            setData('target_account_id', '');
             return;
         }
 
         setLoadingTargetAccounts(true);
-        fetch(`/accounting/intercompany/target-accounts?business_id=${data.target_business_id}`)
+        fetch(`/accounting/intercompany/target-accounts?business_id=${businessId}`)
             .then((r) => r.json())
-            .then((accounts) => {
-                setTargetAccounts(accounts);
-                setData('target_account_id', '');
-            })
+            .then((accounts) => setTargetAccounts(accounts))
             .finally(() => setLoadingTargetAccounts(false));
-    }, [data.target_business_id]);
+    }
 
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
@@ -139,7 +138,7 @@ export default function IntercompanyCreate({ sourceAccounts, otherBusinesses }: 
                                 id="target_business_id"
                                 className="border rounded-md px-3 py-2 text-sm bg-background"
                                 value={data.target_business_id}
-                                onChange={(e) => setData('target_business_id', e.target.value)}
+                                onChange={(e) => handleTargetBusinessChange(e.target.value)}
                             >
                                 <option value="">Select business…</option>
                                 {otherBusinesses.map((b) => (

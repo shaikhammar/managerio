@@ -36,7 +36,7 @@ export default function OpeningBalancesCreate({ accounts, existingEntry }: Props
 
     const [balances, setBalances] = useState<Record<number, string>>(initialLines);
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, processing, errors } = useForm({
         date: new Date().toISOString().split('T')[0],
         description: 'Opening balances',
         lines: [] as { account_id: number; balance: number }[],

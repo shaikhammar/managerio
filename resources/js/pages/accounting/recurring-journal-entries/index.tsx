@@ -20,7 +20,7 @@ type Props = {
     frequencies: FrequencyOption[];
 };
 
-export default function RecurringJournalEntryIndex({ entries, filters, frequencies }: Props) {
+export default function RecurringJournalEntryIndex({ entries, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
