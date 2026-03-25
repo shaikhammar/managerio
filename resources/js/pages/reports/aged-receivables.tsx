@@ -26,8 +26,14 @@ type Bucket = {
     items: AgedItem[];
 };
 
+type AgedReport = {
+    as_of: string;
+    buckets: Record<string, Bucket>;
+    grand_total: number;
+};
+
 type Props = {
-    report: Record<string, Bucket>;
+    report: AgedReport;
     filters: { as_of_date: string };
 };
 
@@ -41,7 +47,7 @@ export default function AgedReceivables({ report, filters }: Props) {
     const { format } = useCurrency();
     const [asOfDate, setAsOfDate] = useState(filters.as_of_date);
 
-    const grandTotal = Object.values(report).reduce((sum, b) => sum + b.total, 0);
+    const grandTotal = report.grand_total;
 
     function handleFilter() {
         router.get('/reports/aged-receivables', { as_of_date: asOfDate }, { preserveState: true });
@@ -91,7 +97,7 @@ export default function AgedReceivables({ report, filters }: Props) {
                 </Card>
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {Object.entries(report).map(([key, bucket]) => (
+                    {Object.entries(report.buckets).map(([key, bucket]) => (
                         <Card key={key}>
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -126,7 +132,7 @@ export default function AgedReceivables({ report, filters }: Props) {
                                     </td>
                                 </tr>
                             ) : (
-                                Object.entries(report).map(([key, bucket]) => (
+                                Object.entries(report.buckets).map(([key, bucket]) => (
                                     bucket.items.length > 0 && (
                                         <React.Fragment key={key}>
                                             <tr className="bg-muted/20">
