@@ -52,8 +52,8 @@ export default function DebitNoteForm({ suppliers, accounts, taxCodes, debitNote
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Debit Notes', href: DebitNoteController.index.url() },
         ...(isEditing ? [
-            { title: debitNote!.number, href: DebitNoteController.show.url(debitNote!) },
-            { title: 'Edit', href: DebitNoteController.edit.url(debitNote!) },
+            { title: debitNote!.number, href: DebitNoteController.show.url(debitNote!.id) },
+            { title: 'Edit', href: DebitNoteController.edit.url(debitNote!.id) },
         ] : [
             { title: 'New Debit Note', href: DebitNoteController.create.url() },
         ]),
@@ -115,7 +115,7 @@ export default function DebitNoteForm({ suppliers, accounts, taxCodes, debitNote
         }));
 
         if (isEditing) {
-            put(DebitNoteController.update.url(debitNote!));
+            put(DebitNoteController.update.url(debitNote!.id));
         } else {
             post(DebitNoteController.store.url());
         }

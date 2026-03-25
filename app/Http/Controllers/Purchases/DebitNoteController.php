@@ -11,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -92,7 +93,11 @@ class DebitNoteController extends Controller
             abort(404);
         }
 
-        $this->invoiceService->update($debitNote, $request->validated());
+        try {
+            $this->invoiceService->update($debitNote, $request->validated());
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('purchases.debit-notes.show', $debitNote)
             ->with('success', 'Debit note updated successfully.');

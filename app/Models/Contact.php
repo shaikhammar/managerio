@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Contacts\Enums\ContactType;
+use App\Domain\Shared\Concerns\Auditable;
 use App\Models\Concerns\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contact extends Model
 {
-    use BelongsToBusiness, HasFactory;
+    use Auditable, BelongsToBusiness, HasFactory;
+
+    protected string $auditLabel = 'name';
 
     protected $fillable = [
         'business_id',

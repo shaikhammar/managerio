@@ -148,6 +148,8 @@ it('can create an invoice and post journal entries', function () {
     ];
 
     $invoice = $this->invoiceService->create($this->business, $data);
+    $this->invoiceService->postInvoice($invoice->fresh(['lines']));
+    $invoice = $invoice->fresh(['lines', 'journalEntry.lines']);
 
     expect($invoice)->toBeInstanceOf(Invoice::class)
         ->and($invoice->subtotal)->toBe('200.00')
@@ -180,6 +182,8 @@ it('can void an invoice', function () {
     ];
 
     $invoice = $this->invoiceService->create($this->business, $data);
+    $this->invoiceService->postInvoice($invoice->fresh(['lines']));
+    $invoice = $invoice->fresh();
     $originalJournalId = $invoice->journal_entry_id;
 
     $this->invoiceService->void($invoice);

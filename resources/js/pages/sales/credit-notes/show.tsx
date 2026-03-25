@@ -19,11 +19,11 @@ export default function CreditNoteShow({ creditNote }: Props) {
     const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Credit Notes', href: '/sales/credit-notes' },
-        { title: creditNote.number, href: `/sales/credit-notes/${creditNote.id}` },
+        { title: 'Credit Notes', href: CreditNoteController.index.url() },
+        { title: creditNote.number, href: CreditNoteController.show.url(creditNote.id) },
     ];
 
-    const canEdit = creditNote.status === 'draft';
+    const canEdit = creditNote.status !== 'void';
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -33,7 +33,7 @@ export default function CreditNoteShow({ creditNote }: Props) {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href="/sales/credit-notes"><ArrowLeft className="size-4" /></Link>
+                            <Link href={CreditNoteController.index.url()}><ArrowLeft className="size-4" /></Link>
                         </Button>
                         <div>
                             <div className="flex items-center gap-3">
@@ -56,7 +56,7 @@ export default function CreditNoteShow({ creditNote }: Props) {
                         </Button>
                         {canEdit && (
                             <Button variant="outline" asChild>
-                                <Link href={`/sales/credit-notes/${creditNote.id}/edit`}>Edit</Link>
+                                <Link href={CreditNoteController.edit.url(creditNote.id)}>Edit</Link>
                             </Button>
                         )}
                         <Button variant="outline" onClick={() => window.print()}>

@@ -37,7 +37,7 @@ class QuoteRequest extends FormRequest
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'lines' => 'required|array|min:1',
-            'lines.*.account_id' => ['required', Rule::exists('accounts', 'id')->where('business_id', $businessId)],
+            'lines.*.account_id' => ['nullable', Rule::exists('accounts', 'id')->where('business_id', $businessId)],
             'lines.*.description' => 'required|string',
             'lines.*.quantity' => 'required|numeric|min:0.0001',
             'lines.*.unit_price' => 'required|numeric|min:0',
