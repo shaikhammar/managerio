@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Accounting\AccountController;
 use App\Http\Controllers\Accounting\BudgetController;
+use App\Http\Controllers\Accounting\FixedAssetController;
 use App\Http\Controllers\Accounting\IntercompanyController;
 use App\Http\Controllers\Accounting\JournalEntryController;
 use App\Http\Controllers\Accounting\OpeningBalanceController;
@@ -70,6 +71,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('intercompany/target-accounts', [IntercompanyController::class, 'targetAccounts'])->name('intercompany.target-accounts');
             Route::post('intercompany', [IntercompanyController::class, 'store'])->name('intercompany.store');
             Route::get('intercompany/{id}', [IntercompanyController::class, 'show'])->name('intercompany.show');
+            Route::resource('fixed-assets', FixedAssetController::class);
+            Route::post('fixed-assets/{fixed_asset}/retire', [FixedAssetController::class, 'retire'])->name('fixed-assets.retire');
+            Route::post('fixed-assets/{fixed_asset}/dispose', [FixedAssetController::class, 'dispose'])->name('fixed-assets.dispose');
+            Route::post('fixed-assets/run-depreciation', [FixedAssetController::class, 'runDepreciation'])->name('fixed-assets.run-depreciation');
         });
 
         // ── Sales ──────────────────────────────────────────

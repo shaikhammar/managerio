@@ -223,6 +223,55 @@ export type IntercompanyTransaction = {
     updated_at: string;
 };
 
+// ── Fixed Assets ─────────────────────────────────────────
+export type AssetStatus = 'active' | 'retired' | 'disposed';
+
+export type DepreciationMethod = 'straight_line' | 'declining_balance';
+
+export type FixedAsset = {
+    id: number;
+    business_id: number;
+    asset_account_id: number;
+    accumulated_depreciation_account_id: number;
+    depreciation_expense_account_id: number;
+    name: string;
+    description: string | null;
+    asset_tag: string | null;
+    purchase_date: string;
+    purchase_cost: string;
+    salvage_value: string;
+    useful_life_months: number;
+    depreciation_method: DepreciationMethod;
+    status: AssetStatus;
+    disposal_date: string | null;
+    disposal_proceeds: string | null;
+    notes: string | null;
+    created_by: number;
+    asset_account?: Account;
+    accumulated_depreciation_account?: Account;
+    depreciation_expense_account?: Account;
+    depreciation_entries?: DepreciationEntry[];
+    creator?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
+};
+
+export type DepreciationEntry = {
+    id: number;
+    business_id: number;
+    fixed_asset_id: number;
+    journal_entry_id: number | null;
+    period_start: string;
+    period_end: string;
+    depreciation_amount: string;
+    created_by: number;
+    fixed_asset?: FixedAsset;
+    journal_entry?: JournalEntry;
+    creator?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
+};
+
 // ── Invoice ──────────────────────────────────────────────
 export type InvoiceType = 'quote' | 'invoice' | 'credit_note' | 'purchase_invoice' | 'debit_note' | 'purchase_order';
 export type InvoiceStatus = 'draft' | 'sent' | 'approved' | 'paid' | 'partially_paid' | 'overdue' | 'void' | 'cancelled' | 'partially_received' | 'received' | 'invoiced';
