@@ -45,7 +45,7 @@ class QuoteService
 
             [$subtotal, $taxTotal] = $this->createLines($quote, $data['lines']);
 
-            $total = round($subtotal + $taxTotal, 2);
+            $total = bcadd($subtotal, $taxTotal, 2);
 
             $quote->update([
                 'subtotal' => $subtotal,
@@ -84,7 +84,7 @@ class QuoteService
             if (isset($data['lines'])) {
                 $quote->lines()->delete();
                 [$subtotal, $taxTotal] = $this->createLines($quote, $data['lines']);
-                $total = round($subtotal + $taxTotal, 2);
+                $total = bcadd($subtotal, $taxTotal, 2);
 
                 $quote->update([
                     'subtotal' => $subtotal,
@@ -193,6 +193,6 @@ class QuoteService
             $taxTotal = bcadd($taxTotal, $taxAmount, 2);
         }
 
-        return [(float) $subtotal, (float) $taxTotal];
+        return [$subtotal, $taxTotal];
     }
 }

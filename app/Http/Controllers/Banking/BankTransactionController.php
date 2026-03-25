@@ -7,14 +7,16 @@ use App\Http\Requests\Banking\BankTransactionRequest;
 use App\Models\Account;
 use App\Models\BankTransaction;
 use App\Services\Banking\BankTransactionService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BankTransactionController extends Controller
 {
     public function __construct(private BankTransactionService $transactionService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $transactions = BankTransaction::query()
             ->with(['bankAccount', 'payment.contact'])
@@ -31,14 +33,14 @@ class BankTransactionController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('banking/transactions/create', [
             'bankAccounts' => Account::bankAccounts()->active()->get(['id', 'name', 'code']),
         ]);
     }
 
-    public function store(BankTransactionRequest $request)
+    public function store(BankTransactionRequest $request): RedirectResponse
     {
         $business = $request->user()->currentBusiness();
         $transaction = $this->transactionService->create($business, $request->validated());
@@ -47,14 +49,14 @@ class BankTransactionController extends Controller
             ->with('success', 'Transaction created successfully.');
     }
 
-    public function show(BankTransaction $transaction)
+    public function show(BankTransaction $transaction): Response
     {
         return Inertia::render('banking/transactions/show', [
             'transaction' => $transaction->load(['bankAccount', 'payment.contact', 'journalEntry.lines.account']),
         ]);
     }
 
-    public function edit(BankTransaction $transaction)
+    public function edit(BankTransaction $transaction): Response
     {
         return Inertia::render('banking/transactions/edit', [
             'transaction' => $transaction->load('bankAccount'),
@@ -62,7 +64,7 @@ class BankTransactionController extends Controller
         ]);
     }
 
-    public function update(BankTransactionRequest $request, BankTransaction $transaction)
+    public function update(BankTransactionRequest $request, BankTransaction $transaction): RedirectResponse
     {
         $this->transactionService->update($transaction, $request->validated());
 
@@ -70,7 +72,7 @@ class BankTransactionController extends Controller
             ->with('success', 'Transaction updated successfully.');
     }
 
-    public function destroy(BankTransaction $transaction)
+    public function destroy(BankTransaction $transaction): RedirectResponse
     {
         $this->transactionService->delete($transaction);
 

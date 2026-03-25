@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Purchases;
 
+use App\Domain\Accounting\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Purchases\PurchaseOrderRequest;
 use App\Models\Account;
@@ -10,8 +11,10 @@ use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class PurchaseOrderController extends Controller
@@ -20,7 +23,7 @@ class PurchaseOrderController extends Controller
         private InvoiceService $invoiceService,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): InertiaResponse
     {
         $purchaseOrders = Invoice::query()
             ->purchaseOrders()
@@ -36,16 +39,16 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): InertiaResponse
     {
         return Inertia::render('purchases/purchase-orders/create', [
             'suppliers' => Contact::query()->suppliers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['expense', 'asset'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::EXPENSE, AccountType::ASSET])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function store(PurchaseOrderRequest $request)
+    public function store(PurchaseOrderRequest $request): RedirectResponse
     {
         $this->authorize('create', Invoice::class);
 
@@ -56,7 +59,7 @@ class PurchaseOrderController extends Controller
             ->with('success', 'Purchase order created successfully.');
     }
 
-    public function show(Invoice $purchaseOrder)
+    public function show(Invoice $purchaseOrder): InertiaResponse|RedirectResponse
     {
         if (! $purchaseOrder->isPurchaseOrder()) {
             abort(404);
@@ -67,7 +70,7 @@ class PurchaseOrderController extends Controller
         ]);
     }
 
-    public function edit(Invoice $purchaseOrder)
+    public function edit(Invoice $purchaseOrder): InertiaResponse|RedirectResponse
     {
         if (! $purchaseOrder->isPurchaseOrder()) {
             abort(404);
@@ -76,12 +79,12 @@ class PurchaseOrderController extends Controller
         return Inertia::render('purchases/purchase-orders/create', [
             'purchaseOrder' => $purchaseOrder->load('lines'),
             'suppliers' => Contact::query()->suppliers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['expense', 'asset'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::EXPENSE, AccountType::ASSET])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function update(PurchaseOrderRequest $request, Invoice $purchaseOrder)
+    public function update(PurchaseOrderRequest $request, Invoice $purchaseOrder): RedirectResponse
     {
         $this->authorize('update', $purchaseOrder);
 
@@ -95,7 +98,7 @@ class PurchaseOrderController extends Controller
             ->with('success', 'Purchase order updated successfully.');
     }
 
-    public function convert(Invoice $purchaseOrder)
+    public function convert(Invoice $purchaseOrder): RedirectResponse
     {
         $this->authorize('update', $purchaseOrder);
 
@@ -109,7 +112,7 @@ class PurchaseOrderController extends Controller
             ->with('success', "Purchase Order #{$purchaseOrder->number} converted to Purchase Invoice #{$purchaseInvoice->number}.");
     }
 
-    public function send(Invoice $purchaseOrder)
+    public function send(Invoice $purchaseOrder): RedirectResponse
     {
         $this->authorize('update', $purchaseOrder);
 
@@ -135,7 +138,7 @@ class PurchaseOrderController extends Controller
         return $pdf->download("{$purchaseOrder->number}.pdf");
     }
 
-    public function destroy(Invoice $purchaseOrder)
+    public function destroy(Invoice $purchaseOrder): RedirectResponse
     {
         $this->authorize('delete', $purchaseOrder);
 

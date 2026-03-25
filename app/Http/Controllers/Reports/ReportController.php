@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Reports;
 
+use App\Domain\Reports\Enums\ReportJobStatus;
 use App\Http\Controllers\Controller;
 use App\Jobs\GenerateReport;
 use App\Models\Account;
@@ -85,7 +86,7 @@ class ReportController extends Controller
         $cached = Cache::get($cacheKey);
 
         // Serve from cache if available and data is not invalidated.
-        if ($cached && ($cached['status'] ?? '') === 'completed') {
+        if ($cached && ($cached['status'] ?? '') === ReportJobStatus::Completed->value) {
             $invalidatedAt = Cache::get("report_invalidated_at:{$business->id}");
             $generatedAt = $cached['generated_at'] ?? null;
 
@@ -102,7 +103,7 @@ class ReportController extends Controller
         }
 
         // No valid cache — dispatch the job and return a loading state.
-        Cache::put($cacheKey, ['status' => 'queued'], GenerateReport::CACHE_TTL);
+        Cache::put($cacheKey, ['status' => ReportJobStatus::Queued->value], GenerateReport::CACHE_TTL);
 
         GenerateReport::dispatch($business, $request->user(), 'general_ledger', $filters);
 

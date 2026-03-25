@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Purchases;
 
+use App\Domain\Accounting\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Purchases\PurchaseInvoiceRequest;
 use App\Models\Account;
@@ -9,8 +10,10 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PurchaseInvoiceController extends Controller
 {
@@ -18,7 +21,7 @@ class PurchaseInvoiceController extends Controller
         private InvoiceService $invoiceService,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $invoices = Invoice::query()
             ->purchaseInvoices()
@@ -34,16 +37,16 @@ class PurchaseInvoiceController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('purchases/invoices/create', [
             'suppliers' => Contact::query()->suppliers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['expense', 'asset'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::EXPENSE, AccountType::ASSET])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function store(PurchaseInvoiceRequest $request)
+    public function store(PurchaseInvoiceRequest $request): RedirectResponse
     {
         $this->authorize('create', Invoice::class);
 
@@ -54,7 +57,7 @@ class PurchaseInvoiceController extends Controller
             ->with('success', 'Purchase invoice created successfully.');
     }
 
-    public function show(Invoice $invoice)
+    public function show(Invoice $invoice): Response|RedirectResponse
     {
         if (! $invoice->isPurchaseInvoice()) {
             abort(404);
@@ -65,7 +68,7 @@ class PurchaseInvoiceController extends Controller
         ]);
     }
 
-    public function edit(Invoice $invoice)
+    public function edit(Invoice $invoice): Response|RedirectResponse
     {
         if (! $invoice->isPurchaseInvoice()) {
             abort(404);
@@ -74,12 +77,12 @@ class PurchaseInvoiceController extends Controller
         return Inertia::render('purchases/invoices/create', [
             'invoice' => $invoice->load('lines'),
             'suppliers' => Contact::query()->suppliers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['expense', 'asset'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::EXPENSE, AccountType::ASSET])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function update(PurchaseInvoiceRequest $request, Invoice $invoice)
+    public function update(PurchaseInvoiceRequest $request, Invoice $invoice): RedirectResponse
     {
         $this->authorize('update', $invoice);
 
@@ -93,7 +96,7 @@ class PurchaseInvoiceController extends Controller
             ->with('success', 'Purchase invoice updated successfully.');
     }
 
-    public function destroy(Invoice $invoice)
+    public function destroy(Invoice $invoice): RedirectResponse
     {
         $this->authorize('delete', $invoice);
 

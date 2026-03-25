@@ -81,7 +81,7 @@ class InvoiceService
 
             [$subtotal, $taxTotal] = $this->createLines($purchaseOrder, $data['lines']);
 
-            $total = round($subtotal + $taxTotal, 2);
+            $total = bcadd($subtotal, $taxTotal, 2);
 
             $purchaseOrder->update([
                 'subtotal' => $subtotal,
@@ -185,7 +185,7 @@ class InvoiceService
 
             [$subtotal, $taxTotal] = $this->createLines($invoice, $data['lines']);
 
-            $total = round($subtotal + $taxTotal, 2);
+            $total = bcadd($subtotal, $taxTotal, 2);
 
             $invoice->update([
                 'subtotal' => $subtotal,
@@ -229,13 +229,13 @@ class InvoiceService
             if (isset($data['lines'])) {
                 $invoice->lines()->delete();
                 [$subtotal, $taxTotal] = $this->createLines($invoice, $data['lines']);
-                $total = round($subtotal + $taxTotal, 2);
+                $total = bcadd($subtotal, $taxTotal, 2);
 
                 $invoice->update([
                     'subtotal' => $subtotal,
                     'tax_amount' => $taxTotal,
                     'total' => $total,
-                    'balance_due' => $total - $invoice->amount_paid,
+                    'balance_due' => bcsub($total, (string) $invoice->amount_paid, 2),
                 ]);
             }
 
@@ -565,6 +565,6 @@ class InvoiceService
             $taxTotal = bcadd($taxTotal, $taxAmount, 2);
         }
 
-        return [(float) $subtotal, (float) $taxTotal];
+        return [$subtotal, $taxTotal];
     }
 }
