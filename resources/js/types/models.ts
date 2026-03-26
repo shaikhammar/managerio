@@ -520,3 +520,72 @@ export type RateCard = {
     created_at: string;
     updated_at: string;
 };
+
+// ── Translation — Phase 2.3 ───────────────────────────────
+
+export type ProjectStatus = 'new' | 'in_progress' | 'review' | 'completed' | 'delivered' | 'invoiced' | 'closed';
+export type ProjectAssignmentRole = 'translator' | 'editor' | 'proofreader' | 'dtp';
+export type ProjectFileType = 'source' | 'deliverable' | 'reference';
+
+export type ProjectAssignment = {
+    id: number;
+    project_target_id: number;
+    contact_id: number;
+    role: ProjectAssignmentRole;
+    rate: string | null;
+    purchase_order_id: number | null;
+    contact?: { id: number; name: string };
+    purchase_order?: { id: number; number: string; status: string } | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type ProjectTarget = {
+    id: number;
+    project_id: number;
+    language_pair_id: number;
+    service_type_id: number | null;
+    word_count: number | null;
+    unit_price: string | null;
+    language_pair?: LanguagePair;
+    service_type?: ServiceType | null;
+    assignments?: ProjectAssignment[];
+    created_at: string;
+    updated_at: string;
+};
+
+export type ProjectFile = {
+    id: number;
+    project_id: number;
+    name: string;
+    path: string;
+    type: ProjectFileType;
+    size: number;
+    mime_type: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type Project = {
+    id: number;
+    business_id: number;
+    contact_id: number;
+    source_language_id: number;
+    service_type_id: number;
+    name: string;
+    reference: string | null;
+    deadline: string | null;
+    notes: string | null;
+    status: ProjectStatus;
+    quote_id: number | null;
+    invoice_id: number | null;
+    contact?: { id: number; name: string };
+    source_language?: Language;
+    service_type?: ServiceType;
+    targets?: ProjectTarget[];
+    files?: ProjectFile[];
+    quote?: { id: number; number: string; status: string } | null;
+    invoice?: { id: number; number: string; status: string } | null;
+    created_at: string;
+    updated_at: string;
+};
