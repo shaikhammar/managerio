@@ -6,6 +6,7 @@ import {
     Landmark,
     BarChart3,
     Calculator,
+    Languages,
     ShoppingCart,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -83,6 +84,15 @@ const navGroups: NavGroup[] = [
             { title: 'Intercompany', href: '/accounting/intercompany' },
             { title: 'Fixed Assets', href: '/accounting/fixed-assets' },
             { title: 'Tax Codes', href: '/accounting/tax-codes' },
+        ],
+    },
+    {
+        title: 'Translation',
+        icon: Languages,
+        items: [
+            { title: 'Languages', href: '/translation/languages' },
+            { title: 'Language Pairs', href: '/translation/language-pairs' },
+            { title: 'Service Types', href: '/translation/service-types' },
         ],
     },
     {

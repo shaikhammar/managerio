@@ -444,3 +444,44 @@ export type PaginatedData<T> = {
         next: string | null;
     };
 } & PaginationMeta;
+
+// ── Translation — Phase 2.1 ───────────────────────────────
+
+export type BillingUnit = 'word' | 'hour' | 'page' | 'minute' | 'line' | 'character';
+
+export type Language = {
+    id: number;
+    business_id: number;
+    code: string;
+    name: string;
+    native_name: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+};
+
+export type LanguageOption = Pick<Language, 'id' | 'code' | 'name'>;
+
+export type LanguagePair = {
+    id: number;
+    business_id: number;
+    source_language_id: number;
+    target_language_id: number;
+    is_active: boolean;
+    source_language?: Language;
+    target_language?: Language;
+    created_at: string;
+    updated_at: string;
+};
+
+export type ServiceType = {
+    id: number;
+    business_id: number;
+    name: string;
+    code: string;
+    description: string | null;
+    default_unit: BillingUnit;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+};
