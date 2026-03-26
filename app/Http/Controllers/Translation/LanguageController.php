@@ -15,8 +15,11 @@ class LanguageController extends Controller
     public function index(Request $request): Response
     {
         $languages = Language::query()
-            ->when($request->search, fn ($q, $search) => $q->where('name', 'ilike', "%{$search}%")
-                ->orWhere('code', 'ilike', "%{$search}%"))
+            ->when($request->search, function ($q, $search) {
+                $lower = strtolower($search);
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$lower}%"])
+                    ->orWhereRaw('LOWER(code) LIKE ?', ["%{$lower}%"]);
+            })
             ->orderBy('name')
             ->paginate(25);
 

@@ -18,10 +18,11 @@ class LanguagePairController extends Controller
         $pairs = LanguagePair::query()
             ->with(['sourceLanguage', 'targetLanguage'])
             ->when($request->search, function ($q, $search) {
-                $q->whereHas('sourceLanguage', fn ($l) => $l->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('code', 'ilike', "%{$search}%"))
-                    ->orWhereHas('targetLanguage', fn ($l) => $l->where('name', 'ilike', "%{$search}%")
-                        ->orWhere('code', 'ilike', "%{$search}%"));
+                $lower = strtolower($search);
+                $q->whereHas('sourceLanguage', fn ($l) => $l->whereRaw('LOWER(name) LIKE ?', ["%{$lower}%"])
+                    ->orWhereRaw('LOWER(code) LIKE ?', ["%{$lower}%"]))
+                    ->orWhereHas('targetLanguage', fn ($l) => $l->whereRaw('LOWER(name) LIKE ?', ["%{$lower}%"])
+                        ->orWhereRaw('LOWER(code) LIKE ?', ["%{$lower}%"]));
             })
             ->orderBy('id')
             ->paginate(25);
