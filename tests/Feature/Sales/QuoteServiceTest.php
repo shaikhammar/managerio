@@ -1,9 +1,7 @@
 <?php
 
-use App\Domain\Accounting\Enums\AccountSubType;
 use App\Domain\Sales\Enums\InvoiceStatus;
 use App\Domain\Sales\Enums\InvoiceType;
-use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
@@ -18,19 +16,6 @@ beforeEach(function () {
 
     $this->quoteService = app(QuoteService::class);
 
-    // Set up required accounts for conversion
-    $this->arAccount = Account::factory()->create([
-        'business_id' => $this->business->id,
-        'sub_type' => AccountSubType::ACCOUNTS_RECEIVABLE,
-        'code' => '1100',
-    ]);
-
-    $this->revenueAccount = Account::factory()->create([
-        'business_id' => $this->business->id,
-        'type' => 'revenue',
-        'code' => '4000',
-    ]);
-
     $this->contact = Contact::factory()->create(['business_id' => $this->business->id]);
     $this->taxCode = TaxCode::factory()->create(['business_id' => $this->business->id, 'rate' => 10]);
 });
@@ -42,7 +27,6 @@ it('can create a sales quote without generating journal entries', function () {
         'due_date' => now()->addDays(15)->format('Y-m-d'),
         'lines' => [
             [
-                'account_id' => $this->revenueAccount->id,
                 'description' => 'Service Quote',
                 'quantity' => 1,
                 'unit_price' => 500,
@@ -59,12 +43,12 @@ it('can create a sales quote without generating journal entries', function () {
         ->and($quote->journal_entry_id)->toBeNull(); // Crucial: Quotes have no accounting impact
 });
 
-it('can convert a quote to an invoice and generate journal entries', function () {
+it('can convert a quote to a draft invoice without auto-posting', function () {
     $quote = $this->quoteService->create($this->business, [
         'contact_id' => $this->contact->id,
         'date' => now()->format('Y-m-d'),
         'lines' => [
-            ['account_id' => $this->revenueAccount->id, 'description' => 'Test', 'quantity' => 1, 'unit_price' => 1000],
+            ['description' => 'Test', 'quantity' => 1, 'unit_price' => 1000],
         ],
     ]);
 
@@ -72,16 +56,10 @@ it('can convert a quote to an invoice and generate journal entries', function ()
 
     expect($invoice)->toBeInstanceOf(Invoice::class)
         ->and($invoice->type)->toBe(InvoiceType::INVOICE)
+        ->and($invoice->status)->toBe(InvoiceStatus::DRAFT)
         ->and($invoice->total)->toBe('1000.00')
-        ->and($invoice->journal_entry_id)->not->toBeNull();
+        ->and($invoice->journal_entry_id)->toBeNull(); // Not posted yet — user must add accounts and post
 
-    // Verify Quote status changed
+    // Verify Quote status changed to approved/closed
     expect($quote->fresh()->status)->toBe(InvoiceStatus::APPROVED);
-
-    // Verify accounting entries for the new invoice
-    $journalEntry = $invoice->journalEntry;
-    expect($journalEntry->lines)->toHaveCount(2);
-
-    $arLine = $journalEntry->lines()->where('account_id', $this->arAccount->id)->first();
-    expect($arLine->debit)->toBe('1000.00');
 });

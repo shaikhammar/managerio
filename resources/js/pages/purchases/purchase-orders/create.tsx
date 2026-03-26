@@ -52,8 +52,8 @@ export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purch
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Purchase Orders', href: PurchaseOrderController.index.url() },
         ...(isEditing ? [
-            { title: purchaseOrder!.number, href: PurchaseOrderController.show.url(purchaseOrder!) },
-            { title: 'Edit', href: PurchaseOrderController.edit.url(purchaseOrder!) },
+            { title: purchaseOrder!.number, href: PurchaseOrderController.show.url(purchaseOrder!.id) },
+            { title: 'Edit', href: PurchaseOrderController.edit.url(purchaseOrder!.id) },
         ] : [
             { title: 'New Purchase Order', href: PurchaseOrderController.create.url() },
         ]),
@@ -116,7 +116,7 @@ export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purch
         }));
 
         if (isEditing) {
-            put(PurchaseOrderController.update.url(purchaseOrder!));
+            put(PurchaseOrderController.update.url(purchaseOrder!.id));
         } else {
             post(PurchaseOrderController.store.url());
         }

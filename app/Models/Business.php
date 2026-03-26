@@ -27,13 +27,27 @@ class Business extends Model
         'currency_code',
         'fiscal_year_start',
         'logo_path',
+        'smtp_host',
+        'smtp_port',
+        'smtp_username',
+        'smtp_password',
+        'smtp_encryption',
+        'smtp_from_name',
+        'smtp_from_email',
     ];
 
     protected function casts(): array
     {
         return [
             'fiscal_year_start' => 'integer',
+            'smtp_port' => 'integer',
+            'smtp_password' => 'encrypted',
         ];
+    }
+
+    public function hasEmailConfigured(): bool
+    {
+        return filled($this->smtp_host) && filled($this->smtp_from_email);
     }
 
     // ── Relationships ──────────────────────────────────────────────
