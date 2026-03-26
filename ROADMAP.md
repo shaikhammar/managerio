@@ -98,12 +98,12 @@
 
 ### 2.2 Rate Cards
 
-- [ ] **Client Rate Cards** — Rates per language pair + service type for a specific client. Overrides default rates.
-- [ ] **Default Rate Card** — Business-wide base rates per language pair + service type.
-- [ ] **Translator Rate Cards** — What you pay each freelancer per language pair + service type.
-- [ ] **Volume tiers** — Lower per-word rate above a word count threshold (e.g. >10,000 words = $0.09/word).
-- [ ] **Rush/expedited rates** — Multiplier or fixed surcharge for short-turnaround work.
-- [ ] **Minimum fees** — Minimum charge per assignment regardless of word count.
+- [x] **Client Rate Cards** — Rates per language pair + service type for a specific client. Overrides default rates.
+- [x] **Default Rate Card** — Business-wide base rates per language pair + service type.
+- [x] **Translator Rate Cards** — What you pay each freelancer per language pair + service type.
+- [x] **Volume tiers** — Lower per-word rate above a word count threshold (e.g. >10,000 words = $0.09/word).
+- [x] **Rush/expedited rates** — Multiplier or fixed surcharge for short-turnaround work.
+- [x] **Minimum fees** — Minimum charge per assignment regardless of word count.
 
 ### 2.3 Translation Projects / Jobs
 
