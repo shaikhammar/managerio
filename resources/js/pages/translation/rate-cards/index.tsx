@@ -33,8 +33,15 @@ export default function RateCardIndex({ rateCards, filters = {}, rateCardTypes }
     function applyFilters(overrides: Partial<{ search: string; type: string }> = {}) {
         const params: Record<string, string> = {};
         const merged = { search, type, ...overrides };
-        if (merged.search) params.search = merged.search;
-        if (merged.type) params.type = merged.type;
+
+        if (merged.search) {
+params.search = merged.search;
+}
+
+        if (merged.type) {
+params.type = merged.type;
+}
+
         router.get('/translation/rate-cards', params, { preserveState: true });
     }
 
@@ -50,10 +57,17 @@ export default function RateCardIndex({ rateCards, filters = {}, rateCardTypes }
     }
 
     function pairLabel(rc: RateCard) {
-        if (!rc.language_pair) return '—';
+        if (!rc.language_pair) {
+return '—';
+}
+
         const src = rc.language_pair.source_language;
         const tgt = rc.language_pair.target_language;
-        if (!src || !tgt) return `Pair #${rc.language_pair_id}`;
+
+        if (!src || !tgt) {
+return `Pair #${rc.language_pair_id}`;
+}
+
         return `${src.code} → ${tgt.code}`;
     }
 
