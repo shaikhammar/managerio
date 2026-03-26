@@ -93,6 +93,7 @@ const navGroups: NavGroup[] = [
             { title: 'Languages', href: '/translation/languages' },
             { title: 'Language Pairs', href: '/translation/language-pairs' },
             { title: 'Service Types', href: '/translation/service-types' },
+            { title: 'Rate Cards', href: '/translation/rate-cards' },
         ],
     },
     {

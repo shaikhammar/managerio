@@ -485,3 +485,38 @@ export type ServiceType = {
     created_at: string;
     updated_at: string;
 };
+
+// ── Translation — Phase 2.2 ───────────────────────────────
+
+export type RateCardType = 'default' | 'client' | 'translator';
+
+export type RateCardVolumeTier = {
+    id: number;
+    rate_card_id: number;
+    minimum_words: number;
+    unit_rate: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type RateCard = {
+    id: number;
+    business_id: number;
+    type: RateCardType;
+    contact_id: number | null;
+    language_pair_id: number;
+    service_type_id: number;
+    unit_rate: string;
+    unit: BillingUnit;
+    minimum_fee: string | null;
+    rush_multiplier: string | null;
+    rush_fixed_surcharge: string | null;
+    notes: string | null;
+    is_active: boolean;
+    contact?: { id: number; name: string; type: string };
+    language_pair?: LanguagePair;
+    service_type?: ServiceType;
+    volume_tiers?: RateCardVolumeTier[];
+    created_at: string;
+    updated_at: string;
+};
