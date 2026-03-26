@@ -43,7 +43,7 @@ export type AccountType = 'asset' | 'liability' | 'equity' | 'revenue' | 'expens
 export type AccountSubType =
     | 'cash' | 'bank' | 'accounts_receivable' | 'tax_receivable' | 'prepaid_expense' | 'other_current_asset' | 'fixed_asset'
     | 'accounts_payable' | 'tax_payable' | 'credit_card' | 'other_current_liability' | 'long_term_liability'
-    | 'owner_equity' | 'retained_earnings'
+    | 'owner_equity' | 'retained_earnings' | 'intercompany'
     | 'sales_revenue' | 'service_revenue' | 'other_revenue'
     | 'cost_of_services' | 'operating_expense' | 'payroll_expense' | 'depreciation' | 'other_expense';
 
@@ -141,6 +141,135 @@ export type JournalEntryLine = {
     account?: Account;
     contact?: Contact;
     tax_code?: TaxCode;
+};
+
+// ── Recurring Journal Entry ───────────────────────────────
+export type RecurringFrequency = 'monthly' | 'quarterly' | 'annually';
+
+export type RecurringJournalEntry = {
+    id: number;
+    business_id: number;
+    name: string;
+    description: string | null;
+    frequency: RecurringFrequency;
+    start_date: string;
+    end_date: string | null;
+    next_run_date: string;
+    last_run_at: string | null;
+    day_of_month: number;
+    is_active: boolean;
+    template_lines: JournalTemplateLine[];
+    created_by: number;
+    creator?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
+};
+
+export type JournalTemplateLine = {
+    account_id: number;
+    description: string;
+    debit: number;
+    credit: number;
+};
+
+// ── Budget ────────────────────────────────────────────────
+export type AccountBudget = {
+    id: number;
+    business_id: number;
+    account_id: number;
+    year: number;
+    month: number | null;
+    amount: number;
+    account?: Account;
+    created_at: string;
+    updated_at: string;
+};
+
+export type BudgetRow = {
+    account: Account;
+    months: Record<number, { budgeted: number; actual: number; variance: number }>;
+    total_budgeted: number;
+    total_actual: number;
+    total_variance: number;
+};
+
+export type BudgetReport = {
+    year: number;
+    accounts: BudgetRow[];
+};
+
+// ── Intercompany Transaction ──────────────────────────────
+export type IntercompanyTransaction = {
+    id: number;
+    source_business_id: number;
+    target_business_id: number;
+    source_account_id: number;
+    target_account_id: number;
+    amount: string;
+    date: string;
+    description: string;
+    reference: string | null;
+    source_journal_entry_id: number | null;
+    target_journal_entry_id: number | null;
+    created_by: number;
+    source_business?: { id: number; name: string };
+    target_business?: { id: number; name: string };
+    source_account?: Account;
+    target_account?: Account;
+    source_journal_entry?: JournalEntry;
+    target_journal_entry?: JournalEntry;
+    creator?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
+};
+
+// ── Fixed Assets ─────────────────────────────────────────
+export type AssetStatus = 'active' | 'retired' | 'disposed';
+
+export type DepreciationMethod = 'straight_line' | 'declining_balance';
+
+export type FixedAsset = {
+    id: number;
+    business_id: number;
+    asset_account_id: number;
+    accumulated_depreciation_account_id: number;
+    depreciation_expense_account_id: number;
+    name: string;
+    description: string | null;
+    asset_tag: string | null;
+    purchase_date: string;
+    purchase_cost: string;
+    salvage_value: string;
+    useful_life_months: number;
+    depreciation_method: DepreciationMethod;
+    status: AssetStatus;
+    disposal_date: string | null;
+    disposal_proceeds: string | null;
+    notes: string | null;
+    created_by: number;
+    asset_account?: Account;
+    accumulated_depreciation_account?: Account;
+    depreciation_expense_account?: Account;
+    depreciation_entries?: DepreciationEntry[];
+    creator?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
+};
+
+export type DepreciationEntry = {
+    id: number;
+    business_id: number;
+    fixed_asset_id: number;
+    journal_entry_id: number | null;
+    period_start: string;
+    period_end: string;
+    depreciation_amount: string;
+    created_by: number;
+    fixed_asset?: FixedAsset;
+    journal_entry?: JournalEntry;
+    creator?: { id: number; name: string };
+    created_at: string;
+    updated_at: string;
 };
 
 // ── Invoice ──────────────────────────────────────────────

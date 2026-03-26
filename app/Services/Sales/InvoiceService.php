@@ -81,7 +81,7 @@ class InvoiceService
 
             [$subtotal, $taxTotal] = $this->createLines($purchaseOrder, $data['lines']);
 
-            $total = round($subtotal + $taxTotal, 2);
+            $total = bcadd($subtotal, $taxTotal, 2);
 
             $purchaseOrder->update([
                 'subtotal' => $subtotal,
@@ -185,7 +185,7 @@ class InvoiceService
 
             [$subtotal, $taxTotal] = $this->createLines($invoice, $data['lines']);
 
-            $total = round($subtotal + $taxTotal, 2);
+            $total = bcadd($subtotal, $taxTotal, 2);
 
             $invoice->update([
                 'subtotal' => $subtotal,
@@ -194,9 +194,8 @@ class InvoiceService
                 'balance_due' => $total,
             ]);
 
-            // Auto-post the invoice
+            // Auto-post all types except sales invoices (which stay as drafts)
             match ($type) {
-                InvoiceType::INVOICE => $this->postInvoice($invoice),
                 InvoiceType::PURCHASE_INVOICE => $this->postPurchaseInvoice($invoice),
                 InvoiceType::CREDIT_NOTE => $this->postCreditNote($invoice),
                 InvoiceType::DEBIT_NOTE => $this->postDebitNote($invoice),
@@ -208,15 +207,32 @@ class InvoiceService
     }
 
     /**
-     * Update an existing draft invoice.
+     * Update an invoice. Draft and sent invoices are editable; paid and void are not.
+     * If the submitted data is identical to the current state, no changes are made.
      */
     public function update(Invoice $invoice, array $data): Invoice
     {
-        if ($invoice->status !== InvoiceStatus::DRAFT) {
-            throw new DomainException('Only draft invoices can be edited.');
+        $locked = [InvoiceStatus::PAID, InvoiceStatus::PARTIALLY_PAID, InvoiceStatus::VOID];
+
+        if (in_array($invoice->status, $locked)) {
+            throw new DomainException('Cannot edit a paid or void invoice.');
+        }
+
+        $invoice->loadMissing('lines');
+
+        if (! $this->invoiceHasChanges($invoice, $data)) {
+            return $invoice->load(['lines', 'contact']);
         }
 
         return DB::transaction(function () use ($invoice, $data) {
+            // Revert to draft if the invoice was already posted
+            if ($invoice->journal_entry_id !== null) {
+                $journalEntry = $invoice->journalEntry;
+                $invoice->update(['journal_entry_id' => null, 'status' => InvoiceStatus::DRAFT]);
+                $journalEntry->lines()->delete();
+                $journalEntry->delete();
+            }
+
             $invoice->update([
                 'contact_id' => $data['contact_id'] ?? $invoice->contact_id,
                 'date' => $data['date'] ?? $invoice->date,
@@ -229,18 +245,72 @@ class InvoiceService
             if (isset($data['lines'])) {
                 $invoice->lines()->delete();
                 [$subtotal, $taxTotal] = $this->createLines($invoice, $data['lines']);
-                $total = round($subtotal + $taxTotal, 2);
+                $total = bcadd($subtotal, $taxTotal, 2);
 
                 $invoice->update([
                     'subtotal' => $subtotal,
                     'tax_amount' => $taxTotal,
                     'total' => $total,
-                    'balance_due' => $total - $invoice->amount_paid,
+                    'balance_due' => bcsub($total, (string) $invoice->amount_paid, 2),
                 ]);
             }
 
             return $invoice->fresh(['lines', 'contact']);
         });
+    }
+
+    /**
+     * Determine whether the submitted data differs from the current invoice state.
+     */
+    private function invoiceHasChanges(Invoice $invoice, array $data): bool
+    {
+        // Header scalar fields
+        $headerComparisons = [
+            'contact_id' => fn ($v) => (int) $v !== (int) $invoice->contact_id,
+            'date' => fn ($v) => $v !== $invoice->date->format('Y-m-d'),
+            'due_date' => fn ($v) => ($v ?: null) !== ($invoice->due_date?->format('Y-m-d')),
+            'reference' => fn ($v) => ($v ?: null) !== ($invoice->reference ?: null),
+            'notes' => fn ($v) => ($v ?: null) !== ($invoice->notes ?: null),
+            'terms' => fn ($v) => ($v ?: null) !== ($invoice->terms ?: null),
+        ];
+
+        foreach ($headerComparisons as $field => $differs) {
+            if (array_key_exists($field, $data) && $differs($data[$field])) {
+                return true;
+            }
+        }
+
+        // Lines
+        if (! isset($data['lines'])) {
+            return false;
+        }
+
+        $existing = $invoice->lines;
+
+        if (count($data['lines']) !== $existing->count()) {
+            return true;
+        }
+
+        foreach ($data['lines'] as $i => $line) {
+            $current = $existing[$i] ?? null;
+
+            if ($current === null) {
+                return true;
+            }
+
+            if (
+                (int) ($line['account_id'] ?? 0) !== (int) $current->account_id
+                || ($line['description'] ?? '') !== (string) ($current->description ?? '')
+                || (float) ($line['quantity'] ?? 1) !== (float) $current->quantity
+                || (float) ($line['unit_price'] ?? 0) !== (float) $current->unit_price
+                || (float) ($line['discount_percent'] ?? 0) !== (float) $current->discount_percent
+                || (($line['tax_code_id'] ?? null) != $current->tax_code_id)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -530,21 +600,22 @@ class InvoiceService
 
     private function createLines(Invoice $invoice, array $linesData): array
     {
-        $subtotal = 0;
-        $taxTotal = 0;
+        $subtotal = '0';
+        $taxTotal = '0';
 
         foreach ($linesData as $index => $line) {
-            $lineTotal = round((float) $line['quantity'] * (float) $line['unit_price'], 2);
+            $lineTotal = bcmul((string) $line['quantity'], (string) $line['unit_price'], 2);
 
             if (isset($line['discount_percent']) && $line['discount_percent'] > 0) {
-                $lineTotal = round($lineTotal * (1 - (float) $line['discount_percent'] / 100), 2);
+                $discountMultiplier = bcsub('1', bcdiv((string) $line['discount_percent'], '100', 10), 10);
+                $lineTotal = bcmul($lineTotal, $discountMultiplier, 2);
             }
 
-            $taxAmount = 0;
+            $taxAmount = '0';
             if (! empty($line['tax_code_id'])) {
                 $taxCode = TaxCode::withoutGlobalScopes()->find($line['tax_code_id']);
                 if ($taxCode) {
-                    $taxAmount = round($lineTotal * (float) $taxCode->rate / 100, 2);
+                    $taxAmount = bcmul($lineTotal, bcdiv((string) $taxCode->rate, '100', 10), 2);
                 }
             }
 
@@ -560,8 +631,8 @@ class InvoiceService
                 'sort_order' => $index,
             ]);
 
-            $subtotal += $lineTotal;
-            $taxTotal += $taxAmount;
+            $subtotal = bcadd($subtotal, $lineTotal, 2);
+            $taxTotal = bcadd($taxTotal, $taxAmount, 2);
         }
 
         return [$subtotal, $taxTotal];

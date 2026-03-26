@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Domain\Payments\Enums\PaymentType;
+use App\Domain\Shared\Concerns\Auditable;
 use App\Models\Concerns\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
-    use BelongsToBusiness, HasFactory;
+    use Auditable, BelongsToBusiness, HasFactory;
+
+    protected string $auditLabel = 'number';
 
     protected $fillable = [
         'business_id',

@@ -7,8 +7,10 @@ use App\Http\Requests\Accounting\JournalEntryRequest;
 use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Services\Accounting\JournalService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class JournalEntryController extends Controller
 {
@@ -16,7 +18,7 @@ class JournalEntryController extends Controller
         private JournalService $journalService,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $entries = JournalEntry::query()
             ->with('creator')
@@ -34,14 +36,14 @@ class JournalEntryController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('accounting/journal-entries/create', [
             'accounts' => Account::query()->active()->orderBy('code')->get(['id', 'code', 'name', 'type']),
         ]);
     }
 
-    public function store(JournalEntryRequest $request)
+    public function store(JournalEntryRequest $request): RedirectResponse
     {
         $validated = $request->validated();
         $business = $request->user()->currentBusiness();
@@ -58,21 +60,21 @@ class JournalEntryController extends Controller
             ->with('success', 'Journal entry created as draft.');
     }
 
-    public function show(JournalEntry $journalEntry)
+    public function show(JournalEntry $journalEntry): Response
     {
         return Inertia::render('accounting/journal-entries/show', [
             'entry' => $journalEntry->load(['lines.account', 'lines.contact', 'creator', 'reversalOf', 'reversals']),
         ]);
     }
 
-    public function post(JournalEntry $journalEntry)
+    public function post(JournalEntry $journalEntry): RedirectResponse
     {
         $this->journalService->post($journalEntry);
 
         return back()->with('success', 'Journal entry posted successfully.');
     }
 
-    public function reverse(Request $request, JournalEntry $journalEntry)
+    public function reverse(Request $request, JournalEntry $journalEntry): RedirectResponse
     {
         $validated = $request->validate(['reason' => 'required|string|max:255']);
 

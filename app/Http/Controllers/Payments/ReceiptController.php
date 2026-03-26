@@ -9,14 +9,16 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Services\Payments\PaymentService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ReceiptController extends Controller
 {
     public function __construct(private PaymentService $paymentService) {}
 
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $receipts = Payment::query()
             ->receipts()
@@ -30,7 +32,7 @@ class ReceiptController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('payments/receipts/create', [
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
@@ -39,7 +41,7 @@ class ReceiptController extends Controller
         ]);
     }
 
-    public function store(PaymentRequest $request)
+    public function store(PaymentRequest $request): RedirectResponse
     {
         $this->authorize('create', Payment::class);
 
@@ -50,7 +52,7 @@ class ReceiptController extends Controller
             ->with('success', 'Payment received successfully.');
     }
 
-    public function show(Payment $receipt)
+    public function show(Payment $receipt): Response
     {
         return Inertia::render('payments/receipts/show', [
             'receipt' => $receipt->load(['contact', 'allocations.invoice', 'journalEntry.lines.account', 'bankAccount']),

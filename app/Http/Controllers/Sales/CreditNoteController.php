@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Domain\Accounting\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\CreditNoteRequest;
 use App\Models\Account;
@@ -10,8 +11,11 @@ use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class CreditNoteController extends Controller
@@ -20,7 +24,7 @@ class CreditNoteController extends Controller
         private InvoiceService $invoiceService,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): InertiaResponse
     {
         $creditNotes = Invoice::query()
             ->creditNotes()
@@ -36,16 +40,16 @@ class CreditNoteController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): InertiaResponse
     {
         return Inertia::render('sales/credit-notes/create', [
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::REVENUE, AccountType::EXPENSE])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function store(CreditNoteRequest $request)
+    public function store(CreditNoteRequest $request): RedirectResponse
     {
         $this->authorize('create', Invoice::class);
 
@@ -56,7 +60,7 @@ class CreditNoteController extends Controller
             ->with('success', 'Credit note created successfully.');
     }
 
-    public function show(Invoice $creditNote)
+    public function show(Invoice $creditNote): InertiaResponse|RedirectResponse
     {
         if (! $creditNote->isCreditNote()) {
             abort(404);
@@ -67,7 +71,7 @@ class CreditNoteController extends Controller
         ]);
     }
 
-    public function edit(Invoice $creditNote)
+    public function edit(Invoice $creditNote): InertiaResponse|RedirectResponse
     {
         if (! $creditNote->isCreditNote()) {
             abort(404);
@@ -76,12 +80,12 @@ class CreditNoteController extends Controller
         return Inertia::render('sales/credit-notes/create', [
             'creditNote' => $creditNote->load('lines'),
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::REVENUE, AccountType::EXPENSE])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function update(CreditNoteRequest $request, Invoice $creditNote)
+    public function update(CreditNoteRequest $request, Invoice $creditNote): RedirectResponse
     {
         $this->authorize('update', $creditNote);
 
@@ -89,7 +93,11 @@ class CreditNoteController extends Controller
             abort(404);
         }
 
-        $this->invoiceService->update($creditNote, $request->validated());
+        try {
+            $this->invoiceService->update($creditNote, $request->validated());
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('sales.credit-notes.show', $creditNote)
             ->with('success', 'Credit note updated successfully.');
@@ -107,7 +115,7 @@ class CreditNoteController extends Controller
         return $pdf->download("{$creditNote->number}.pdf");
     }
 
-    public function destroy(Invoice $creditNote)
+    public function destroy(Invoice $creditNote): RedirectResponse
     {
         $this->authorize('delete', $creditNote);
 

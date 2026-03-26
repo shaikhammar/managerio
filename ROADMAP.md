@@ -60,23 +60,29 @@
 - [x] **Account Transactions Report** — All transactions for a single account with opening balance and running balance (bank statement view per account).
 
 ### 1.3 Missing Accounting Features
-- [ ] **Recurring Journal Entries** — Schedule a journal entry to auto-post on a regular interval (monthly, quarterly). Essential for prepayments, depreciation.
-- [ ] **Opening Balances** — Bulk import opening balances when migrating from another system. One-time journal entry per account with a start date.
-- [ ] **Inter-company Transactions** — Transfer funds or charge between businesses in the same account (relevant for agencies with subsidiaries).
-- [ ] **Budgets** — Set monthly/annual budget targets per account. Compare actuals vs budget in P&L.
+- [x] **Recurring Journal Entries** — Schedule a journal entry to auto-post on a regular interval (monthly, quarterly). Essential for prepayments, depreciation.
+- [x] **Opening Balances** — Bulk import opening balances when migrating from another system. One-time journal entry per account with a start date.
+- [x] **Inter-company Transactions** — Transfer funds or charge between businesses in the same account (relevant for agencies with subsidiaries).
+- [x] **Budgets** — Set monthly/annual budget targets per account. Compare actuals vs budget in P&L.
 
 ### 1.4 Fixed Assets Module
-- [ ] **Fixed Assets register** — Track assets (computers, equipment, vehicles, etc.)
-- [ ] **Depreciation schedules** — Straight-line and declining balance methods
-- [ ] **Asset disposal** — Record sale or write-off with gain/loss journal entry
-- [ ] **Depreciation run** — One-click post depreciation for a period
+- [x] **Fixed Assets register** — Track assets (computers, equipment, vehicles, etc.)
+- [x] **Depreciation schedules** — Straight-line and declining balance methods
+- [x] **Asset disposal** — Record sale or write-off with gain/loss journal entry
+- [x] **Depreciation run** — One-click post depreciation for a period
 
 ### 1.5 UX / Platform
-- [ ] **Bulk actions** — Mark multiple invoices as sent, bulk delete drafts
+- [x] **Bulk actions** — Mark multiple invoices as sent, bulk delete drafts
 - [x] **Document PDF generation** — Generate/download professional PDF for invoices, quotes, credit notes, debit notes, and purchase orders.
-- [ ] **Email sending** — Send invoices and quotes directly from the app via configurable SMTP
+- [x] **Email sending** — Send invoices and quotes directly from the app via configurable SMTP
 - [x] **Currency formatting** — Configurable base currency per business with symbol and formatting.
-- [ ] **Audit log** — Who changed what and when across all documents
+- [x] **Audit log** — Who changed what and when across all documents
+- [x] **Flash notifications** — Sonner toast notifications for all success/error flash messages across the app
+- [x] **Invoice status flow fix** — Invoices start as DRAFT; only PAID/VOID invoices are locked; editing a SENT invoice reverts it to DRAFT; no-op saves do not revert status
+- [x] **DomainException handling** — All update/post controller actions catch DomainException and show it as a flash error instead of a 500
+- [x] **Wayfinder route migration** — All document show/edit pages use Wayfinder-generated TypeScript URL helpers instead of hardcoded strings; snake_case route bindings (credit_note, debit_note, purchase_order) correctly pass `.id`
+- [x] **Quote account field removed** — Quotes no longer accept or store account_id on line items; account assignment happens at the invoice stage after conversion
+- [x] **invoice_lines.account_id nullable** — Migration makes account_id nullable to support quote lines and converted-invoice drafts before account assignment
 
 ---
 
@@ -229,6 +235,9 @@
 5. `BusinessRole` enum drives all authorisation. New permissions should use the `canEdit()` / `canManage()` helpers.
 6. All policies extend from a base pattern — check `ContactPolicy` as the reference implementation.
 7. Events are dispatched from service classes (not controllers). Follow `InvoicePosted`, `PaymentReceived` pattern for new domain events.
+8. Wayfinder URL helpers: camelCase route bindings (e.g. `{invoice}`, `{quote}`) accept full Eloquent objects; snake_case bindings (e.g. `{credit_note}`, `{debit_note}`, `{purchase_order}`) only accept `string | number` — always pass `.id` for those.
+9. Flash messages are shared via `HandleInertiaRequests` middleware (`flash.success` / `flash.error`) and displayed as Sonner toasts via the `useFlash()` hook mounted in `AppSidebarLayout`. DomainExceptions in service layer are caught in controllers and returned as `back()->with('error', ...)`.
+10. Quotes never generate journal entries and have no account_id on their lines. Account assignment happens when the converted invoice draft is edited before posting.
 
 ### Suggested Implementation Order for Phase 2
 1. Languages + Language Pairs + Service Types (no UI complexity, foundation for everything else)

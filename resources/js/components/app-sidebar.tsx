@@ -77,6 +77,11 @@ const navGroups: NavGroup[] = [
         items: [
             { title: 'Chart of Accounts', href: '/accounting/accounts' },
             { title: 'Journal Entries', href: '/accounting/journal-entries' },
+            { title: 'Recurring Entries', href: '/accounting/recurring-journal-entries' },
+            { title: 'Opening Balances', href: '/accounting/opening-balances/create' },
+            { title: 'Budgets', href: '/accounting/budgets' },
+            { title: 'Intercompany', href: '/accounting/intercompany' },
+            { title: 'Fixed Assets', href: '/accounting/fixed-assets' },
             { title: 'Tax Codes', href: '/accounting/tax-codes' },
         ],
     },

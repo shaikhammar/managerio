@@ -52,8 +52,8 @@ export default function CreditNoteForm({ customers, accounts, taxCodes, creditNo
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Credit Notes', href: CreditNoteController.index.url() },
         ...(isEditing ? [
-            { title: creditNote!.number, href: CreditNoteController.show.url(creditNote!) },
-            { title: 'Edit', href: CreditNoteController.edit.url(creditNote!) },
+            { title: creditNote!.number, href: CreditNoteController.show.url(creditNote!.id) },
+            { title: 'Edit', href: CreditNoteController.edit.url(creditNote!.id) },
         ] : [
             { title: 'New Credit Note', href: CreditNoteController.create.url() },
         ]),

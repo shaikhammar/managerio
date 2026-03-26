@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\BusinessRequest;
 use App\Models\Business;
 use App\Services\Business\BusinessSetupService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -49,7 +50,7 @@ class BusinessController extends Controller
     /**
      * Create a new business.
      */
-    public function store(BusinessRequest $request)
+    public function store(BusinessRequest $request): RedirectResponse
     {
         $business = $this->setupService->createBusiness($request->user(), $request->validated());
 
@@ -63,7 +64,7 @@ class BusinessController extends Controller
     /**
      * Switch to a different business.
      */
-    public function switch(Request $request, Business $business)
+    public function switch(Request $request, Business $business): RedirectResponse
     {
         if (! $business->hasUser($request->user())) {
             abort(403, 'You do not have access to this business.');

@@ -2,7 +2,14 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { useFlash } from '@/hooks/use-flash';
 import type { AppLayoutProps } from '@/types';
+import { Toaster } from 'sonner';
+
+function FlashToaster() {
+    useFlash();
+    return null;
+}
 
 export default function AppSidebarLayout({
     children,
@@ -15,6 +22,8 @@ export default function AppSidebarLayout({
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
+            <Toaster richColors position="top-right" />
+            <FlashToaster />
         </AppShell>
     );
 }

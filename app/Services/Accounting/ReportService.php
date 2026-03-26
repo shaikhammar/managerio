@@ -27,9 +27,9 @@ class ReportService
         $revenueAccounts = $this->getAccountBalancesOfType($business, AccountType::REVENUE, $startDate, $endDate);
         $expenseAccounts = $this->getAccountBalancesOfType($business, AccountType::EXPENSE, $startDate, $endDate);
 
-        $totalRevenue = $revenueAccounts->sum('balance');
-        $totalExpenses = $expenseAccounts->sum('balance');
-        $netProfit = $totalRevenue - $totalExpenses;
+        $totalRevenue = $revenueAccounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['balance'], 2), '0');
+        $totalExpenses = $expenseAccounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['balance'], 2), '0');
+        $netProfit = bcsub($totalRevenue, $totalExpenses, 2);
 
         return [
             'period' => [
@@ -38,13 +38,13 @@ class ReportService
             ],
             'revenue' => [
                 'accounts' => $revenueAccounts,
-                'total' => $totalRevenue,
+                'total' => (float) $totalRevenue,
             ],
             'expenses' => [
                 'accounts' => $expenseAccounts,
-                'total' => $totalExpenses,
+                'total' => (float) $totalExpenses,
             ],
-            'net_profit' => $netProfit,
+            'net_profit' => (float) $netProfit,
         ];
     }
 
@@ -58,31 +58,31 @@ class ReportService
         $liabilityAccounts = $this->getAccountBalancesOfType($business, AccountType::LIABILITY, null, $asOfDate);
         $equityAccounts = $this->getAccountBalancesOfType($business, AccountType::EQUITY, null, $asOfDate);
 
-        $totalAssets = $assetAccounts->sum('balance');
-        $totalLiabilities = $liabilityAccounts->sum('balance');
-        $totalEquity = $equityAccounts->sum('balance');
+        $totalAssets = $assetAccounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['balance'], 2), '0');
+        $totalLiabilities = $liabilityAccounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['balance'], 2), '0');
+        $totalEquity = $equityAccounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['balance'], 2), '0');
 
         // Retained earnings calculation (accumulated P&L to date)
         $revenueBalance = $this->getTotalTypeBalance($business, AccountType::REVENUE, null, $asOfDate);
         $expenseBalance = $this->getTotalTypeBalance($business, AccountType::EXPENSE, null, $asOfDate);
-        $retainedEarnings = $revenueBalance - $expenseBalance;
+        $retainedEarnings = bcsub($revenueBalance, $expenseBalance, 2);
 
         return [
             'as_of' => $asOfDate->toDateString(),
             'assets' => [
                 'accounts' => $assetAccounts,
-                'total' => $totalAssets,
+                'total' => (float) $totalAssets,
             ],
             'liabilities' => [
                 'accounts' => $liabilityAccounts,
-                'total' => $totalLiabilities,
+                'total' => (float) $totalLiabilities,
             ],
             'equity' => [
                 'accounts' => $equityAccounts,
-                'total' => $totalEquity,
-                'retained_earnings' => $retainedEarnings,
+                'total' => (float) $totalEquity,
+                'retained_earnings' => (float) $retainedEarnings,
             ],
-            'total_liabilities_and_equity' => $totalLiabilities + $totalEquity + $retainedEarnings,
+            'total_liabilities_and_equity' => (float) bcadd(bcadd($totalLiabilities, $totalEquity, 2), $retainedEarnings, 2),
         ];
     }
 
@@ -111,15 +111,15 @@ class ReportService
             ->get();
 
         $isDebitNormal = $account->type->normalBalance() === 'debit';
-        $runningBalance = $openingBalance;
+        $runningBalance = (string) $openingBalance;
         $transactions = [];
 
         foreach ($lines as $line) {
             $movement = $isDebitNormal
-                ? (float) $line->debit - (float) $line->credit
-                : (float) $line->credit - (float) $line->debit;
+                ? bcsub((string) $line->debit, (string) $line->credit, 2)
+                : bcsub((string) $line->credit, (string) $line->debit, 2);
 
-            $runningBalance += $movement;
+            $runningBalance = bcadd($runningBalance, $movement, 2);
 
             $transactions[] = [
                 'id' => $line->id,
@@ -144,8 +144,8 @@ class ReportService
                 'start' => $startDate->toDateString(),
                 'end' => $endDate->toDateString(),
             ],
-            'opening_balance' => round($openingBalance, 2),
-            'closing_balance' => round($runningBalance, 2),
+            'opening_balance' => (float) $openingBalance,
+            'closing_balance' => (float) $runningBalance,
             'transactions' => $transactions,
         ];
     }
@@ -159,52 +159,58 @@ class ReportService
     public function cashFlow(Business $business, Carbon $startDate, Carbon $endDate): array
     {
         // ── Operating Activities ─────────────────────────────────────────────
-        $netIncome = $this->getTotalTypeBalance($business, AccountType::REVENUE, $startDate, $endDate)
-            - $this->getTotalTypeBalance($business, AccountType::EXPENSE, $startDate, $endDate);
+        $netIncome = bcsub(
+            $this->getTotalTypeBalance($business, AccountType::REVENUE, $startDate, $endDate),
+            $this->getTotalTypeBalance($business, AccountType::EXPENSE, $startDate, $endDate),
+            2
+        );
 
         // Add back depreciation (non-cash expense)
-        $depreciation = $this->getSubTypeMovement($business, AccountSubType::DEPRECIATION, $startDate, $endDate);
+        $depreciation = (string) $this->getSubTypeMovement($business, AccountSubType::DEPRECIATION, $startDate, $endDate);
 
         // Working capital changes — decrease in assets = cash in, increase in liabilities = cash in
-        $arStart = $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_RECEIVABLE->value, $startDate->copy()->subDay());
-        $arEnd = $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_RECEIVABLE->value, $endDate);
-        $arChange = $arStart - $arEnd; // decrease = positive (cash collected)
+        $arStart = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_RECEIVABLE->value, $startDate->copy()->subDay());
+        $arEnd = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_RECEIVABLE->value, $endDate);
+        $arChange = bcsub($arStart, $arEnd, 2); // decrease = positive (cash collected)
 
-        $apStart = $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_PAYABLE->value, $startDate->copy()->subDay());
-        $apEnd = $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_PAYABLE->value, $endDate);
-        $apChange = $apEnd - $apStart; // increase in AP = cash conserved
+        $apStart = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_PAYABLE->value, $startDate->copy()->subDay());
+        $apEnd = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_PAYABLE->value, $endDate);
+        $apChange = bcsub($apEnd, $apStart, 2); // increase in AP = cash conserved
 
-        $taxRecStart = $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_RECEIVABLE->value, $startDate->copy()->subDay());
-        $taxRecEnd = $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_RECEIVABLE->value, $endDate);
-        $taxRecChange = $taxRecStart - $taxRecEnd;
+        $taxRecStart = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_RECEIVABLE->value, $startDate->copy()->subDay());
+        $taxRecEnd = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_RECEIVABLE->value, $endDate);
+        $taxRecChange = bcsub($taxRecStart, $taxRecEnd, 2);
 
-        $taxPayStart = $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_PAYABLE->value, $startDate->copy()->subDay());
-        $taxPayEnd = $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_PAYABLE->value, $endDate);
-        $taxPayChange = $taxPayEnd - $taxPayStart;
+        $taxPayStart = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_PAYABLE->value, $startDate->copy()->subDay());
+        $taxPayEnd = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::TAX_PAYABLE->value, $endDate);
+        $taxPayChange = bcsub($taxPayEnd, $taxPayStart, 2);
 
-        $operatingTotal = $netIncome + $depreciation + $arChange + $apChange + $taxRecChange + $taxPayChange;
+        $operatingTotal = bcadd(bcadd(bcadd(bcadd(bcadd($netIncome, $depreciation, 2), $arChange, 2), $apChange, 2), $taxRecChange, 2), $taxPayChange, 2);
 
         // ── Investing Activities ──────────────────────────────────────────────
-        $fixedAssetStart = $this->ledger->getSubTypeBalance($business, AccountSubType::FIXED_ASSET->value, $startDate->copy()->subDay());
-        $fixedAssetEnd = $this->ledger->getSubTypeBalance($business, AccountSubType::FIXED_ASSET->value, $endDate);
-        $fixedAssetChange = $fixedAssetStart - $fixedAssetEnd; // decrease = cash from disposal
+        $fixedAssetStart = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::FIXED_ASSET->value, $startDate->copy()->subDay());
+        $fixedAssetEnd = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::FIXED_ASSET->value, $endDate);
+        $fixedAssetChange = bcsub($fixedAssetStart, $fixedAssetEnd, 2); // decrease = cash from disposal
 
         $investingTotal = $fixedAssetChange;
 
         // ── Financing Activities ──────────────────────────────────────────────
-        $equityStart = $this->ledger->getSubTypeBalance($business, AccountSubType::OWNER_EQUITY->value, $startDate->copy()->subDay());
-        $equityEnd = $this->ledger->getSubTypeBalance($business, AccountSubType::OWNER_EQUITY->value, $endDate);
-        $equityChange = $equityEnd - $equityStart; // increase = owner contribution
+        $equityStart = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::OWNER_EQUITY->value, $startDate->copy()->subDay());
+        $equityEnd = (string) $this->ledger->getSubTypeBalance($business, AccountSubType::OWNER_EQUITY->value, $endDate);
+        $equityChange = bcsub($equityEnd, $equityStart, 2); // increase = owner contribution
 
         $financingTotal = $equityChange;
 
         // ── Net Change in Cash ────────────────────────────────────────────────
-        $netChange = $operatingTotal + $investingTotal + $financingTotal;
+        $netChange = bcadd(bcadd($operatingTotal, $investingTotal, 2), $financingTotal, 2);
 
-        $openingCash = $this->ledger->getSubTypeBalance($business, AccountSubType::BANK->value, $startDate->copy()->subDay())
-            + $this->ledger->getSubTypeBalance($business, AccountSubType::CASH->value, $startDate->copy()->subDay());
+        $openingCash = bcadd(
+            (string) $this->ledger->getSubTypeBalance($business, AccountSubType::BANK->value, $startDate->copy()->subDay()),
+            (string) $this->ledger->getSubTypeBalance($business, AccountSubType::CASH->value, $startDate->copy()->subDay()),
+            2
+        );
 
-        $closingCash = $openingCash + $netChange;
+        $closingCash = bcadd($openingCash, $netChange, 2);
 
         return [
             'period' => [
@@ -212,25 +218,25 @@ class ReportService
                 'end' => $endDate->toDateString(),
             ],
             'operating' => [
-                'net_income' => round($netIncome, 2),
-                'depreciation' => round($depreciation, 2),
-                'change_in_receivables' => round($arChange, 2),
-                'change_in_payables' => round($apChange, 2),
-                'change_in_tax_receivable' => round($taxRecChange, 2),
-                'change_in_tax_payable' => round($taxPayChange, 2),
-                'total' => round($operatingTotal, 2),
+                'net_income' => (float) $netIncome,
+                'depreciation' => (float) $depreciation,
+                'change_in_receivables' => (float) $arChange,
+                'change_in_payables' => (float) $apChange,
+                'change_in_tax_receivable' => (float) $taxRecChange,
+                'change_in_tax_payable' => (float) $taxPayChange,
+                'total' => (float) $operatingTotal,
             ],
             'investing' => [
-                'change_in_fixed_assets' => round($fixedAssetChange, 2),
-                'total' => round($investingTotal, 2),
+                'change_in_fixed_assets' => (float) $fixedAssetChange,
+                'total' => (float) $investingTotal,
             ],
             'financing' => [
-                'change_in_equity' => round($equityChange, 2),
-                'total' => round($financingTotal, 2),
+                'change_in_equity' => (float) $equityChange,
+                'total' => (float) $financingTotal,
             ],
-            'net_change' => round($netChange, 2),
-            'opening_cash' => round($openingCash, 2),
-            'closing_cash' => round($closingCash, 2),
+            'net_change' => (float) $netChange,
+            'opening_cash' => (float) $openingCash,
+            'closing_cash' => (float) $closingCash,
         ];
     }
 
@@ -248,26 +254,41 @@ class ReportService
             ->orderBy('code')
             ->get();
 
-        $netIncome = $this->getTotalTypeBalance($business, AccountType::REVENUE, $startDate, $endDate)
-            - $this->getTotalTypeBalance($business, AccountType::EXPENSE, $startDate, $endDate);
+        $netIncome = bcsub(
+            $this->getTotalTypeBalance($business, AccountType::REVENUE, $startDate, $endDate),
+            $this->getTotalTypeBalance($business, AccountType::EXPENSE, $startDate, $endDate),
+            2
+        );
 
-        $accounts = $equityAccounts->map(function ($account) use ($startDate, $endDate) {
-            $openingBalance = $this->ledger->getAccountBalance($account, $startDate->copy()->subDay());
-            $closingBalance = $this->ledger->getAccountBalance($account, $endDate);
-            $movement = $closingBalance - $openingBalance;
+        $accountIds = $equityAccounts->pluck('id');
+        $openingTotals = $this->ledger->fetchBatchTotals($accountIds, $business->id, $startDate->copy()->subDay());
+        $closingTotals = $this->ledger->fetchBatchTotals($accountIds, $business->id, $endDate);
+
+        $accounts = $equityAccounts->map(function ($account) use ($openingTotals, $closingTotals) {
+            $isDebitNormal = $account->type->normalBalance() === 'debit';
+
+            $calcBalance = function ($row) use ($isDebitNormal): string {
+                $d = (string) ($row?->total_debit ?? '0');
+                $c = (string) ($row?->total_credit ?? '0');
+
+                return $isDebitNormal ? bcsub($d, $c, 2) : bcsub($c, $d, 2);
+            };
+
+            $openingBalance = $calcBalance($openingTotals->get($account->id));
+            $closingBalance = $calcBalance($closingTotals->get($account->id));
 
             return [
                 'id' => $account->id,
                 'code' => $account->code,
                 'name' => $account->name,
-                'opening_balance' => round($openingBalance, 2),
-                'movement' => round($movement, 2),
-                'closing_balance' => round($closingBalance, 2),
+                'opening_balance' => (float) $openingBalance,
+                'movement' => (float) bcsub($closingBalance, $openingBalance, 2),
+                'closing_balance' => (float) $closingBalance,
             ];
         })->values();
 
-        $totalOpening = $accounts->sum('opening_balance');
-        $totalClosing = $accounts->sum('closing_balance');
+        $totalOpening = $accounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['opening_balance'], 2), '0');
+        $totalClosing = $accounts->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['closing_balance'], 2), '0');
 
         return [
             'period' => [
@@ -275,9 +296,9 @@ class ReportService
                 'end' => $endDate->toDateString(),
             ],
             'accounts' => $accounts,
-            'net_income' => round($netIncome, 2),
-            'total_opening' => round($totalOpening, 2),
-            'total_closing' => round($totalClosing + $netIncome, 2),
+            'net_income' => (float) $netIncome,
+            'total_opening' => (float) $totalOpening,
+            'total_closing' => (float) bcadd($totalClosing, $netIncome, 2),
         ];
     }
 
@@ -329,32 +350,30 @@ class ReportService
             ->orderBy('code')
             ->get();
 
-        return $accounts->map(function ($account) use ($startDate, $endDate) {
-            $query = JournalEntryLine::query()
-                ->where('account_id', $account->id)
-                ->whereHas('journalEntry', function ($q) use ($account, $startDate, $endDate) {
-                    $q->withoutGlobalScopes()
-                        ->where('business_id', $account->business_id)
-                        ->where('is_posted', true)
-                        ->where('date', '<=', $endDate);
+        if ($accounts->isEmpty()) {
+            return collect();
+        }
 
-                    if ($startDate) {
-                        $q->where('date', '>=', $startDate);
-                    }
-                });
+        $totals = $this->ledger->fetchBatchTotals(
+            $accounts->pluck('id'),
+            $business->id,
+            $endDate,
+            $startDate,
+        );
 
-            $totalDebit = (float) $query->sum('debit');
-            $totalCredit = (float) $query->sum('credit');
-
+        return $accounts->map(function ($account) use ($totals) {
+            $row = $totals->get($account->id);
+            $totalDebit = (string) ($row?->total_debit ?? '0');
+            $totalCredit = (string) ($row?->total_credit ?? '0');
             $balance = $account->type->normalBalance() === 'debit'
-                ? $totalDebit - $totalCredit
-                : $totalCredit - $totalDebit;
+                ? bcsub($totalDebit, $totalCredit, 2)
+                : bcsub($totalCredit, $totalDebit, 2);
 
             return [
                 'id' => $account->id,
                 'code' => $account->code,
                 'name' => $account->name,
-                'balance' => $balance,
+                'balance' => (float) $balance,
             ];
         })->filter(fn ($item) => $item['balance'] != 0)
             ->values();
@@ -365,9 +384,9 @@ class ReportService
         AccountType $type,
         ?Carbon $startDate,
         Carbon $endDate,
-    ): float {
+    ): string {
         return $this->getAccountBalancesOfType($business, $type, $startDate, $endDate)
-            ->sum('balance');
+            ->reduce(fn ($carry, $item) => bcadd($carry, (string) $item['balance'], 2), '0');
     }
 
     /**
@@ -376,35 +395,37 @@ class ReportService
      */
     private function getSubTypeMovement(Business $business, AccountSubType $subType, Carbon $startDate, Carbon $endDate): float
     {
-        $accounts = Account::withoutGlobalScopes()
+        $accountIds = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
             ->where('sub_type', $subType)
-            ->get();
+            ->pluck('id');
 
-        $total = 0.0;
-        foreach ($accounts as $account) {
-            $lines = JournalEntryLine::query()
-                ->where('account_id', $account->id)
-                ->whereHas('journalEntry', function ($q) use ($account, $startDate, $endDate) {
-                    $q->withoutGlobalScopes()
-                        ->where('business_id', $account->business_id)
-                        ->where('is_posted', true)
-                        ->whereBetween('date', [$startDate, $endDate]);
-                });
-
-            $total += (float) $lines->sum('debit') - (float) $lines->sum('credit');
+        if ($accountIds->isEmpty()) {
+            return 0.0;
         }
 
-        return $total;
+        $row = JournalEntryLine::query()
+            ->select(
+                DB::raw('SUM(journal_entry_lines.debit) as total_debit'),
+                DB::raw('SUM(journal_entry_lines.credit) as total_credit'),
+            )
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entry_lines.journal_entry_id')
+            ->whereIn('journal_entry_lines.account_id', $accountIds)
+            ->where('journal_entries.business_id', $business->id)
+            ->where('journal_entries.is_posted', true)
+            ->whereBetween('journal_entries.date', [$startDate, $endDate])
+            ->first();
+
+        return (float) bcsub((string) ($row?->total_debit ?? '0'), (string) ($row?->total_credit ?? '0'), 2);
     }
 
     private function buildAgedReport(Collection $invoices, Carbon $asOfDate): array
     {
         $buckets = [
-            'current' => ['label' => 'Current', 'min' => 0, 'max' => 30, 'total' => 0, 'items' => []],
-            '31_60' => ['label' => '31-60 Days', 'min' => 31, 'max' => 60, 'total' => 0, 'items' => []],
-            '61_90' => ['label' => '61-90 Days', 'min' => 61, 'max' => 90, 'total' => 0, 'items' => []],
-            '90_plus' => ['label' => '90+ Days', 'min' => 91, 'max' => PHP_INT_MAX, 'total' => 0, 'items' => []],
+            'current' => ['label' => 'Current', 'min' => 0, 'max' => 30, 'total' => '0', 'items' => []],
+            '31_60' => ['label' => '31-60 Days', 'min' => 31, 'max' => 60, 'total' => '0', 'items' => []],
+            '61_90' => ['label' => '61-90 Days', 'min' => 61, 'max' => 90, 'total' => '0', 'items' => []],
+            '90_plus' => ['label' => '90+ Days', 'min' => 91, 'max' => PHP_INT_MAX, 'total' => '0', 'items' => []],
         ];
 
         foreach ($invoices as $invoice) {
@@ -418,7 +439,7 @@ class ReportService
                 default => '90_plus',
             };
 
-            $buckets[$bucket]['total'] += (float) $invoice->balance_due;
+            $buckets[$bucket]['total'] = bcadd($buckets[$bucket]['total'], (string) $invoice->balance_due, 2);
             $buckets[$bucket]['items'][] = [
                 'invoice_id' => $invoice->id,
                 'number' => $invoice->number,
@@ -431,10 +452,18 @@ class ReportService
             ];
         }
 
+        $grandTotal = collect($buckets)->reduce(fn ($carry, $b) => bcadd($carry, $b['total'], 2), '0');
+
+        $buckets = array_map(function ($bucket) {
+            $bucket['total'] = (float) $bucket['total'];
+
+            return $bucket;
+        }, $buckets);
+
         return [
             'as_of' => $asOfDate->toDateString(),
             'buckets' => $buckets,
-            'grand_total' => collect($buckets)->sum('total'),
+            'grand_total' => (float) $grandTotal,
         ];
     }
 }

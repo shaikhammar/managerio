@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Accounting;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Accounting\TaxCodeRequest;
 use App\Models\TaxCode;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class TaxCodeController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $taxCodes = TaxCode::query()
             ->when($request->search, fn ($q, $search) => $q->where('name', 'ilike', "%{$search}%"))
@@ -23,12 +25,12 @@ class TaxCodeController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('accounting/tax-codes/create');
     }
 
-    public function store(TaxCodeRequest $request)
+    public function store(TaxCodeRequest $request): RedirectResponse
     {
         TaxCode::create($request->validated());
 
@@ -36,14 +38,14 @@ class TaxCodeController extends Controller
             ->with('success', 'Tax code created successfully.');
     }
 
-    public function edit(TaxCode $taxCode)
+    public function edit(TaxCode $taxCode): Response
     {
         return Inertia::render('accounting/tax-codes/create', [
             'taxCode' => $taxCode,
         ]);
     }
 
-    public function update(TaxCodeRequest $request, TaxCode $taxCode)
+    public function update(TaxCodeRequest $request, TaxCode $taxCode): RedirectResponse
     {
         $taxCode->update($request->validated());
 
@@ -51,7 +53,7 @@ class TaxCodeController extends Controller
             ->with('success', 'Tax code updated successfully.');
     }
 
-    public function destroy(TaxCode $taxCode)
+    public function destroy(TaxCode $taxCode): RedirectResponse
     {
         $taxCode->delete();
 

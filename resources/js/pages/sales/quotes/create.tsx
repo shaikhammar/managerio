@@ -10,10 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
 import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
-import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
+import type { BreadcrumbItem, ContactOption, TaxCodeOption, Invoice } from '@/types';
 
 type LineItem = {
-    account_id: string;
     description: string;
     quantity: string;
     unit_price: string;
@@ -22,7 +21,7 @@ type LineItem = {
 };
 
 function emptyLine(): LineItem {
-    return { account_id: '', description: '', quantity: '1', unit_price: '0', discount_percent: '0', tax_code_id: '' };
+    return { description: '', quantity: '1', unit_price: '0', discount_percent: '0', tax_code_id: '' };
 }
 
 function calcLineTotal(line: LineItem, taxCodes: TaxCodeOption[]): { subtotal: number; tax: number; total: number } {
@@ -38,12 +37,11 @@ function calcLineTotal(line: LineItem, taxCodes: TaxCodeOption[]): { subtotal: n
 
 type Props = {
     customers: ContactOption[];
-    accounts: AccountOption[];
     taxCodes: TaxCodeOption[];
     quote?: Invoice;
 };
 
-export default function QuoteForm({ customers, accounts, taxCodes, quote }: Props) {
+export default function QuoteForm({ customers, taxCodes, quote }: Props) {
     const { format } = useCurrency();
     const isEditing = !!quote;
     const today = new Date().toISOString().split('T')[0];
@@ -67,7 +65,6 @@ export default function QuoteForm({ customers, accounts, taxCodes, quote }: Prop
         notes: quote?.notes || '',
         terms: quote?.terms || '',
         lines: (quote?.lines || [emptyLine()]).map((l: any) => ({
-            account_id: l.account_id?.toString() || '',
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',
             unit_price: l.unit_price?.toString() || '0',
@@ -104,8 +101,6 @@ return;
 
         return { subtotal, tax, total: subtotal + tax };
     }, [data.lines, taxCodes]);
-
-    const revenueAccounts = accounts.filter((a) => a.type === 'revenue' || a.type === 'expense');
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -184,7 +179,6 @@ return;
                                 <table className="w-full min-w-[800px]">
                                     <thead>
                                         <tr className="border-b text-sm text-muted-foreground">
-                                            <th className="text-left py-2 pr-2 w-[180px]">Account</th>
                                             <th className="text-left py-2 pr-2">Description</th>
                                             <th className="text-right py-2 pr-2 w-[80px]">Qty</th>
                                             <th className="text-right py-2 pr-2 w-[110px]">Unit Price</th>
@@ -200,19 +194,6 @@ return;
 
                                             return (
                                                 <tr key={idx} className="border-b last:border-0 align-top">
-                                                    <td className="py-2 pr-2">
-                                                        <Select value={line.account_id} onValueChange={(v) => updateLine(idx, 'account_id', v)}>
-                                                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Account" /></SelectTrigger>
-                                                            <SelectContent>
-                                                                {revenueAccounts.map((a) => (
-                                                                    <SelectItem key={a.id} value={a.id.toString()} className="text-xs">
-                                                                        {a.code} · {a.name}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <InputError message={(errors as any)[`lines.${idx}.account_id`]} className="mt-1" />
-                                                    </td>
                                                     <td className="py-2 pr-2">
                                                         <Input
                                                             className="h-9 text-sm"

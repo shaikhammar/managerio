@@ -98,7 +98,7 @@ export default function DebitNoteIndex({ debitNotes, filters }: Props) {
                                 debitNotes.data.map((note) => (
                                     <tr key={note.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                                         <td className="py-3 px-4">
-                                            <Link href={DebitNoteController.show.url(note)} className="font-mono text-sm font-medium hover:underline">
+                                            <Link href={DebitNoteController.show.url(note.id)} className="font-mono text-sm font-medium hover:underline">
                                                 {note.number}
                                             </Link>
                                         </td>

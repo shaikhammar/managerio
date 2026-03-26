@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, CreditCard } from 'lucide-react';
 import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
+import SupplierPaymentController from '@/actions/App/Http/Controllers/Payments/SupplierPaymentController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -26,7 +27,7 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
         { title: invoice.number, href: PurchaseInvoiceController.show.url(invoice) },
     ];
 
-    const canEdit = invoice.status === 'draft';
+    const canEdit = !['paid', 'partially_paid', 'void'].includes(invoice.status);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -59,7 +60,7 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                         )}
                         {invoice.balance_due > 0 && invoice.status !== 'void' && (
                             <Button variant="outline" asChild>
-                                <Link href={`/payments/supplier-payments/create?invoice_id=${invoice.id}`}>
+                                <Link href={SupplierPaymentController.create.url({ mergeQuery: { invoice_id: invoice.id } })}>
                                     <CreditCard className="mr-2 size-4" />
                                     Make Payment
                                 </Link>

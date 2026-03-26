@@ -2,25 +2,32 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Domain\Accounting\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\QuoteRequest;
+use App\Mail\InvoiceMail;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
+use App\Services\MailService;
 use App\Services\Sales\QuoteService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class QuoteController extends Controller
 {
     public function __construct(
         private QuoteService $quoteService,
+        private MailService $mailService,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): InertiaResponse
     {
         $quotes = Invoice::query()
             ->quotes()
@@ -36,16 +43,16 @@ class QuoteController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): InertiaResponse
     {
         return Inertia::render('sales/quotes/create', [
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::REVENUE, AccountType::EXPENSE])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function store(QuoteRequest $request)
+    public function store(QuoteRequest $request): RedirectResponse
     {
         $this->authorize('create', Invoice::class);
 
@@ -56,18 +63,18 @@ class QuoteController extends Controller
             ->with('success', 'Quote created successfully.');
     }
 
-    public function show(Invoice $quote)
+    public function show(Invoice $quote): InertiaResponse|RedirectResponse
     {
         if (! $quote->isQuote()) {
             abort(404);
         }
 
         return Inertia::render('sales/quotes/show', [
-            'quote' => $quote->load(['lines.account', 'lines.taxCode', 'contact']),
+            'quote' => $quote->load(['lines.taxCode', 'contact']),
         ]);
     }
 
-    public function edit(Invoice $quote)
+    public function edit(Invoice $quote): InertiaResponse|RedirectResponse
     {
         if (! $quote->isQuote()) {
             abort(404);
@@ -76,22 +83,26 @@ class QuoteController extends Controller
         return Inertia::render('sales/quotes/create', [
             'quote' => $quote->load('lines'),
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::REVENUE, AccountType::EXPENSE])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function update(QuoteRequest $request, Invoice $quote)
+    public function update(QuoteRequest $request, Invoice $quote): RedirectResponse
     {
         $this->authorize('update', $quote);
 
-        $this->quoteService->update($quote, $request->validated());
+        try {
+            $this->quoteService->update($quote, $request->validated());
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('sales.quotes.show', $quote)
             ->with('success', 'Quote updated successfully.');
     }
 
-    public function convert(Invoice $quote)
+    public function convert(Invoice $quote): RedirectResponse
     {
         $invoice = $this->quoteService->convertToInvoice($quote);
 
@@ -103,7 +114,7 @@ class QuoteController extends Controller
     {
         $this->authorize('view', $quote);
 
-        $quote->load(['lines.account', 'lines.taxCode', 'contact']);
+        $quote->load(['lines.taxCode', 'contact']);
         $business = $quote->business;
 
         $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $quote, 'business' => $business]);
@@ -111,7 +122,34 @@ class QuoteController extends Controller
         return $pdf->download("{$quote->number}.pdf");
     }
 
-    public function destroy(Invoice $quote)
+    public function sendEmail(Request $request, Invoice $quote): RedirectResponse
+    {
+        $this->authorize('view', $quote);
+
+        if (! $quote->isQuote()) {
+            abort(404);
+        }
+
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $business = $quote->business;
+
+        if (! $business->hasEmailConfigured()) {
+            return back()->with('error', 'Email is not configured. Please set up SMTP in Settings → Email.');
+        }
+
+        $quote->load(['lines.taxCode', 'contact']);
+
+        $this->mailService->mailerFor($business)->to($request->email)->send(
+            new InvoiceMail($quote, $business, $quote->contact?->name ?? $request->email),
+        );
+
+        return back()->with('success', "Quote {$quote->number} sent to {$request->email}.");
+    }
+
+    public function destroy(Invoice $quote): RedirectResponse
     {
         $this->authorize('delete', $quote);
 

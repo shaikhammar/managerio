@@ -6,12 +6,14 @@ use App\Domain\Contacts\Enums\ContactType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ContactRequest;
 use App\Models\Contact;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class CustomerController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
         $customers = Contact::query()
             ->customers()
@@ -25,12 +27,12 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('sales/customers/create');
     }
 
-    public function store(ContactRequest $request)
+    public function store(ContactRequest $request): RedirectResponse
     {
         $this->authorize('create', Contact::class);
 
@@ -40,21 +42,21 @@ class CustomerController extends Controller
             ->with('success', 'Customer created successfully.');
     }
 
-    public function show(Contact $customer)
+    public function show(Contact $customer): Response
     {
         return Inertia::render('sales/customers/show', [
             'customer' => $customer->load(['invoices' => fn ($q) => $q->latest('date')->limit(10)]),
         ]);
     }
 
-    public function edit(Contact $customer)
+    public function edit(Contact $customer): Response
     {
         return Inertia::render('sales/customers/edit', [
             'customer' => $customer,
         ]);
     }
 
-    public function update(ContactRequest $request, Contact $customer)
+    public function update(ContactRequest $request, Contact $customer): RedirectResponse
     {
         $this->authorize('update', $customer);
 
@@ -64,7 +66,7 @@ class CustomerController extends Controller
             ->with('success', 'Customer updated successfully.');
     }
 
-    public function destroy(Contact $customer)
+    public function destroy(Contact $customer): RedirectResponse
     {
         $this->authorize('delete', $customer);
 

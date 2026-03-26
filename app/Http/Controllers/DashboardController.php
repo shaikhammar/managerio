@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Accounting\Enums\AccountSubType;
+use App\Domain\Accounting\Enums\AccountType;
+use App\Domain\Sales\Enums\InvoiceType;
 use App\Models\Account;
 use App\Models\Business;
 use App\Models\Invoice;
@@ -34,44 +36,53 @@ class DashboardController extends Controller
         $startOfMonth = $now->copy()->startOfMonth();
         $endOfMonth = $now->copy()->endOfMonth();
 
-        // Bank balances
-        $bankAccounts = Account::withoutGlobalScopes()
+        // Bank balances — single batch query
+        $bankAccountModels = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
             ->where('sub_type', AccountSubType::BANK)
-            ->get()
-            ->map(fn ($account) => [
-                'id' => $account->id,
-                'name' => $account->name,
-                'balance' => $this->ledger->getAccountBalance($account, $now),
-            ]);
+            ->get();
+
+        $bankTotals = $this->ledger->fetchBatchTotals($bankAccountModels->pluck('id'), $business->id, $now);
+
+        $bankAccounts = $bankAccountModels->map(fn ($account) => [
+            'id' => $account->id,
+            'name' => $account->name,
+            // BANK accounts are ASSET (debit-normal): balance = debits - credits
+            'balance' => (float) ($bankTotals->get($account->id)?->total_debit ?? 0)
+                       - (float) ($bankTotals->get($account->id)?->total_credit ?? 0),
+        ]);
 
         // Receivables & Payables
         $receivables = $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_RECEIVABLE->value, $now);
         $payables = $this->ledger->getSubTypeBalance($business, AccountSubType::ACCOUNTS_PAYABLE->value, $now);
 
-        // Revenue & Expenses this month
-        $revenueAccounts = Account::withoutGlobalScopes()
+        // Revenue & Expenses this month — one batch query per type with date range
+        $revenueAccountIds = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->where('type', 'revenue')
-            ->get();
-        $monthlyRevenue = $revenueAccounts->sum(
-            fn ($account) => $this->ledger->getAccountBalance($account, $endOfMonth) -
-                $this->ledger->getAccountBalance($account, $startOfMonth->copy()->subDay())
+            ->where('type', AccountType::REVENUE)
+            ->pluck('id');
+
+        $revenueTotals = $this->ledger->fetchBatchTotals($revenueAccountIds, $business->id, $endOfMonth, $startOfMonth);
+        // Revenue is credit-normal: monthly revenue = sum(credits) - sum(debits) across all revenue accounts
+        $monthlyRevenue = $revenueTotals->sum(
+            fn ($row) => (float) $row->total_credit - (float) $row->total_debit
         );
 
-        $expenseAccounts = Account::withoutGlobalScopes()
+        $expenseAccountIds = Account::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->where('type', 'expense')
-            ->get();
-        $monthlyExpenses = $expenseAccounts->sum(
-            fn ($account) => $this->ledger->getAccountBalance($account, $endOfMonth) -
-                $this->ledger->getAccountBalance($account, $startOfMonth->copy()->subDay())
+            ->where('type', AccountType::EXPENSE)
+            ->pluck('id');
+
+        $expenseTotals = $this->ledger->fetchBatchTotals($expenseAccountIds, $business->id, $endOfMonth, $startOfMonth);
+        // Expenses are debit-normal: monthly expenses = sum(debits) - sum(credits) across all expense accounts
+        $monthlyExpenses = $expenseTotals->sum(
+            fn ($row) => (float) $row->total_debit - (float) $row->total_credit
         );
 
         // Recent invoices
         $recentInvoices = Invoice::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->where('type', 'invoice')
+            ->where('type', InvoiceType::INVOICE)
             ->with('contact')
             ->orderByDesc('date')
             ->limit(5)

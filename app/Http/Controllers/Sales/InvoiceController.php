@@ -2,25 +2,32 @@
 
 namespace App\Http\Controllers\Sales;
 
+use App\Domain\Accounting\Enums\AccountType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\InvoiceRequest;
+use App\Mail\InvoiceMail;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\TaxCode;
+use App\Services\MailService;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
     public function __construct(
         private InvoiceService $invoiceService,
+        private MailService $mailService,
     ) {}
 
-    public function index(Request $request)
+    public function index(Request $request): InertiaResponse
     {
         $invoices = Invoice::query()
             ->invoices()
@@ -36,16 +43,16 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(): InertiaResponse
     {
         return Inertia::render('sales/invoices/create', [
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::REVENUE, AccountType::EXPENSE])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function store(InvoiceRequest $request)
+    public function store(InvoiceRequest $request): RedirectResponse
     {
         $this->authorize('create', Invoice::class);
 
@@ -56,34 +63,51 @@ class InvoiceController extends Controller
             ->with('success', 'Invoice created successfully.');
     }
 
-    public function show(Invoice $invoice)
+    public function show(Invoice $invoice): InertiaResponse
     {
         return Inertia::render('sales/invoices/show', [
             'invoice' => $invoice->load(['lines.account', 'lines.taxCode', 'contact', 'journalEntry.lines.account', 'paymentAllocations.payment']),
         ]);
     }
 
-    public function edit(Invoice $invoice)
+    public function edit(Invoice $invoice): InertiaResponse
     {
         return Inertia::render('sales/invoices/create', [
             'invoice' => $invoice->load('lines'),
             'customers' => Contact::query()->customers()->active()->orderBy('name')->get(['id', 'name']),
-            'accounts' => Account::query()->active()->whereIn('type', ['revenue', 'expense'])->orderBy('code')->get(['id', 'code', 'name', 'type']),
+            'accounts' => Account::query()->active()->whereIn('type', [AccountType::REVENUE, AccountType::EXPENSE])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
         ]);
     }
 
-    public function update(InvoiceRequest $request, Invoice $invoice)
+    public function update(InvoiceRequest $request, Invoice $invoice): RedirectResponse
     {
         $this->authorize('update', $invoice);
 
-        $this->invoiceService->update($invoice, $request->validated());
+        try {
+            $this->invoiceService->update($invoice, $request->validated());
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('sales.invoices.show', $invoice)
             ->with('success', 'Invoice updated successfully.');
     }
 
-    public function void(Invoice $invoice)
+    public function post(Invoice $invoice): RedirectResponse
+    {
+        $this->authorize('update', $invoice);
+
+        try {
+            $this->invoiceService->postInvoice($invoice->load('lines'));
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', "Invoice {$invoice->number} posted successfully.");
+    }
+
+    public function void(Invoice $invoice): RedirectResponse
     {
         $this->authorize('void', $invoice);
 
@@ -104,7 +128,30 @@ class InvoiceController extends Controller
         return $pdf->download("{$invoice->number}.pdf");
     }
 
-    public function destroy(Invoice $invoice)
+    public function sendEmail(Request $request, Invoice $invoice): RedirectResponse
+    {
+        $this->authorize('view', $invoice);
+
+        $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $business = $invoice->business;
+
+        if (! $business->hasEmailConfigured()) {
+            return back()->with('error', 'Email is not configured. Please set up SMTP in Settings → Email.');
+        }
+
+        $invoice->load(['lines.account', 'lines.taxCode', 'contact']);
+
+        $this->mailService->mailerFor($business)->to($request->email)->send(
+            new InvoiceMail($invoice, $business, $invoice->contact?->name ?? $request->email),
+        );
+
+        return back()->with('success', "Invoice {$invoice->number} sent to {$request->email}.");
+    }
+
+    public function destroy(Invoice $invoice): RedirectResponse
     {
         $this->authorize('delete', $invoice);
 

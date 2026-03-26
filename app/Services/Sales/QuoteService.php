@@ -45,7 +45,7 @@ class QuoteService
 
             [$subtotal, $taxTotal] = $this->createLines($quote, $data['lines']);
 
-            $total = round($subtotal + $taxTotal, 2);
+            $total = bcadd($subtotal, $taxTotal, 2);
 
             $quote->update([
                 'subtotal' => $subtotal,
@@ -71,6 +71,12 @@ class QuoteService
             throw new DomainException('Only draft quotes can be edited.');
         }
 
+        $quote->loadMissing('lines');
+
+        if (! $this->quoteHasChanges($quote, $data)) {
+            return $quote->load(['lines', 'contact']);
+        }
+
         return DB::transaction(function () use ($quote, $data) {
             $quote->update([
                 'contact_id' => $data['contact_id'] ?? $quote->contact_id,
@@ -84,7 +90,7 @@ class QuoteService
             if (isset($data['lines'])) {
                 $quote->lines()->delete();
                 [$subtotal, $taxTotal] = $this->createLines($quote, $data['lines']);
-                $total = round($subtotal + $taxTotal, 2);
+                $total = bcadd($subtotal, $taxTotal, 2);
 
                 $quote->update([
                     'subtotal' => $subtotal,
@@ -99,8 +105,8 @@ class QuoteService
     }
 
     /**
-     * Convert a quote to an invoice.
-     * This WILL generate accounting entries.
+     * Convert a quote to a draft invoice.
+     * The invoice starts as DRAFT; the user must edit it to assign accounts and then post it.
      */
     public function convertToInvoice(Invoice $quote): Invoice
     {
@@ -131,7 +137,7 @@ class QuoteService
 
             foreach ($quote->lines as $line) {
                 $invoice->lines()->create([
-                    'account_id' => $line->account_id,
+                    'account_id' => null,
                     'description' => $line->description,
                     'quantity' => $line->quantity,
                     'unit_price' => $line->unit_price,
@@ -146,38 +152,79 @@ class QuoteService
             // Mark quote as approved/closed
             $quote->update(['status' => InvoiceStatus::APPROVED]);
 
-            // Post the newly created invoice to ledger
-            $this->invoiceService->postInvoice($invoice);
-
             return $invoice;
         });
     }
 
     // ── Private Helpers (Duplicate of InvoiceService for isolation) ──
 
+    private function quoteHasChanges(Invoice $quote, array $data): bool
+    {
+        $headerComparisons = [
+            'contact_id' => fn ($v) => (int) $v !== (int) $quote->contact_id,
+            'date' => fn ($v) => $v !== $quote->date->format('Y-m-d'),
+            'due_date' => fn ($v) => ($v ?: null) !== ($quote->due_date?->format('Y-m-d')),
+            'reference' => fn ($v) => ($v ?: null) !== ($quote->reference ?: null),
+            'notes' => fn ($v) => ($v ?: null) !== ($quote->notes ?: null),
+            'terms' => fn ($v) => ($v ?: null) !== ($quote->terms ?: null),
+        ];
+
+        foreach ($headerComparisons as $field => $differs) {
+            if (array_key_exists($field, $data) && $differs($data[$field])) {
+                return true;
+            }
+        }
+
+        $existing = $quote->lines;
+
+        if (count($data['lines']) !== $existing->count()) {
+            return true;
+        }
+
+        foreach ($data['lines'] as $i => $line) {
+            $current = $existing[$i] ?? null;
+
+            if ($current === null) {
+                return true;
+            }
+
+            if (($line['description'] ?? '') !== (string) ($current->description ?? '')
+                || (float) ($line['quantity'] ?? 1) !== (float) $current->quantity
+                || (float) ($line['unit_price'] ?? 0) !== (float) $current->unit_price
+                || (float) ($line['discount_percent'] ?? 0) !== (float) $current->discount_percent
+                || (($line['tax_code_id'] ?? null) != $current->tax_code_id)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function createLines(Invoice $invoice, array $linesData): array
     {
-        $subtotal = 0;
-        $taxTotal = 0;
+        $subtotal = '0';
+        $taxTotal = '0';
 
         foreach ($linesData as $index => $line) {
-            $lineTotal = round((float) $line['quantity'] * (float) $line['unit_price'], 2);
+            $lineTotal = bcmul((string) $line['quantity'], (string) $line['unit_price'], 2);
 
             if (isset($line['discount_percent']) && $line['discount_percent'] > 0) {
-                $lineTotal = round($lineTotal * (1 - (float) $line['discount_percent'] / 100), 2);
+                $discountMultiplier = bcsub('1', bcdiv((string) $line['discount_percent'], '100', 10), 10);
+                $lineTotal = bcmul($lineTotal, $discountMultiplier, 2);
             }
 
             $taxCodeId = $line['tax_code_id'] ?? 'none';
-            $taxAmount = 0;
+            $taxAmount = '0';
             if (! empty($taxCodeId) && $taxCodeId !== 'none') {
                 $taxCode = TaxCode::withoutGlobalScopes()->find($taxCodeId);
                 if ($taxCode) {
-                    $taxAmount = round($lineTotal * (float) $taxCode->rate / 100, 2);
+                    $taxAmount = bcmul($lineTotal, bcdiv((string) $taxCode->rate, '100', 10), 2);
                 }
             }
 
             $invoice->lines()->create([
-                'account_id' => $line['account_id'],
+                'account_id' => null,
                 'description' => $line['description'],
                 'quantity' => $line['quantity'],
                 'unit_price' => $line['unit_price'],
@@ -188,8 +235,8 @@ class QuoteService
                 'sort_order' => $index,
             ]);
 
-            $subtotal += $lineTotal;
-            $taxTotal += $taxAmount;
+            $subtotal = bcadd($subtotal, $lineTotal, 2);
+            $taxTotal = bcadd($taxTotal, $taxAmount, 2);
         }
 
         return [$subtotal, $taxTotal];

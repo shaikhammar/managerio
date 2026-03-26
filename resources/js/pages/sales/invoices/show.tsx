@@ -1,8 +1,14 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Ban, CreditCard, Download, Send } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import { ArrowLeft, Ban, CreditCard, Download, Mail, Send } from 'lucide-react';
 import InvoiceController from '@/actions/App/Http/Controllers/Sales/InvoiceController';
+import ReceiptController from '@/actions/App/Http/Controllers/Payments/ReceiptController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import InputError from '@/components/input-error';
 import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
 import type { BreadcrumbItem, Invoice } from '@/types';
@@ -22,20 +28,29 @@ export default function InvoiceShow({ invoice }: Props) {
     const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Invoices', href: '/sales/invoices' },
-        { title: invoice.number, href: `/sales/invoices/${invoice.id}` },
+        { title: 'Invoices', href: InvoiceController.index.url() },
+        { title: invoice.number, href: InvoiceController.show.url(invoice) },
     ];
 
-    const canEdit = invoice.status === 'draft';
+    const canEdit = !['paid', 'partially_paid', 'void'].includes(invoice.status);
     const canVoid = ['sent', 'overdue'].includes(invoice.status);
 
+    const emailForm = useForm({ email: invoice.contact?.email ?? '' });
+    const [emailOpen, setEmailOpen] = useState(false);
+
     function handlePost() {
-        router.post(`/sales/invoices/${invoice.id}/post`);
+        router.post(InvoiceController.post.url(invoice));
     }
     function handleVoid() {
         if (confirm('Are you sure you want to void this invoice?')) {
-            router.post(`/sales/invoices/${invoice.id}/void`);
+            router.post(InvoiceController.voidMethod.url(invoice));
         }
+    }
+    function handleSendEmail(e: React.FormEvent) {
+        e.preventDefault();
+        emailForm.post(InvoiceController.sendEmail.url(invoice), {
+            onSuccess: () => setEmailOpen(false),
+        });
     }
 
     return (
@@ -46,7 +61,7 @@ export default function InvoiceShow({ invoice }: Props) {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" asChild>
-                            <Link href="/sales/invoices"><ArrowLeft className="size-4" /></Link>
+                            <Link href={InvoiceController.index.url()}><ArrowLeft className="size-4" /></Link>
                         </Button>
                         <div>
                             <div className="flex items-center gap-3">
@@ -68,16 +83,22 @@ export default function InvoiceShow({ invoice }: Props) {
                                 PDF
                             </a>
                         </Button>
+                        {invoice.status !== 'void' && invoice.status !== 'draft' && (
+                            <Button variant="outline" size="sm" onClick={() => setEmailOpen(true)}>
+                                <Mail className="mr-2 size-4" />
+                                Send Email
+                            </Button>
+                        )}
                         {canEdit && (
-                            <>
-                                <Button variant="outline" asChild>
-                                    <Link href={`/sales/invoices/${invoice.id}/edit`}>Edit</Link>
-                                </Button>
-                                <Button onClick={handlePost}>
-                                    <Send className="mr-2 size-4" />
-                                    Post
-                                </Button>
-                            </>
+                            <Button variant="outline" asChild>
+                                <Link href={InvoiceController.edit.url(invoice)}>Edit</Link>
+                            </Button>
+                        )}
+                        {invoice.status === 'draft' && (
+                            <Button onClick={handlePost}>
+                                <Send className="mr-2 size-4" />
+                                Post
+                            </Button>
                         )}
                         {canVoid && (
                             <Button variant="destructive" onClick={handleVoid}>
@@ -87,13 +108,42 @@ export default function InvoiceShow({ invoice }: Props) {
                         )}
                         {invoice.balance_due > 0 && invoice.status !== 'void' && invoice.status !== 'draft' && (
                             <Button variant="outline" asChild>
-                                <Link href={`/payments/receipts/create?invoice_id=${invoice.id}`}>
+                                <Link href={ReceiptController.create.url({ mergeQuery: { invoice_id: invoice.id } })}>
                                     <CreditCard className="mr-2 size-4" />
                                     Record Payment
                                 </Link>
                             </Button>
                         )}
                     </div>
+
+                    <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Send Invoice {invoice.number}</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleSendEmail} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Recipient Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={emailForm.data.email}
+                                        onChange={(e) => emailForm.setData('email', e.target.value)}
+                                        placeholder="customer@example.com"
+                                        autoFocus
+                                    />
+                                    <InputError message={emailForm.errors.email} />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="button" variant="outline" onClick={() => setEmailOpen(false)}>Cancel</Button>
+                                    <Button type="submit" disabled={emailForm.processing}>
+                                        <Mail className="mr-2 size-4" />
+                                        {emailForm.processing ? 'Sending…' : 'Send'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 {/* Line Items */}
