@@ -37,8 +37,15 @@ export default function ProjectIndex({ projects, filters = {}, statuses }: Props
     function applyFilters(overrides: Partial<{ search: string; status: string }> = {}) {
         const params: Record<string, string> = {};
         const merged = { search, status, ...overrides };
-        if (merged.search) params.search = merged.search;
-        if (merged.status) params.status = merged.status;
+
+        if (merged.search) {
+params.search = merged.search;
+}
+
+        if (merged.status) {
+params.status = merged.status;
+}
+
         router.get('/translation/projects', params, { preserveState: true });
     }
 

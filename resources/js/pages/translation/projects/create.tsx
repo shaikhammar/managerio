@@ -125,7 +125,11 @@ export default function ProjectCreate({ customers, suppliers, languages, languag
     function pairLabel(pair: LanguagePairOption) {
         const src = pair.source_language;
         const tgt = pair.target_language;
-        if (!src || !tgt) return `Pair #${pair.id}`;
+
+        if (!src || !tgt) {
+return `Pair #${pair.id}`;
+}
+
         return `${src.name} (${src.code}) → ${tgt.name} (${tgt.code})`;
     }
 

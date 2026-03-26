@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Project, ProjectFile, ProjectFileType } from '@/types';
+import type { BreadcrumbItem, Project, ProjectFileType } from '@/types';
 
 type StatusOption = { value: string; label: string; color?: string };
 type FileTypeOption = { value: string; label: string };
@@ -60,24 +60,37 @@ export default function ProjectShow({ project, transitionableStatuses, fileTypes
 
     function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
-        if (!file) return;
+
+        if (!file) {
+return;
+}
+
         fileForm.setData('file', file);
         fileForm.post(`/translation/projects/${project.id}/files`, {
             forceFormData: true,
             onSuccess: () => {
-                if (fileInputRef.current) fileInputRef.current.value = '';
+                if (fileInputRef.current) {
+fileInputRef.current.value = '';
+}
+
                 fileForm.reset();
             },
         });
     }
 
     function handleDeleteFile(fileId: number) {
-        if (!confirm('Delete this file?')) return;
+        if (!confirm('Delete this file?')) {
+return;
+}
+
         router.delete(`/translation/projects/${project.id}/files/${fileId}`);
     }
 
     function handleDeleteProject() {
-        if (!confirm('Are you sure you want to delete this project? This cannot be undone.')) return;
+        if (!confirm('Are you sure you want to delete this project? This cannot be undone.')) {
+return;
+}
+
         router.delete(`/translation/projects/${project.id}`);
     }
 
@@ -331,7 +344,13 @@ export default function ProjectShow({ project, transitionableStatuses, fileTypes
 }
 
 function formatFileSize(bytes: number): string {
-    if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
-    if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes >= 1048576) {
+return `${(bytes / 1048576).toFixed(1)} MB`;
+}
+
+    if (bytes >= 1024) {
+return `${(bytes / 1024).toFixed(1)} KB`;
+}
+
     return `${bytes} B`;
 }
