@@ -27,6 +27,9 @@ use App\Http\Controllers\Sales\CreditNoteController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\InvoiceController;
 use App\Http\Controllers\Sales\QuoteController;
+use App\Http\Controllers\Translation\LanguageController;
+use App\Http\Controllers\Translation\LanguagePairController;
+use App\Http\Controllers\Translation\ServiceTypeController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -122,6 +125,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('accounts', BankAccountController::class)->only(['index', 'create', 'store', 'show']);
             Route::resource('transactions', BankTransactionController::class);
             Route::resource('reconciliations', BankReconciliationController::class);
+        });
+
+        // ── Translation ────────────────────────────────────
+        Route::prefix('translation')->name('translation.')->group(function () {
+            Route::resource('languages', LanguageController::class)->except(['show']);
+            Route::resource('language-pairs', LanguagePairController::class)->except(['show']);
+            Route::resource('service-types', ServiceTypeController::class)->except(['show']);
         });
 
         // ── Audit Log ──────────────────────────────────────
