@@ -29,6 +29,7 @@ use App\Http\Controllers\Sales\InvoiceController;
 use App\Http\Controllers\Sales\QuoteController;
 use App\Http\Controllers\Translation\LanguageController;
 use App\Http\Controllers\Translation\LanguagePairController;
+use App\Http\Controllers\Translation\RateCardController;
 use App\Http\Controllers\Translation\ServiceTypeController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('languages', LanguageController::class)->except(['show']);
             Route::resource('language-pairs', LanguagePairController::class)->except(['show']);
             Route::resource('service-types', ServiceTypeController::class)->except(['show']);
+            Route::resource('rate-cards', RateCardController::class)->except(['show']);
         });
 
         // ── Audit Log ──────────────────────────────────────
