@@ -29,6 +29,7 @@ use App\Http\Controllers\Sales\InvoiceController;
 use App\Http\Controllers\Sales\QuoteController;
 use App\Http\Controllers\Translation\LanguageController;
 use App\Http\Controllers\Translation\LanguagePairController;
+use App\Http\Controllers\Translation\ProjectController;
 use App\Http\Controllers\Translation\RateCardController;
 use App\Http\Controllers\Translation\ServiceTypeController;
 use Illuminate\Support\Facades\Route;
@@ -134,6 +135,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('language-pairs', LanguagePairController::class)->except(['show']);
             Route::resource('service-types', ServiceTypeController::class)->except(['show']);
             Route::resource('rate-cards', RateCardController::class)->except(['show']);
+            Route::resource('projects', ProjectController::class);
+            Route::post('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.status');
+            Route::post('projects/{project}/generate-quote', [ProjectController::class, 'generateQuote'])->name('projects.generate-quote');
+            Route::post('projects/{project}/generate-invoice', [ProjectController::class, 'generateInvoice'])->name('projects.generate-invoice');
+            Route::post('projects/{project}/generate-purchase-orders', [ProjectController::class, 'generatePurchaseOrders'])->name('projects.generate-purchase-orders');
+            Route::post('projects/{project}/files', [ProjectController::class, 'storeFile'])->name('projects.files.store');
+            Route::delete('projects/{project}/files/{projectFile}', [ProjectController::class, 'destroyFile'])->name('projects.files.destroy');
         });
 
         // ── Audit Log ──────────────────────────────────────
