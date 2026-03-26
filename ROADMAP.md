@@ -107,14 +107,14 @@
 
 ### 2.3 Translation Projects / Jobs
 
-- [ ] **Project model** — Client, source language, target language(s), service type, word count, deadline, reference number, internal notes.
-- [ ] **Project statuses** — New → In Progress → Review → Completed → Delivered → Invoiced → Closed.
-- [ ] **Multi-target projects** — One project with multiple target languages, each with separate word counts and translators.
-- [ ] **Project team** — Assign translator(s), editor(s), proofreader(s) per language combination.
-- [ ] **File attachments** — Attach source files and deliverables to a project (local storage initially).
-- [ ] **Project → Quote** — Auto-calculate a client quote from project details and rate card. Convert to sales quote.
-- [ ] **Project → Invoice** — Generate client invoice from project on completion.
-- [ ] **Project → Purchase Orders** — Auto-generate POs for assigned translators from project details and translator rates.
+- [x] **Project model** — Client, source language, target language(s), service type, word count, deadline, reference number, internal notes.
+- [x] **Project statuses** — New → In Progress → Review → Completed → Delivered → Invoiced → Closed.
+- [x] **Multi-target projects** — One project with multiple target languages, each with separate word counts and translators.
+- [x] **Project team** — Assign translator(s), editor(s), proofreader(s) per language combination.
+- [x] **File attachments** — Attach source files and deliverables to a project (local storage initially).
+- [x] **Project → Quote** — Auto-calculate a client quote from project details and rate card. Convert to sales quote.
+- [x] **Project → Invoice** — Generate client invoice from project on completion.
+- [x] **Project → Purchase Orders** — Auto-generate POs for assigned translators from project details and translator rates.
 
 ### 2.4 CAT Tool Analysis
 
