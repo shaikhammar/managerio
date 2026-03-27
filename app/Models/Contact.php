@@ -8,6 +8,7 @@ use App\Models\Concerns\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Contact extends Model
 {
@@ -51,6 +52,12 @@ class Contact extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /** @return HasOne<TranslatorProfile, $this> */
+    public function translatorProfile(): HasOne
+    {
+        return $this->hasOne(TranslatorProfile::class);
     }
 
     // ── Scopes ─────────────────────────────────────────────────────
