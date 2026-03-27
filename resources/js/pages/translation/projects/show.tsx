@@ -1,12 +1,12 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FileUp, Trash2, Users } from 'lucide-react';
+import { BarChart2, FileUp, Trash2, Users } from 'lucide-react';
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, Project, ProjectFileType } from '@/types';
+import type { BreadcrumbItem, CatAnalysis, Project, ProjectFileType } from '@/types';
 
 type StatusOption = { value: string; label: string; color?: string };
 type FileTypeOption = { value: string; label: string };
@@ -200,6 +200,12 @@ return;
                                 <Button variant="outline" size="sm" onClick={handleGeneratePOs} disabled={project.status === 'closed'}>
                                     Generate Purchase Orders
                                 </Button>
+
+                                <Separator />
+
+                                <Button variant="outline" size="sm" asChild disabled={project.status === 'closed'}>
+                                    <Link href={`/translation/projects/${project.id}/cat-analyses/create`}>Add CAT Analysis</Link>
+                                </Button>
                             </CardContent>
                         </Card>
                     </div>
@@ -268,6 +274,37 @@ return;
                                                                 </div>
                                                             </div>
                                                         ))}
+                                                    </div>
+                                                </>
+                                            )}
+
+                                            {target.cat_analyses && target.cat_analyses.length > 0 && (
+                                                <>
+                                                    <Separator className="my-2" />
+                                                    <div className="flex flex-col gap-1">
+                                                        {target.cat_analyses.map((analysis: CatAnalysis) => {
+                                                            const total = analysis.bands?.reduce((s, b) => s + b.words, 0) ?? 0;
+                                                            const weighted = analysis.bands?.reduce(
+                                                                (s, b) => s + b.words * ((100 - parseFloat(b.discount_percent)) / 100),
+                                                                0,
+                                                            ) ?? 0;
+                                                            return (
+                                                                <div key={analysis.id} className="flex items-center justify-between text-sm">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <BarChart2 className="text-muted-foreground size-3" />
+                                                                        <Link
+                                                                            href={`/translation/projects/${project.id}/cat-analyses/${analysis.id}`}
+                                                                            className="hover:underline"
+                                                                        >
+                                                                            {analysis.name}
+                                                                        </Link>
+                                                                    </div>
+                                                                    <span className="text-muted-foreground text-xs tabular-nums">
+                                                                        {total.toLocaleString()} → {weighted.toFixed(0)} weighted
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </>
                                             )}

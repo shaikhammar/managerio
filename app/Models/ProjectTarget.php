@@ -47,6 +47,11 @@ class ProjectTarget extends Model
         return $this->hasMany(ProjectAssignment::class);
     }
 
+    public function catAnalyses(): HasMany
+    {
+        return $this->hasMany(CatAnalysis::class)->orderByDesc('created_at');
+    }
+
     public function lineTotal(): string
     {
         if ($this->word_count === null || $this->unit_price === null) {
