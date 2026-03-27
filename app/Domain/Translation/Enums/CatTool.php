@@ -8,6 +8,12 @@ enum CatTool: string
     case Trados = 'trados';
     case MemoQ = 'memoq';
     case Phrase = 'phrase';
+    case Wordfast = 'wordfast';
+    case DejaVu = 'deja_vu';
+    case XTM = 'xtm';
+    case Crowdin = 'crowdin';
+    case Smartcat = 'smartcat';
+    case Transifex = 'transifex';
 
     public function label(): string
     {
@@ -16,6 +22,12 @@ enum CatTool: string
             self::Trados => 'SDL Trados',
             self::MemoQ => 'memoQ',
             self::Phrase => 'Phrase (Memsource)',
+            self::Wordfast => 'Wordfast',
+            self::DejaVu => 'Déjà Vu',
+            self::XTM => 'XTM Cloud',
+            self::Crowdin => 'Crowdin',
+            self::Smartcat => 'Smartcat',
+            self::Transifex => 'Transifex',
         };
     }
 }
