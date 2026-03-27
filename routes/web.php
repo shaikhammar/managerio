@@ -33,6 +33,7 @@ use App\Http\Controllers\Translation\LanguagePairController;
 use App\Http\Controllers\Translation\ProjectController;
 use App\Http\Controllers\Translation\RateCardController;
 use App\Http\Controllers\Translation\ServiceTypeController;
+use App\Http\Controllers\Translation\TranslatorProfileController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -136,6 +137,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('language-pairs', LanguagePairController::class)->except(['show']);
             Route::resource('service-types', ServiceTypeController::class)->except(['show']);
             Route::resource('rate-cards', RateCardController::class)->except(['show']);
+            Route::resource('translators', TranslatorProfileController::class);
             Route::resource('projects', ProjectController::class);
             Route::post('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.status');
             Route::post('projects/{project}/generate-quote', [ProjectController::class, 'generateQuote'])->name('projects.generate-quote');

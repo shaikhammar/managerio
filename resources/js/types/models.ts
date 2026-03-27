@@ -569,7 +569,7 @@ export type ProjectFile = {
 
 // ── Translation — Phase 2.4 ───────────────────────────────
 
-export type CatTool = 'manual' | 'trados' | 'memoq' | 'phrase';
+export type CatTool = 'manual' | 'trados' | 'memoq' | 'phrase' | 'wordfast' | 'deja_vu' | 'xtm' | 'crowdin' | 'smartcat' | 'transifex';
 export type CatMatchBand = 'context_match' | 'exact_match' | 'fuzzy_95_99' | 'fuzzy_85_94' | 'fuzzy_75_84' | 'fuzzy_50_74' | 'no_match' | 'repetitions';
 
 export type CatAnalysisBand = {
@@ -589,6 +589,39 @@ export type CatAnalysis = {
     name: string;
     tool: CatTool;
     bands?: CatAnalysisBand[];
+    created_at: string;
+    updated_at: string;
+};
+
+// ── Translation — Phase 2.5 ───────────────────────────────
+
+export type TranslatorAvailability = 'available' | 'busy' | 'on_leave';
+export type TranslatorSpecialisation =
+    | 'legal'
+    | 'medical'
+    | 'technical'
+    | 'marketing'
+    | 'financial'
+    | 'it'
+    | 'life_sciences'
+    | 'literary'
+    | 'gaming'
+    | 'general';
+export type TranslatorCertification = 'iso_17100' | 'ata' | 'naati' | 'iti' | 'ciol' | 'fit' | 'dip_trans';
+
+export type TranslatorProfile = {
+    id: number;
+    business_id: number;
+    contact_id: number;
+    availability: TranslatorAvailability;
+    quality_rating: number | null;
+    quality_notes: string | null;
+    specialisations: TranslatorSpecialisation[];
+    cat_tools: CatTool[];
+    certifications: TranslatorCertification[];
+    contact?: { id: number; name: string; email: string | null; phone: string | null };
+    language_pairs?: LanguagePair[];
+    service_types?: ServiceType[];
     created_at: string;
     updated_at: string;
 };
