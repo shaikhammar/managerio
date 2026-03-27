@@ -3,8 +3,8 @@ import { ArrowLeft, Download } from 'lucide-react';
 import DebitNoteController from '@/actions/App/Http/Controllers/Purchases/DebitNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { debitNote: Invoice };
