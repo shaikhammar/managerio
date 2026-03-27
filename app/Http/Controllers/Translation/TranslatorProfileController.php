@@ -82,7 +82,7 @@ class TranslatorProfileController extends Controller
                 'value' => $s->value,
                 'label' => $s->label(),
             ]),
-            'catTools' => collect(CatTool::cases())->filter(fn ($t) => $t !== CatTool::Manual)->map(fn ($t) => [
+            'catTools' => collect(CatTool::cases())->filter(fn ($t) => $t !== CatTool::Manual)->values()->map(fn ($t) => [
                 'value' => $t->value,
                 'label' => $t->label(),
             ]),
@@ -145,7 +145,7 @@ class TranslatorProfileController extends Controller
                 'value' => $s->value,
                 'label' => $s->label(),
             ]),
-            'catTools' => collect(CatTool::cases())->filter(fn ($t) => $t !== CatTool::Manual)->map(fn ($t) => [
+            'catTools' => collect(CatTool::cases())->filter(fn ($t) => $t !== CatTool::Manual)->values()->map(fn ($t) => [
                 'value' => $t->value,
                 'label' => $t->label(),
             ]),
