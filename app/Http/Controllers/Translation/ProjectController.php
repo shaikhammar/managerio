@@ -77,6 +77,7 @@ class ProjectController extends Controller
             'targets.serviceType',
             'targets.assignments.contact',
             'targets.assignments.purchaseOrder',
+            'targets.catAnalyses.bands',
             'files',
             'quote',
             'invoice',

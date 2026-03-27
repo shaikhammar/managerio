@@ -550,6 +550,7 @@ export type ProjectTarget = {
     language_pair?: LanguagePair;
     service_type?: ServiceType | null;
     assignments?: ProjectAssignment[];
+    cat_analyses?: CatAnalysis[];
     created_at: string;
     updated_at: string;
 };
@@ -562,6 +563,32 @@ export type ProjectFile = {
     type: ProjectFileType;
     size: number;
     mime_type: string;
+    created_at: string;
+    updated_at: string;
+};
+
+// ── Translation — Phase 2.4 ───────────────────────────────
+
+export type CatTool = 'manual' | 'trados' | 'memoq' | 'phrase';
+export type CatMatchBand = 'context_match' | 'exact_match' | 'fuzzy_95_99' | 'fuzzy_85_94' | 'fuzzy_75_84' | 'fuzzy_50_74' | 'no_match' | 'repetitions';
+
+export type CatAnalysisBand = {
+    id: number;
+    cat_analysis_id: number;
+    band: CatMatchBand;
+    words: number;
+    discount_percent: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type CatAnalysis = {
+    id: number;
+    business_id: number;
+    project_target_id: number;
+    name: string;
+    tool: CatTool;
+    bands?: CatAnalysisBand[];
     created_at: string;
     updated_at: string;
 };
