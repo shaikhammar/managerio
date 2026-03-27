@@ -27,6 +27,7 @@ use App\Http\Controllers\Sales\CreditNoteController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\InvoiceController;
 use App\Http\Controllers\Sales\QuoteController;
+use App\Http\Controllers\Translation\CatAnalysisController;
 use App\Http\Controllers\Translation\LanguageController;
 use App\Http\Controllers\Translation\LanguagePairController;
 use App\Http\Controllers\Translation\ProjectController;
@@ -142,6 +143,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('projects/{project}/generate-purchase-orders', [ProjectController::class, 'generatePurchaseOrders'])->name('projects.generate-purchase-orders');
             Route::post('projects/{project}/files', [ProjectController::class, 'storeFile'])->name('projects.files.store');
             Route::delete('projects/{project}/files/{projectFile}', [ProjectController::class, 'destroyFile'])->name('projects.files.destroy');
+            Route::get('projects/{project}/cat-analyses/create', [CatAnalysisController::class, 'create'])->name('projects.cat-analyses.create');
+            Route::post('projects/{project}/cat-analyses', [CatAnalysisController::class, 'store'])->name('projects.cat-analyses.store');
+            Route::post('projects/{project}/cat-analyses/import', [CatAnalysisController::class, 'import'])->name('projects.cat-analyses.import');
+            Route::get('projects/{project}/cat-analyses/{catAnalysis}', [CatAnalysisController::class, 'show'])->name('projects.cat-analyses.show');
+            Route::delete('projects/{project}/cat-analyses/{catAnalysis}', [CatAnalysisController::class, 'destroy'])->name('projects.cat-analyses.destroy');
+            Route::post('projects/{project}/cat-analyses/{catAnalysis}/apply-quote', [CatAnalysisController::class, 'applyToQuote'])->name('projects.cat-analyses.apply-quote');
+            Route::post('projects/{project}/cat-analyses/{catAnalysis}/apply-po', [CatAnalysisController::class, 'applyToPurchaseOrders'])->name('projects.cat-analyses.apply-po');
         });
 
         // ── Audit Log ──────────────────────────────────────

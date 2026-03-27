@@ -118,12 +118,12 @@
 
 ### 2.4 CAT Tool Analysis
 
-- [ ] **CAT Analysis model** — Import or manually enter word count analysis per translation memory match band.
-- [ ] **Match bands** — Context match (100%+), Exact match (100%), Fuzzy 95–99%, Fuzzy 85–94%, Fuzzy 75–84%, Fuzzy 50–74%, No match (0–49%), Repetitions.
-- [ ] **Weighted word count** — Apply discount percentages per match band to calculate effective word count for billing.
-- [ ] **Analysis → Quote** — Use CAT analysis to auto-populate line items in a client quote with correct pricing.
-- [ ] **Analysis → PO** — Use CAT analysis to auto-populate translator PO with weighted word counts.
-- [ ] **Import formats** — Support SDL Trados, memoQ, Phrase (Memsource) analysis export formats (CSV/XLIFF).
+- [x] **CAT Analysis model** — Import or manually enter word count analysis per translation memory match band.
+- [x] **Match bands** — Context match (100%+), Exact match (100%), Fuzzy 95–99%, Fuzzy 85–94%, Fuzzy 75–84%, Fuzzy 50–74%, No match (0–49%), Repetitions.
+- [x] **Weighted word count** — Apply discount percentages per match band to calculate effective word count for billing.
+- [x] **Analysis → Quote** — Use CAT analysis to auto-populate line items in a client quote with correct pricing.
+- [x] **Analysis → PO** — Use CAT analysis to auto-populate translator PO with weighted word counts.
+- [x] **Import formats** — Support SDL Trados, memoQ, Phrase (Memsource) analysis export formats (CSV/XLIFF).
 
 ### 2.5 Extended Vendor Profiles (Translators)
 
