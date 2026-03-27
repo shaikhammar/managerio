@@ -1,8 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus, CheckCircle2, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BankReconciliation, BreadcrumbItem, PaginatedData } from '@/types';
 
 type Props = {
@@ -16,6 +16,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function ReconciliationIndex({ reconciliations }: Props) {
     const { format } = useCurrency();
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Bank Reconciliations" />

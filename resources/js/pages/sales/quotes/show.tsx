@@ -1,15 +1,15 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useState } from 'react';
 import { ArrowLeft, Ban, Download, FileCheck, Mail } from 'lucide-react';
+import { useState } from 'react';
 import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { quote: Invoice };

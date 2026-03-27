@@ -116,6 +116,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('purchase-orders/{purchase_order}/send', [PurchaseOrderController::class, 'send'])->name('purchase-orders.send');
             Route::post('purchase-orders/{purchase_order}/convert', [PurchaseOrderController::class, 'convert'])->name('purchase-orders.convert');
             Route::get('purchase-orders/{purchase_order}/pdf', [PurchaseOrderController::class, 'pdf'])->name('purchase-orders.pdf');
+            Route::post('purchase-orders/{purchase_order}/accept', [PurchaseOrderController::class, 'accept'])->name('purchase-orders.accept');
+            Route::post('purchase-orders/{purchase_order}/start', [PurchaseOrderController::class, 'startProgress'])->name('purchase-orders.start');
+            Route::post('purchase-orders/{purchase_order}/deliver', [PurchaseOrderController::class, 'deliver'])->name('purchase-orders.deliver');
         });
 
         // ── Payments ───────────────────────────────────────

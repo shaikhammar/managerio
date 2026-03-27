@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { AccountOption, BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -55,24 +55,29 @@ export default function RecurringJournalEntryCreate({ accounts, frequencies }: P
         if (data.template_lines.length <= 2) {
             return;
         }
+
         setData('template_lines', data.template_lines.filter((_, i) => i !== index));
     }, [data.template_lines, setData]);
 
     const updateLine = useCallback((index: number, field: keyof TemplateLine, value: string) => {
         const updated = [...data.template_lines];
         updated[index] = { ...updated[index], [field]: value };
+
         if (field === 'debit' && value) {
             updated[index].credit = '';
         }
+
         if (field === 'credit' && value) {
             updated[index].debit = '';
         }
+
         setData('template_lines', updated);
     }, [data.template_lines, setData]);
 
     const totals = useMemo(() => {
         const debit = data.template_lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
         const credit = data.template_lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+
         return { debit, credit, balanced: Math.abs(debit - credit) < 0.01 };
     }, [data.template_lines]);
 

@@ -3,8 +3,8 @@ import { ArrowLeft, Download, Printer } from 'lucide-react';
 import CreditNoteController from '@/actions/App/Http/Controllers/Sales/CreditNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { creditNote: Invoice };

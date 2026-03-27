@@ -135,6 +135,7 @@ export default function CatAnalysisShow({ project, analysis, totalWords, weighte
                                     <tbody>
                                         {analysis.bands?.map((band) => {
                                             const effective = (band.words * ((100 - parseFloat(band.discount_percent)) / 100)).toFixed(2);
+
                                             return (
                                                 <tr key={band.id} className="border-b last:border-0">
                                                     <td className="py-2">{bandLabels[band.band] ?? band.band}</td>

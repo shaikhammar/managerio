@@ -3,8 +3,8 @@ import { Plus, Search, CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Payment, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

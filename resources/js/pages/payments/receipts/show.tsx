@@ -2,8 +2,8 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Landmark, User, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { Payment, BreadcrumbItem } from '@/types';
 
 type Props = {

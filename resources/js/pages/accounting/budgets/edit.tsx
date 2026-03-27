@@ -26,6 +26,7 @@ function buildInitialGrid(accounts: Props['accounts'], budgets: AccountBudget[])
     const grid: BudgetGrid = {};
     accounts.forEach((a) => {
         grid[a.id] = {};
+
         for (let m = 1; m <= 12; m++) {
             grid[a.id][m] = '';
         }
@@ -35,6 +36,7 @@ function buildInitialGrid(accounts: Props['accounts'], budgets: AccountBudget[])
             grid[b.account_id][b.month] = b.amount > 0 ? b.amount.toString() : '';
         }
     });
+
     return grid;
 }
 

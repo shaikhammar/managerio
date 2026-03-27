@@ -1,16 +1,16 @@
 import { Head, useForm, Link } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
+import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
-import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
-import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice, LanguagePairOption, ServiceTypeOption } from '@/types';
 
 type LineItem = {
     account_id: string;
@@ -19,10 +19,13 @@ type LineItem = {
     unit_price: string;
     discount_percent: string;
     tax_code_id: string;
+    language_pair_id: string;
+    service_type_id: string;
+    billing_unit: string;
 };
 
 function emptyLine(): LineItem {
-    return { account_id: '', description: '', quantity: '1', unit_price: '0', discount_percent: '0', tax_code_id: 'none' };
+    return { account_id: '', description: '', quantity: '1', unit_price: '0', discount_percent: '0', tax_code_id: 'none', language_pair_id: 'none', service_type_id: 'none', billing_unit: 'none' };
 }
 
 function calcLineTotal(line: LineItem, taxCodes: TaxCodeOption[]): { subtotal: number; tax: number; total: number } {
@@ -40,10 +43,14 @@ type Props = {
     suppliers: ContactOption[];
     accounts: AccountOption[];
     taxCodes: TaxCodeOption[];
+    languagePairs: LanguagePairOption[];
+    serviceTypes: ServiceTypeOption[];
     purchaseOrder?: Invoice;
 };
 
-export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purchaseOrder }: Props) {
+const BILLING_UNITS = ['word', 'hour', 'page', 'minute', 'line', 'character'] as const;
+
+export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, languagePairs, serviceTypes, purchaseOrder }: Props) {
     const { format } = useCurrency();
     const isEditing = !!purchaseOrder;
     const today = new Date().toISOString().split('T')[0];
@@ -73,6 +80,9 @@ export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purch
             unit_price: l.unit_price?.toString() || '0',
             discount_percent: l.discount_percent?.toString() || '0',
             tax_code_id: l.tax_code_id?.toString() || 'none',
+            language_pair_id: l.language_pair_id?.toString() || 'none',
+            service_type_id: l.service_type_id?.toString() || 'none',
+            billing_unit: l.billing_unit || 'none',
         })),
     });
 
@@ -84,6 +94,7 @@ export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purch
         if (data.lines.length <= 1) {
             return;
         }
+
         setData('lines', data.lines.filter((_, i) => i !== index));
     }, [data.lines, setData]);
 
@@ -109,9 +120,12 @@ export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purch
 
         transform((d) => ({
             ...d,
-            lines: d.lines.map((line) => ({
-                ...line,
-                tax_code_id: line.tax_code_id === 'none' ? null : line.tax_code_id,
+            lines: d.lines.map((l) => ({
+                ...l,
+                tax_code_id: l.tax_code_id === 'none' ? null : parseInt(l.tax_code_id),
+                language_pair_id: l.language_pair_id === 'none' ? null : parseInt(l.language_pair_id),
+                service_type_id: l.service_type_id === 'none' ? null : parseInt(l.service_type_id),
+                billing_unit: l.billing_unit === 'none' ? null : l.billing_unit,
             })),
         }));
 
@@ -177,112 +191,170 @@ export default function PurchaseOrderForm({ suppliers, accounts, taxCodes, purch
                             </Button>
                         </CardHeader>
                         <CardContent>
-                            <div className="overflow-x-auto">
-                                <table className="w-full min-w-[800px]">
-                                    <thead>
-                                        <tr className="border-b text-sm text-muted-foreground">
-                                            <th className="text-left py-2 pr-2 w-[180px]">Account</th>
-                                            <th className="text-left py-2 pr-2">Description</th>
-                                            <th className="text-right py-2 pr-2 w-[80px]">Qty</th>
-                                            <th className="text-right py-2 pr-2 w-[110px]">Unit Price</th>
-                                            <th className="text-right py-2 pr-2 w-[80px]">Disc %</th>
-                                            <th className="text-left py-2 pr-2 w-[130px]">Tax</th>
-                                            <th className="text-right py-2 pr-2 w-[100px]">Total</th>
-                                            <th className="w-[40px]"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.lines.map((line, idx) => {
-                                            const calc = calcLineTotal(line, taxCodes);
+                            <div className="space-y-4">
+                                {data.lines.map((line, idx) => {
+                                    const calc = calcLineTotal(line, taxCodes);
 
-                                            return (
-                                                <tr key={idx} className="border-b last:border-0 align-top">
-                                                    <td className="py-2 pr-2">
-                                                        <Select value={line.account_id} onValueChange={(v) => updateLine(idx, 'account_id', v)}>
-                                                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Account" /></SelectTrigger>
-                                                            <SelectContent>
-                                                                {accounts.map((a) => (
-                                                                    <SelectItem key={a.id} value={a.id.toString()} className="text-xs">
-                                                                        {a.code} · {a.name}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <InputError message={(errors as any)[`lines.${idx}.account_id`]} className="mt-1" />
-                                                    </td>
-                                                    <td className="py-2 pr-2">
-                                                        <Input
-                                                            className="h-9 text-sm"
-                                                            placeholder="Description"
-                                                            value={line.description}
-                                                            onChange={(e) => updateLine(idx, 'description', e.target.value)}
-                                                        />
-                                                        <InputError message={(errors as any)[`lines.${idx}.description`]} className="mt-1" />
-                                                    </td>
-                                                    <td className="py-2 pr-2">
-                                                        <Input
-                                                            className="h-9 text-sm text-right"
-                                                            type="number"
-                                                            step="0.01"
-                                                            value={line.quantity}
-                                                            onChange={(e) => updateLine(idx, 'quantity', e.target.value)}
-                                                        />
-                                                        <InputError message={(errors as any)[`lines.${idx}.quantity`]} className="mt-1" />
-                                                    </td>
-                                                    <td className="py-2 pr-2">
-                                                        <Input
-                                                            className="h-9 text-sm text-right"
-                                                            type="number"
-                                                            step="0.01"
-                                                            value={line.unit_price}
-                                                            onChange={(e) => updateLine(idx, 'unit_price', e.target.value)}
-                                                        />
-                                                        <InputError message={(errors as any)[`lines.${idx}.unit_price`]} className="mt-1" />
-                                                    </td>
-                                                    <td className="py-2 pr-2">
-                                                        <Input
-                                                            className="h-9 text-sm text-right"
-                                                            type="number"
-                                                            step="0.01"
-                                                            min="0"
-                                                            max="100"
-                                                            value={line.discount_percent}
-                                                            onChange={(e) => updateLine(idx, 'discount_percent', e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td className="py-2 pr-2">
-                                                        <Select value={line.tax_code_id || 'none'} onValueChange={(v) => updateLine(idx, 'tax_code_id', v)}>
-                                                            <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="none">None</SelectItem>
-                                                                {taxCodes.map((t) => (
-                                                                    <SelectItem key={t.id} value={t.id.toString()} className="text-xs">
-                                                                        {t.name} ({t.rate}%)
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </td>
-                                                    <td className="py-2 pr-2 text-right text-sm font-medium pt-4">
-                                                        {format(calc.total)}
-                                                    </td>
-                                                    <td className="py-2 pt-3">
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-8 text-muted-foreground hover:text-red-600"
-                                                            onClick={() => removeLine(idx)}
-                                                            disabled={data.lines.length <= 1}
-                                                        >
-                                                            <Trash2 className="size-4" />
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                                    return (
+                                        <div key={idx} className="rounded-lg border p-4 space-y-3">
+                                            {/* Core fields row */}
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full min-w-[700px]">
+                                                    <thead>
+                                                        {idx === 0 && (
+                                                            <tr className="text-sm text-muted-foreground">
+                                                                <th className="text-left py-1 pr-2 w-[170px]">Account</th>
+                                                                <th className="text-left py-1 pr-2">Description</th>
+                                                                <th className="text-right py-1 pr-2 w-[75px]">Qty</th>
+                                                                <th className="text-right py-1 pr-2 w-[105px]">Unit Price</th>
+                                                                <th className="text-right py-1 pr-2 w-[75px]">Disc %</th>
+                                                                <th className="text-left py-1 pr-2 w-[125px]">Tax</th>
+                                                                <th className="text-right py-1 pr-2 w-[95px]">Total</th>
+                                                                <th className="w-[36px]"></th>
+                                                            </tr>
+                                                        )}
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr className="align-top">
+                                                            <td className="pr-2">
+                                                                <Select value={line.account_id} onValueChange={(v) => updateLine(idx, 'account_id', v)}>
+                                                                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Account" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {accounts.map((a) => (
+                                                                            <SelectItem key={a.id} value={a.id.toString()} className="text-xs">
+                                                                                {a.code} · {a.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <InputError message={(errors as any)[`lines.${idx}.account_id`]} className="mt-1" />
+                                                            </td>
+                                                            <td className="pr-2">
+                                                                <Input
+                                                                    className="h-9 text-sm"
+                                                                    placeholder="Description"
+                                                                    value={line.description}
+                                                                    onChange={(e) => updateLine(idx, 'description', e.target.value)}
+                                                                />
+                                                                <InputError message={(errors as any)[`lines.${idx}.description`]} className="mt-1" />
+                                                            </td>
+                                                            <td className="pr-2">
+                                                                <Input
+                                                                    className="h-9 text-sm text-right"
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    value={line.quantity}
+                                                                    onChange={(e) => updateLine(idx, 'quantity', e.target.value)}
+                                                                />
+                                                                <InputError message={(errors as any)[`lines.${idx}.quantity`]} className="mt-1" />
+                                                            </td>
+                                                            <td className="pr-2">
+                                                                <Input
+                                                                    className="h-9 text-sm text-right"
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    value={line.unit_price}
+                                                                    onChange={(e) => updateLine(idx, 'unit_price', e.target.value)}
+                                                                />
+                                                                <InputError message={(errors as any)[`lines.${idx}.unit_price`]} className="mt-1" />
+                                                            </td>
+                                                            <td className="pr-2">
+                                                                <Input
+                                                                    className="h-9 text-sm text-right"
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    min="0"
+                                                                    max="100"
+                                                                    value={line.discount_percent}
+                                                                    onChange={(e) => updateLine(idx, 'discount_percent', e.target.value)}
+                                                                />
+                                                            </td>
+                                                            <td className="pr-2">
+                                                                <Select value={line.tax_code_id || 'none'} onValueChange={(v) => updateLine(idx, 'tax_code_id', v)}>
+                                                                    <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="none">None</SelectItem>
+                                                                        {taxCodes.map((t) => (
+                                                                            <SelectItem key={t.id} value={t.id.toString()} className="text-xs">
+                                                                                {t.name} ({t.rate}%)
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            </td>
+                                                            <td className="pr-2 text-right text-sm font-medium pt-2">
+                                                                {format(calc.total)}
+                                                            </td>
+                                                            <td className="pt-1">
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="size-8 text-muted-foreground hover:text-red-600"
+                                                                    onClick={() => removeLine(idx)}
+                                                                    disabled={data.lines.length <= 1}
+                                                                >
+                                                                    <Trash2 className="size-4" />
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Translation details (optional) */}
+                                            {(languagePairs.length > 0 || serviceTypes.length > 0) && (
+                                                <div className="border-t pt-3">
+                                                    <p className="text-xs font-medium text-muted-foreground mb-2">Translation details (optional)</p>
+                                                    <div className="grid grid-cols-3 gap-3">
+                                                        <div className="space-y-1">
+                                                            <Label className="text-xs">Language Pair</Label>
+                                                            <Select value={line.language_pair_id} onValueChange={(v) => updateLine(idx, 'language_pair_id', v)}>
+                                                                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="none">None</SelectItem>
+                                                                    {languagePairs.map((lp) => (
+                                                                        <SelectItem key={lp.id} value={lp.id.toString()} className="text-xs">
+                                                                            {lp.sourceLanguage?.name} → {lp.targetLanguage?.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <Label className="text-xs">Service Type</Label>
+                                                            <Select value={line.service_type_id} onValueChange={(v) => updateLine(idx, 'service_type_id', v)}>
+                                                                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="none">None</SelectItem>
+                                                                    {serviceTypes.map((st) => (
+                                                                        <SelectItem key={st.id} value={st.id.toString()} className="text-xs">
+                                                                            {st.name}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <Label className="text-xs">Billing Unit</Label>
+                                                            <Select value={line.billing_unit} onValueChange={(v) => updateLine(idx, 'billing_unit', v)}>
+                                                                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="None" /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="none">None</SelectItem>
+                                                                    {BILLING_UNITS.map((u) => (
+                                                                        <SelectItem key={u} value={u} className="text-xs capitalize">
+                                                                            {u.charAt(0).toUpperCase() + u.slice(1)}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             <div className="flex justify-end mt-6">

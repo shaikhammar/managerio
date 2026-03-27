@@ -2,8 +2,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Pencil, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { Account, BankTransaction, BreadcrumbItem, JournalEntry, Payment } from '@/types';
 
 type TransactionWithRelations = BankTransaction & {

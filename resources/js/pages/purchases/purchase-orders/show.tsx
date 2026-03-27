@@ -1,11 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Download, Send, FileCheck } from 'lucide-react';
-import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
+import { ArrowLeft, CheckCircle, Download, FileCheck, PackageCheck, Play, Send } from 'lucide-react';
 import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
+import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { purchaseOrder: Invoice & { purchase_invoices?: Invoice[] } };
@@ -13,9 +13,12 @@ type Props = { purchaseOrder: Invoice & { purchase_invoices?: Invoice[] } };
 const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    accepted: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+    in_progress: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
+    delivered: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     partially_received: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     received: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-    invoiced: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    invoiced: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     cancelled: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
 };
 
@@ -29,10 +32,25 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
 
     const canEdit = purchaseOrder.status === 'draft';
     const canSend = purchaseOrder.status === 'draft';
+    const canAccept = purchaseOrder.status === 'sent';
+    const canStart = purchaseOrder.status === 'accepted';
+    const canDeliver = purchaseOrder.status === 'in_progress';
     const canConvert = purchaseOrder.status !== 'invoiced' && purchaseOrder.status !== 'cancelled';
 
     function handleSend() {
         router.post(PurchaseOrderController.send.url(purchaseOrder.id));
+    }
+
+    function handleAccept() {
+        router.post(PurchaseOrderController.accept.url(purchaseOrder.id));
+    }
+
+    function handleStart() {
+        router.post(PurchaseOrderController.startProgress.url(purchaseOrder.id));
+    }
+
+    function handleDeliver() {
+        router.post(PurchaseOrderController.deliver.url(purchaseOrder.id));
     }
 
     function handleConvert() {
@@ -80,6 +98,24 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                                 Mark as Sent
                             </Button>
                         )}
+                        {canAccept && (
+                            <Button variant="outline" onClick={handleAccept}>
+                                <CheckCircle className="mr-2 size-4" />
+                                Accept
+                            </Button>
+                        )}
+                        {canStart && (
+                            <Button variant="outline" onClick={handleStart}>
+                                <Play className="mr-2 size-4" />
+                                Start Work
+                            </Button>
+                        )}
+                        {canDeliver && (
+                            <Button variant="outline" onClick={handleDeliver}>
+                                <PackageCheck className="mr-2 size-4" />
+                                Mark Delivered
+                            </Button>
+                        )}
                         {canConvert && (
                             <Button onClick={handleConvert}>
                                 <FileCheck className="mr-2 size-4" />
@@ -110,6 +146,13 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                                             <p className="font-medium text-sm">{line.description}</p>
                                             {line.account && (
                                                 <p className="text-xs text-muted-foreground">{line.account.code} · {line.account.name}</p>
+                                            )}
+                                            {line.language_pair && (
+                                                <p className="text-xs text-muted-foreground">
+                                                    {line.language_pair.sourceLanguage?.name} → {line.language_pair.targetLanguage?.name}
+                                                    {line.service_type && ` · ${line.service_type.name}`}
+                                                    {line.billing_unit && ` (${line.billing_unit})`}
+                                                </p>
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>

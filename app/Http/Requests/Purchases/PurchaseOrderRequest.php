@@ -41,6 +41,9 @@ class PurchaseOrderRequest extends FormRequest
             'lines.*.unit_price' => 'required|numeric|min:0',
             'lines.*.discount_percent' => 'nullable|numeric|between:0,100',
             'lines.*.tax_code_id' => ['nullable', Rule::exists('tax_codes', 'id')->where('business_id', $businessId)],
+            'lines.*.language_pair_id' => ['nullable', Rule::exists('language_pairs', 'id')->where('business_id', $businessId)],
+            'lines.*.service_type_id' => ['nullable', Rule::exists('service_types', 'id')->where('business_id', $businessId)],
+            'lines.*.billing_unit' => 'nullable|string|in:word,hour,page,minute,line,character',
         ];
     }
 }

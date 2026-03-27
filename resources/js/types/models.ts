@@ -274,7 +274,21 @@ export type DepreciationEntry = {
 
 // ── Invoice ──────────────────────────────────────────────
 export type InvoiceType = 'quote' | 'invoice' | 'credit_note' | 'purchase_invoice' | 'debit_note' | 'purchase_order';
-export type InvoiceStatus = 'draft' | 'sent' | 'approved' | 'paid' | 'partially_paid' | 'overdue' | 'void' | 'cancelled' | 'partially_received' | 'received' | 'invoiced';
+export type InvoiceStatus =
+    | 'draft'
+    | 'sent'
+    | 'accepted'
+    | 'in_progress'
+    | 'delivered'
+    | 'approved'
+    | 'paid'
+    | 'partially_paid'
+    | 'overdue'
+    | 'void'
+    | 'cancelled'
+    | 'partially_received'
+    | 'received'
+    | 'invoiced';
 
 export type Invoice = {
     id: number;
@@ -316,8 +330,33 @@ export type InvoiceLine = {
     tax_amount: number;
     line_total: number;
     sort_order: number;
+    language_pair_id?: number | null;
+    service_type_id?: number | null;
+    billing_unit?: string | null;
     account?: Account;
     tax_code?: TaxCode;
+    language_pair?: {
+        id: number;
+        source_language_id: number;
+        target_language_id: number;
+        sourceLanguage?: { name: string; code: string };
+        targetLanguage?: { name: string; code: string };
+    } | null;
+    service_type?: { id: number; name: string; default_unit?: string } | null;
+};
+
+export type LanguagePairOption = {
+    id: number;
+    source_language_id: number;
+    target_language_id: number;
+    sourceLanguage?: { name: string; code: string };
+    targetLanguage?: { name: string; code: string };
+};
+
+export type ServiceTypeOption = {
+    id: number;
+    name: string;
+    default_unit?: string;
 };
 
 // ── Payment ──────────────────────────────────────────────
