@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { Account, BreadcrumbItem, JournalEntry } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -32,7 +32,9 @@ export default function OpeningBalancesCreate({ accounts, existingEntry }: Props
     })).filter((g) => g.accounts.length > 0);
 
     const initialLines: Record<number, string> = {};
-    accounts.forEach((a) => { initialLines[a.id] = ''; });
+    accounts.forEach((a) => {
+        initialLines[a.id] = '';
+    });
 
     const [balances, setBalances] = useState<Record<number, string>>(initialLines);
 

@@ -154,6 +154,54 @@ class InvoiceService
         $purchaseOrder->update(['status' => InvoiceStatus::SENT]);
     }
 
+    /**
+     * Mark a sent purchase order as accepted by the freelancer.
+     */
+    public function acceptPurchaseOrder(Invoice $purchaseOrder): void
+    {
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            throw new DomainException('Only purchase orders can be accepted.');
+        }
+
+        if ($purchaseOrder->status !== InvoiceStatus::SENT) {
+            throw new DomainException('Only sent purchase orders can be accepted.');
+        }
+
+        $purchaseOrder->update(['status' => InvoiceStatus::ACCEPTED]);
+    }
+
+    /**
+     * Mark an accepted purchase order as in progress.
+     */
+    public function startPurchaseOrderProgress(Invoice $purchaseOrder): void
+    {
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            throw new DomainException('Only purchase orders can be started.');
+        }
+
+        if ($purchaseOrder->status !== InvoiceStatus::ACCEPTED) {
+            throw new DomainException('Only accepted purchase orders can be started.');
+        }
+
+        $purchaseOrder->update(['status' => InvoiceStatus::IN_PROGRESS]);
+    }
+
+    /**
+     * Mark an in-progress purchase order as delivered.
+     */
+    public function deliverPurchaseOrder(Invoice $purchaseOrder): void
+    {
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            throw new DomainException('Only purchase orders can be marked as delivered.');
+        }
+
+        if ($purchaseOrder->status !== InvoiceStatus::IN_PROGRESS) {
+            throw new DomainException('Only in-progress purchase orders can be marked as delivered.');
+        }
+
+        $purchaseOrder->update(['status' => InvoiceStatus::DELIVERED]);
+    }
+
     private function createInvoice(Business $business, array $data, InvoiceType $type): Invoice
     {
         return DB::transaction(function () use ($business, $data, $type) {
@@ -629,6 +677,9 @@ class InvoiceService
                 'tax_amount' => $taxAmount,
                 'line_total' => $lineTotal,
                 'sort_order' => $index,
+                'language_pair_id' => $line['language_pair_id'] ?? null,
+                'service_type_id' => $line['service_type_id'] ?? null,
+                'billing_unit' => $line['billing_unit'] ?? null,
             ]);
 
             $subtotal = bcadd($subtotal, $lineTotal, 2);

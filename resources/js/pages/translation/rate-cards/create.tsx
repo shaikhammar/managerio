@@ -66,13 +66,20 @@ export default function RateCardForm({ rateCard, languagePairs, serviceTypes, co
 
     // Auto-set unit from selected service type's default unit
     useEffect(() => {
-        if (!data.service_type_id || isEditing) return;
+        if (!data.service_type_id || isEditing) {
+            return;
+        }
+
         const st = serviceTypes.find((s) => s.id === data.service_type_id);
-        if (st) setData('unit', st.default_unit as BillingUnit);
+
+        if (st) {
+            setData('unit', st.default_unit as BillingUnit);
+        }
     }, [data.service_type_id]);
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+
         if (isEditing) {
             put(`/translation/rate-cards/${rateCard!.id}`);
         } else {
@@ -96,15 +103,25 @@ export default function RateCardForm({ rateCard, languagePairs, serviceTypes, co
     const needsContact = data.type !== 'default';
 
     const filteredContacts = contacts.filter((c) => {
-        if (data.type === 'client') return c.type === 'customer' || c.type === 'both';
-        if (data.type === 'translator') return c.type === 'supplier' || c.type === 'both';
+        if (data.type === 'client') {
+            return c.type === 'customer' || c.type === 'both';
+        }
+
+        if (data.type === 'translator') {
+            return c.type === 'supplier' || c.type === 'both';
+        }
+
         return true;
     });
 
     function pairLabel(lp: LanguagePair) {
         const src = lp.source_language;
         const tgt = lp.target_language;
-        if (!src || !tgt) return `Pair #${lp.id}`;
+
+        if (!src || !tgt) {
+            return `Pair #${lp.id}`;
+        }
+
         return `${src.name} (${src.code}) → ${tgt.name} (${tgt.code})`;
     }
 
@@ -121,7 +138,9 @@ export default function RateCardForm({ rateCard, languagePairs, serviceTypes, co
                             {/* Type */}
                             <div className="space-y-2">
                                 <Label htmlFor="type">Type *</Label>
-                                <Select value={data.type} onValueChange={(v) => { setData('type', v as RateCardType); setData('contact_id', ''); }}>
+                                <Select value={data.type} onValueChange={(v) => {
+ setData('type', v as RateCardType); setData('contact_id', ''); 
+}}>
                                     <SelectTrigger id="type">
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>

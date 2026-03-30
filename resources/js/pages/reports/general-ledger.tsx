@@ -2,13 +2,13 @@ import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import React from 'react';
+import ReportController from '@/actions/App/Http/Controllers/Reports/ReportController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
-import ReportController from '@/actions/App/Http/Controllers/Reports/ReportController';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 
 type LedgerTransaction = {

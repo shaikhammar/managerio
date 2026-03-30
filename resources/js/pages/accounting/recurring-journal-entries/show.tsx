@@ -1,10 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Edit, Pause, Play, Trash2, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { Account, BreadcrumbItem, RecurringJournalEntry } from '@/types';
 
 type Props = {
@@ -138,6 +138,7 @@ export default function RecurringJournalEntryShow({ entry, accounts }: Props) {
                             <tbody>
                                 {entry.template_lines.map((line, idx) => {
                                     const account = accounts[line.account_id];
+
                                     return (
                                         <tr key={idx} className="border-b last:border-0">
                                             <td className="py-3 px-4 text-sm">

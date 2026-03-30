@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, BalanceSheetReport } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,6 +21,7 @@ type Props = {
 
 function Section({ title, color, accounts, total }: { title: string; color: string; accounts: { id: number; code: string; name: string; balance: number }[]; total: number }) {
     const { format } = useCurrency();
+
     return (
         <div className="mb-6">
             <h3 className={`text-sm font-semibold uppercase tracking-wide mb-3 ${color}`}>{title}</h3>

@@ -21,6 +21,9 @@ class InvoiceLine extends Model
         'tax_amount',
         'line_total',
         'sort_order',
+        'language_pair_id',
+        'service_type_id',
+        'billing_unit',
     ];
 
     protected function casts(): array
@@ -50,6 +53,16 @@ class InvoiceLine extends Model
     public function taxCode(): BelongsTo
     {
         return $this->belongsTo(TaxCode::class);
+    }
+
+    public function languagePair(): BelongsTo
+    {
+        return $this->belongsTo(LanguagePair::class);
+    }
+
+    public function serviceType(): BelongsTo
+    {
+        return $this->belongsTo(ServiceType::class);
     }
 
     // ── Helpers ────────────────────────────────────────────────────

@@ -8,6 +8,8 @@ use App\Http\Requests\Purchases\PurchaseOrderRequest;
 use App\Models\Account;
 use App\Models\Contact;
 use App\Models\Invoice;
+use App\Models\LanguagePair;
+use App\Models\ServiceType;
 use App\Models\TaxCode;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -46,6 +48,8 @@ class PurchaseOrderController extends Controller
             'suppliers' => Contact::query()->suppliers()->active()->orderBy('name')->get(['id', 'name']),
             'accounts' => Account::query()->active()->whereIn('type', [AccountType::EXPENSE, AccountType::ASSET])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
+            'languagePairs' => LanguagePair::query()->active()->with(['sourceLanguage', 'targetLanguage'])->orderBy('id')->get(['id', 'source_language_id', 'target_language_id']),
+            'serviceTypes' => ServiceType::query()->active()->orderBy('name')->get(['id', 'name', 'default_unit']),
         ]);
     }
 
@@ -67,7 +71,7 @@ class PurchaseOrderController extends Controller
         }
 
         return Inertia::render('purchases/purchase-orders/show', [
-            'purchaseOrder' => $purchaseOrder->load(['lines.account', 'lines.taxCode', 'contact', 'purchaseInvoices']),
+            'purchaseOrder' => $purchaseOrder->load(['lines.account', 'lines.taxCode', 'lines.languagePair.sourceLanguage', 'lines.languagePair.targetLanguage', 'lines.serviceType', 'contact', 'purchaseInvoices']),
         ]);
     }
 
@@ -82,6 +86,8 @@ class PurchaseOrderController extends Controller
             'suppliers' => Contact::query()->suppliers()->active()->orderBy('name')->get(['id', 'name']),
             'accounts' => Account::query()->active()->whereIn('type', [AccountType::EXPENSE, AccountType::ASSET])->orderBy('code')->get(['id', 'code', 'name', 'type']),
             'taxCodes' => TaxCode::query()->active()->orderBy('name')->get(['id', 'name', 'rate']),
+            'languagePairs' => LanguagePair::query()->active()->with(['sourceLanguage', 'targetLanguage'])->orderBy('id')->get(['id', 'source_language_id', 'target_language_id']),
+            'serviceTypes' => ServiceType::query()->active()->orderBy('name')->get(['id', 'name', 'default_unit']),
         ]);
     }
 
@@ -141,6 +147,60 @@ class PurchaseOrderController extends Controller
         $pdf = Pdf::loadView('pdf.invoice', ['invoice' => $purchaseOrder, 'business' => $business]);
 
         return $pdf->download("{$purchaseOrder->number}.pdf");
+    }
+
+    public function accept(Invoice $purchaseOrder): RedirectResponse
+    {
+        $this->authorize('update', $purchaseOrder);
+
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            abort(404);
+        }
+
+        try {
+            $this->invoiceService->acceptPurchaseOrder($purchaseOrder);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('purchases.purchase-orders.show', $purchaseOrder)
+            ->with('success', 'Purchase order accepted.');
+    }
+
+    public function startProgress(Invoice $purchaseOrder): RedirectResponse
+    {
+        $this->authorize('update', $purchaseOrder);
+
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            abort(404);
+        }
+
+        try {
+            $this->invoiceService->startPurchaseOrderProgress($purchaseOrder);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('purchases.purchase-orders.show', $purchaseOrder)
+            ->with('success', 'Purchase order started.');
+    }
+
+    public function deliver(Invoice $purchaseOrder): RedirectResponse
+    {
+        $this->authorize('update', $purchaseOrder);
+
+        if (! $purchaseOrder->isPurchaseOrder()) {
+            abort(404);
+        }
+
+        try {
+            $this->invoiceService->deliverPurchaseOrder($purchaseOrder);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('purchases.purchase-orders.show', $purchaseOrder)
+            ->with('success', 'Purchase order marked as delivered.');
     }
 
     public function destroy(Invoice $purchaseOrder): RedirectResponse

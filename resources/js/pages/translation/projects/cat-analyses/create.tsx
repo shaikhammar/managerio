@@ -95,15 +95,18 @@ export default function CatAnalysisCreate({ project, targets, bands, tools }: Pr
     const totalWords = manualForm.data.bands.reduce((s, b) => s + (b.words || 0), 0);
     const weightedWords = manualForm.data.bands.reduce((s, b) => {
         const effective = (b.words || 0) * ((100 - (b.discount_percent || 0)) / 100);
+
         return s + effective;
     }, 0);
 
     function targetLabel(target: ProjectTarget): string {
         const src = target.language_pair?.source_language;
         const tgt = target.language_pair?.target_language;
+
         if (src && tgt) {
             return `${src.name} → ${tgt.name}${target.service_type ? ` (${target.service_type.name})` : ''}`;
         }
+
         return `Target #${target.id}`;
     }
 
@@ -200,6 +203,7 @@ export default function CatAnalysisCreate({ project, targets, bands, tools }: Pr
                                             {bands.map((band, i) => {
                                                 const formBand = manualForm.data.bands[i];
                                                 const effective = ((formBand?.words || 0) * ((100 - (formBand?.discount_percent || 0)) / 100)).toFixed(2);
+
                                                 return (
                                                     <tr key={band.value} className="border-b last:border-0">
                                                         <td className="py-2">{band.label}</td>

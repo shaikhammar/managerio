@@ -2,8 +2,8 @@ import { Head, Link } from '@inertiajs/react';
 import { Landmark, Plus } from 'lucide-react';
 import BankAccountController from '@/actions/App/Http/Controllers/Banking/BankAccountController';
 import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Account } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [

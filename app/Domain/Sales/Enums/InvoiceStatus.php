@@ -6,6 +6,9 @@ enum InvoiceStatus: string
 {
     case DRAFT = 'draft';
     case SENT = 'sent';
+    case ACCEPTED = 'accepted';
+    case IN_PROGRESS = 'in_progress';
+    case DELIVERED = 'delivered';
     case APPROVED = 'approved';
     case PAID = 'paid';
     case PARTIALLY_PAID = 'partially_paid';
@@ -21,6 +24,9 @@ enum InvoiceStatus: string
         return match ($this) {
             self::DRAFT => 'Draft',
             self::SENT => 'Sent',
+            self::ACCEPTED => 'Accepted',
+            self::IN_PROGRESS => 'In Progress',
+            self::DELIVERED => 'Delivered',
             self::APPROVED => 'Approved',
             self::PAID => 'Paid',
             self::PARTIALLY_PAID => 'Partially Paid',
@@ -38,6 +44,9 @@ enum InvoiceStatus: string
         return match ($this) {
             self::DRAFT => 'gray',
             self::SENT => 'blue',
+            self::ACCEPTED => 'violet',
+            self::IN_PROGRESS => 'cyan',
+            self::DELIVERED => 'emerald',
             self::APPROVED => 'indigo',
             self::PAID => 'green',
             self::PARTIALLY_PAID => 'amber',

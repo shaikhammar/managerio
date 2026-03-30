@@ -5,8 +5,8 @@ import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/Pu
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import AppLayout from '@/layouts/app-layout';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,9 +17,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 const statusColors: Record<string, string> = {
     draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
     sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    accepted: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
+    in_progress: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
+    delivered: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     partially_received: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     received: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-    invoiced: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    invoiced: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     cancelled: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
 };
 
@@ -73,6 +76,9 @@ export default function PurchaseOrderIndex({ purchaseOrders, filters }: Props) {
                             <SelectItem value="all">All Statuses</SelectItem>
                             <SelectItem value="draft">Draft</SelectItem>
                             <SelectItem value="sent">Sent</SelectItem>
+                            <SelectItem value="accepted">Accepted</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
                             <SelectItem value="partially_received">Partially Received</SelectItem>
                             <SelectItem value="received">Received</SelectItem>
                             <SelectItem value="invoiced">Invoiced</SelectItem>
