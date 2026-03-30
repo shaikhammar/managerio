@@ -13,9 +13,9 @@ import { Label } from '@/components/ui/label';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { edit } from '@/routes/security';
 import { disable, enable } from '@/routes/two-factor';
 import type { BreadcrumbItem } from '@/types';
+import { edit } from '@/routes/security';
 
 type Props = {
     canManageTwoFactor?: boolean;

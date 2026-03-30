@@ -1,12 +1,12 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { BarChart2, FileUp, Trash2, Users } from 'lucide-react';
-import { useRef } from 'react';
+import { BarChart2, BookOpen, Brain, FileText, FileUp, Trash2, Users, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
-import type { BreadcrumbItem, CatAnalysis, Project, ProjectFileType } from '@/types';
+import type { BreadcrumbItem, CatAnalysis, Project, ProjectFileType, StyleGuide, TermBase, TranslationMemory } from '@/types';
 
 type StatusOption = { value: string; label: string; color?: string };
 type FileTypeOption = { value: string; label: string };
@@ -16,6 +16,9 @@ type Props = {
     statuses: StatusOption[];
     transitionableStatuses: StatusOption[];
     fileTypes: FileTypeOption[];
+    availableTranslationMemories: TranslationMemory[];
+    availableTermBases: TermBase[];
+    availableStyleGuides: StyleGuide[];
 };
 
 const statusColors: Record<string, string> = {
@@ -28,8 +31,18 @@ const statusColors: Record<string, string> = {
     closed: 'bg-gray-100 text-gray-600',
 };
 
-export default function ProjectShow({ project, transitionableStatuses, fileTypes }: Props) {
+export default function ProjectShow({
+    project,
+    transitionableStatuses,
+    fileTypes,
+    availableTranslationMemories,
+    availableTermBases,
+    availableStyleGuides,
+}: Props) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [selectedTmId, setSelectedTmId] = useState('');
+    const [selectedTbId, setSelectedTbId] = useState('');
+    const [selectedSgId, setSelectedSgId] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -88,10 +101,46 @@ return;
 
     function handleDeleteProject() {
         if (!confirm('Are you sure you want to delete this project? This cannot be undone.')) {
-return;
-}
+            return;
+        }
 
         router.delete(`/translation/projects/${project.id}`);
+    }
+
+    function handleAttachTm() {
+        if (!selectedTmId) {
+            return;
+        }
+
+        router.post(`/translation/projects/${project.id}/translation-memories/${selectedTmId}`, {}, { onSuccess: () => setSelectedTmId('') });
+    }
+
+    function handleDetachTm(tmId: number) {
+        router.delete(`/translation/projects/${project.id}/translation-memories/${tmId}`);
+    }
+
+    function handleAttachTb() {
+        if (!selectedTbId) {
+            return;
+        }
+
+        router.post(`/translation/projects/${project.id}/term-bases/${selectedTbId}`, {}, { onSuccess: () => setSelectedTbId('') });
+    }
+
+    function handleDetachTb(tbId: number) {
+        router.delete(`/translation/projects/${project.id}/term-bases/${tbId}`);
+    }
+
+    function handleAttachSg() {
+        if (!selectedSgId) {
+            return;
+        }
+
+        router.post(`/translation/projects/${project.id}/style-guides/${selectedSgId}`, {}, { onSuccess: () => setSelectedSgId('') });
+    }
+
+    function handleDetachSg(sgId: number) {
+        router.delete(`/translation/projects/${project.id}/style-guides/${sgId}`);
     }
 
     const totalWords = project.targets?.reduce((sum, t) => sum + (t.word_count ?? 0), 0) ?? 0;
@@ -371,6 +420,129 @@ return;
                                             </Button>
                                         </div>
                                     ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Resources */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-base">Resources</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-5">
+                                {/* Translation Memories */}
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <Brain className="text-muted-foreground size-4" />
+                                        <span className="text-sm font-medium">Translation Memories</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {(project.translation_memories ?? []).map((tm) => (
+                                            <div key={tm.id} className="flex items-center justify-between rounded-md border px-3 py-1.5 text-sm">
+                                                <span>{tm.name}</span>
+                                                <button type="button" onClick={() => handleDetachTm(tm.id)} className="text-muted-foreground hover:text-foreground">
+                                                    <X className="size-3.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {availableTranslationMemories.length > 0 && (
+                                        <div className="mt-2 flex gap-2">
+                                            <Select value={selectedTmId} onValueChange={setSelectedTmId}>
+                                                <SelectTrigger className="h-8 flex-1 text-xs">
+                                                    <SelectValue placeholder="Add TM…" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {availableTranslationMemories.map((tm) => (
+                                                        <SelectItem key={tm.id} value={String(tm.id)}>
+                                                            {tm.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={handleAttachTm} disabled={!selectedTmId}>
+                                                Attach
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <Separator />
+
+                                {/* Term Bases */}
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <BookOpen className="text-muted-foreground size-4" />
+                                        <span className="text-sm font-medium">Term Bases</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {(project.term_bases ?? []).map((tb) => (
+                                            <div key={tb.id} className="flex items-center justify-between rounded-md border px-3 py-1.5 text-sm">
+                                                <span>{tb.name}</span>
+                                                <button type="button" onClick={() => handleDetachTb(tb.id)} className="text-muted-foreground hover:text-foreground">
+                                                    <X className="size-3.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {availableTermBases.length > 0 && (
+                                        <div className="mt-2 flex gap-2">
+                                            <Select value={selectedTbId} onValueChange={setSelectedTbId}>
+                                                <SelectTrigger className="h-8 flex-1 text-xs">
+                                                    <SelectValue placeholder="Add term base…" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {availableTermBases.map((tb) => (
+                                                        <SelectItem key={tb.id} value={String(tb.id)}>
+                                                            {tb.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={handleAttachTb} disabled={!selectedTbId}>
+                                                Attach
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <Separator />
+
+                                {/* Style Guides */}
+                                <div>
+                                    <div className="mb-2 flex items-center gap-2">
+                                        <FileText className="text-muted-foreground size-4" />
+                                        <span className="text-sm font-medium">Style Guides</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        {(project.style_guides ?? []).map((sg) => (
+                                            <div key={sg.id} className="flex items-center justify-between rounded-md border px-3 py-1.5 text-sm">
+                                                <span>{sg.name}</span>
+                                                <button type="button" onClick={() => handleDetachSg(sg.id)} className="text-muted-foreground hover:text-foreground">
+                                                    <X className="size-3.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {availableStyleGuides.length > 0 && (
+                                        <div className="mt-2 flex gap-2">
+                                            <Select value={selectedSgId} onValueChange={setSelectedSgId}>
+                                                <SelectTrigger className="h-8 flex-1 text-xs">
+                                                    <SelectValue placeholder="Add style guide…" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {availableStyleGuides.map((sg) => (
+                                                        <SelectItem key={sg.id} value={String(sg.id)}>
+                                                            {sg.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={handleAttachSg} disabled={!selectedSgId}>
+                                                Attach
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

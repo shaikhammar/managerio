@@ -7,6 +7,7 @@ use App\Models\Concerns\BelongsToBusiness;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -74,6 +75,24 @@ class Project extends Model
     public function assignments(): HasManyThrough
     {
         return $this->hasManyThrough(ProjectAssignment::class, ProjectTarget::class);
+    }
+
+    /** @return BelongsToMany<TranslationMemory, $this> */
+    public function translationMemories(): BelongsToMany
+    {
+        return $this->belongsToMany(TranslationMemory::class, 'project_translation_memories');
+    }
+
+    /** @return BelongsToMany<TermBase, $this> */
+    public function termBases(): BelongsToMany
+    {
+        return $this->belongsToMany(TermBase::class, 'project_term_bases');
+    }
+
+    /** @return BelongsToMany<StyleGuide, $this> */
+    public function styleGuides(): BelongsToMany
+    {
+        return $this->belongsToMany(StyleGuide::class, 'project_style_guides');
     }
 
     public function scopeSearch($query, string $search)

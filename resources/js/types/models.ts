@@ -685,6 +685,54 @@ export type Project = {
     files?: ProjectFile[];
     quote?: { id: number; number: string; status: string } | null;
     invoice?: { id: number; number: string; status: string } | null;
+    translation_memories?: TranslationMemory[];
+    term_bases?: TermBase[];
+    style_guides?: StyleGuide[];
+    created_at: string;
+    updated_at: string;
+};
+
+// ── Translation — Phase 3.1 ───────────────────────────────
+
+export type TranslationMemory = {
+    id: number;
+    business_id: number;
+    contact_id: number | null;
+    source_language_id: number;
+    target_language_id: number;
+    name: string;
+    software: string | null;
+    notes: string | null;
+    contact?: { id: number; name: string } | null;
+    source_language?: LanguageOption | null;
+    target_language?: LanguageOption | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type TermBase = {
+    id: number;
+    business_id: number;
+    contact_id: number | null;
+    name: string;
+    subject_field: string | null;
+    description: string | null;
+    notes: string | null;
+    contact?: { id: number; name: string } | null;
+    created_at: string;
+    updated_at: string;
+};
+
+export type StyleGuide = {
+    id: number;
+    business_id: number;
+    contact_id: number | null;
+    name: string;
+    description: string | null;
+    file_path: string | null;
+    file_name: string | null;
+    file_size: number | null;
+    contact?: { id: number; name: string } | null;
     created_at: string;
     updated_at: string;
 };
