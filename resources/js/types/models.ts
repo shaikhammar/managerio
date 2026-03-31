@@ -655,6 +655,7 @@ export type TranslatorProfile = {
     availability: TranslatorAvailability;
     quality_rating: number | null;
     quality_notes: string | null;
+    weekly_capacity: number | null;
     specialisations: TranslatorSpecialisation[];
     cat_tools: CatTool[];
     certifications: TranslatorCertification[];

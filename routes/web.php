@@ -31,6 +31,7 @@ use App\Http\Controllers\Translation\CatAnalysisController;
 use App\Http\Controllers\Translation\LanguageController;
 use App\Http\Controllers\Translation\LanguagePairController;
 use App\Http\Controllers\Translation\ProjectController;
+use App\Http\Controllers\Translation\ProjectDashboardController;
 use App\Http\Controllers\Translation\ProjectResourceController;
 use App\Http\Controllers\Translation\RateCardController;
 use App\Http\Controllers\Translation\ServiceTypeController;
@@ -145,6 +146,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('service-types', ServiceTypeController::class)->except(['show']);
             Route::resource('rate-cards', RateCardController::class)->except(['show']);
             Route::resource('translators', TranslatorProfileController::class);
+            Route::get('projects/board', [ProjectDashboardController::class, 'board'])->name('projects.board');
+            Route::get('projects/calendar', [ProjectDashboardController::class, 'calendar'])->name('projects.calendar');
+            Route::get('projects/capacity', [ProjectDashboardController::class, 'capacity'])->name('projects.capacity');
             Route::resource('projects', ProjectController::class);
             Route::post('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.status');
             Route::post('projects/{project}/generate-quote', [ProjectController::class, 'generateQuote'])->name('projects.generate-quote');
