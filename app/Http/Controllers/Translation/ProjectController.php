@@ -15,6 +15,9 @@ use App\Models\LanguagePair;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ServiceType;
+use App\Models\StyleGuide;
+use App\Models\TermBase;
+use App\Models\TranslationMemory;
 use App\Services\Translation\ProjectService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -81,7 +84,14 @@ class ProjectController extends Controller
             'files',
             'quote',
             'invoice',
+            'translationMemories',
+            'termBases',
+            'styleGuides',
         ]);
+
+        $attachedTmIds = $project->translationMemories->pluck('id');
+        $attachedTbIds = $project->termBases->pluck('id');
+        $attachedSgIds = $project->styleGuides->pluck('id');
 
         return Inertia::render('translation/projects/show', [
             'project' => $project,
@@ -89,6 +99,9 @@ class ProjectController extends Controller
             'transitionableStatuses' => collect($project->status->transitionableFrom($project->status))
                 ->map(fn ($s) => ['value' => $s->value, 'label' => $s->label()]),
             'fileTypes' => collect(ProjectFileType::cases())->map(fn ($t) => ['value' => $t->value, 'label' => $t->label()]),
+            'availableTranslationMemories' => TranslationMemory::whereNotIn('id', $attachedTmIds)->orderBy('name')->get(['id', 'name']),
+            'availableTermBases' => TermBase::whereNotIn('id', $attachedTbIds)->orderBy('name')->get(['id', 'name']),
+            'availableStyleGuides' => StyleGuide::whereNotIn('id', $attachedSgIds)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 

@@ -31,8 +31,12 @@ use App\Http\Controllers\Translation\CatAnalysisController;
 use App\Http\Controllers\Translation\LanguageController;
 use App\Http\Controllers\Translation\LanguagePairController;
 use App\Http\Controllers\Translation\ProjectController;
+use App\Http\Controllers\Translation\ProjectResourceController;
 use App\Http\Controllers\Translation\RateCardController;
 use App\Http\Controllers\Translation\ServiceTypeController;
+use App\Http\Controllers\Translation\StyleGuideController;
+use App\Http\Controllers\Translation\TermBaseController;
+use App\Http\Controllers\Translation\TranslationMemoryController;
 use App\Http\Controllers\Translation\TranslatorProfileController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -155,6 +159,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('projects/{project}/cat-analyses/{catAnalysis}', [CatAnalysisController::class, 'destroy'])->name('projects.cat-analyses.destroy');
             Route::post('projects/{project}/cat-analyses/{catAnalysis}/apply-quote', [CatAnalysisController::class, 'applyToQuote'])->name('projects.cat-analyses.apply-quote');
             Route::post('projects/{project}/cat-analyses/{catAnalysis}/apply-po', [CatAnalysisController::class, 'applyToPurchaseOrders'])->name('projects.cat-analyses.apply-po');
+
+            // ── Translation Memories ───────────────────────────
+            Route::resource('translation-memories', TranslationMemoryController::class)->except(['show']);
+            Route::post('projects/{project}/translation-memories/{translation_memory}', [ProjectResourceController::class, 'attachTranslationMemory'])->name('projects.translation-memories.attach');
+            Route::delete('projects/{project}/translation-memories/{translation_memory}', [ProjectResourceController::class, 'detachTranslationMemory'])->name('projects.translation-memories.detach');
+
+            // ── Term Bases ─────────────────────────────────────
+            Route::resource('term-bases', TermBaseController::class)->except(['show']);
+            Route::post('projects/{project}/term-bases/{term_base}', [ProjectResourceController::class, 'attachTermBase'])->name('projects.term-bases.attach');
+            Route::delete('projects/{project}/term-bases/{term_base}', [ProjectResourceController::class, 'detachTermBase'])->name('projects.term-bases.detach');
+
+            // ── Style Guides ───────────────────────────────────
+            Route::resource('style-guides', StyleGuideController::class)->except(['show']);
+            Route::post('projects/{project}/style-guides/{style_guide}', [ProjectResourceController::class, 'attachStyleGuide'])->name('projects.style-guides.attach');
+            Route::delete('projects/{project}/style-guides/{style_guide}', [ProjectResourceController::class, 'detachStyleGuide'])->name('projects.style-guides.detach');
         });
 
         // ── Audit Log ──────────────────────────────────────
