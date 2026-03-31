@@ -24,6 +24,7 @@ class TranslatorProfile extends Model
         'availability',
         'quality_rating',
         'quality_notes',
+        'weekly_capacity',
         'specialisations',
         'cat_tools',
         'certifications',
@@ -34,6 +35,7 @@ class TranslatorProfile extends Model
         return [
             'availability' => TranslatorAvailability::class,
             'quality_rating' => 'integer',
+            'weekly_capacity' => 'integer',
             'specialisations' => 'array',
             'cat_tools' => 'array',
             'certifications' => 'array',

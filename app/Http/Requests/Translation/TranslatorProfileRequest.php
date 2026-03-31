@@ -37,6 +37,7 @@ class TranslatorProfileRequest extends FormRequest
             'availability' => ['required', Rule::enum(TranslatorAvailability::class)],
             'quality_rating' => 'nullable|integer|min:1|max:5',
             'quality_notes' => 'nullable|string|max:1000',
+            'weekly_capacity' => 'nullable|integer|min:0|max:1000000',
             'specialisations' => 'nullable|array',
             'specialisations.*' => [Rule::enum(TranslatorSpecialisation::class)],
             'cat_tools' => 'nullable|array',

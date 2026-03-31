@@ -3,6 +3,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,6 +48,7 @@ export default function TranslatorProfileForm({
         availability: TranslatorAvailability;
         quality_rating: number | '';
         quality_notes: string;
+        weekly_capacity: number | '';
         specialisations: string[];
         cat_tools: string[];
         certifications: string[];
@@ -57,6 +59,7 @@ export default function TranslatorProfileForm({
         availability: (translator?.availability as TranslatorAvailability) ?? 'available',
         quality_rating: translator?.quality_rating ?? '',
         quality_notes: translator?.quality_notes ?? '',
+        weekly_capacity: (translator as any)?.weekly_capacity ?? '',
         specialisations: (translator?.specialisations as string[]) ?? [],
         cat_tools: (translator?.cat_tools as string[]) ?? [],
         certifications: (translator?.certifications as string[]) ?? [],
@@ -172,6 +175,19 @@ export default function TranslatorProfileForm({
                                     </SelectContent>
                                 </Select>
                                 <InputError message={errors.quality_rating} />
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <Label htmlFor="weekly_capacity">Weekly Capacity (words)</Label>
+                                <Input
+                                    id="weekly_capacity"
+                                    type="number"
+                                    min={0}
+                                    value={data.weekly_capacity === '' ? '' : String(data.weekly_capacity)}
+                                    onChange={(e) => setData('weekly_capacity', e.target.value === '' ? '' : Number(e.target.value))}
+                                    placeholder="e.g. 5000"
+                                />
+                                <InputError message={errors.weekly_capacity} />
                             </div>
 
                             <div className="flex flex-col gap-1.5 md:col-span-2">

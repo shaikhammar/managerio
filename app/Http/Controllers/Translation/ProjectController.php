@@ -37,14 +37,24 @@ class ProjectController extends Controller
             ->with(['contact', 'sourceLanguage', 'serviceType'])
             ->when($request->search, fn ($q, $search) => $q->search($search))
             ->when($request->status, fn ($q, $status) => $q->where('status', $status))
+            ->when($request->client_id, fn ($q, $id) => $q->where('contact_id', $id))
+            ->when($request->service_type_id, fn ($q, $id) => $q->where('service_type_id', $id))
+            ->when($request->language_pair_id, fn ($q, $id) => $q->forLanguagePair((int) $id))
+            ->when(
+                $request->deadline_from || $request->deadline_to,
+                fn ($q) => $q->forDeadlineRange($request->deadline_from, $request->deadline_to)
+            )
             ->orderByDesc('created_at')
             ->paginate(25)
             ->withQueryString();
 
         return Inertia::render('translation/projects/index', [
             'projects' => $projects,
-            'filters' => $request->only('search', 'status'),
+            'filters' => $request->only('search', 'status', 'client_id', 'service_type_id', 'language_pair_id', 'deadline_from', 'deadline_to'),
             'statuses' => collect(ProjectStatus::cases())->map(fn ($s) => ['value' => $s->value, 'label' => $s->label(), 'color' => $s->color()]),
+            'customers' => Contact::active()->customers()->orderBy('name')->get(['id', 'name']),
+            'serviceTypes' => ServiceType::active()->orderBy('name')->get(['id', 'name']),
+            'languagePairs' => LanguagePair::with(['sourceLanguage', 'targetLanguage'])->active()->get(['id', 'source_language_id', 'target_language_id']),
         ]);
     }
 

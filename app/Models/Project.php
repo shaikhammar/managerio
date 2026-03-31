@@ -105,6 +105,18 @@ class Project extends Model
         });
     }
 
+    public function scopeForLanguagePair($query, int $languagePairId)
+    {
+        return $query->whereHas('targets', fn ($q) => $q->where('language_pair_id', $languagePairId));
+    }
+
+    public function scopeForDeadlineRange($query, ?string $from, ?string $to)
+    {
+        return $query
+            ->when($from, fn ($q) => $q->whereDate('deadline', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('deadline', '<=', $to));
+    }
+
     public function isEditable(): bool
     {
         return ! in_array($this->status, [ProjectStatus::CLOSED]);

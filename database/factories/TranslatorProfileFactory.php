@@ -23,6 +23,7 @@ class TranslatorProfileFactory extends Factory
             'availability' => TranslatorAvailability::Available->value,
             'quality_rating' => null,
             'quality_notes' => null,
+            'weekly_capacity' => null,
             'specialisations' => [],
             'cat_tools' => [],
             'certifications' => [],

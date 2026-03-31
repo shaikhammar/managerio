@@ -91,6 +91,9 @@ const navGroups: NavGroup[] = [
         icon: Languages,
         items: [
             { title: 'Projects', href: '/translation/projects' },
+            { title: 'Board', href: '/translation/projects/board' },
+            { title: 'Calendar', href: '/translation/projects/calendar' },
+            { title: 'Capacity', href: '/translation/projects/capacity' },
             { title: 'Translators', href: '/translation/translators' },
             { title: 'Languages', href: '/translation/languages' },
             { title: 'Language Pairs', href: '/translation/language-pairs' },

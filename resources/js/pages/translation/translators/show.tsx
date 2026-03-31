@@ -65,6 +65,11 @@ export default function TranslatorShow({ translator, availabilities, specialisat
                                     <span className="text-muted-foreground text-sm">{translator.quality_rating}/5</span>
                                 </div>
                             )}
+                            {(translator as any).weekly_capacity != null && (
+                                <span className="text-muted-foreground text-sm">
+                                    {((translator as any).weekly_capacity as number).toLocaleString()} words/week
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className="flex gap-2">
