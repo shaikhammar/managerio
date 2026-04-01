@@ -38,6 +38,7 @@ use App\Http\Controllers\Translation\ServiceTypeController;
 use App\Http\Controllers\Translation\StyleGuideController;
 use App\Http\Controllers\Translation\TermBaseController;
 use App\Http\Controllers\Translation\TranslationMemoryController;
+use App\Http\Controllers\Translation\TranslationReportController;
 use App\Http\Controllers\Translation\TranslatorProfileController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -178,6 +179,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('style-guides', StyleGuideController::class)->except(['show']);
             Route::post('projects/{project}/style-guides/{style_guide}', [ProjectResourceController::class, 'attachStyleGuide'])->name('projects.style-guides.attach');
             Route::delete('projects/{project}/style-guides/{style_guide}', [ProjectResourceController::class, 'detachStyleGuide'])->name('projects.style-guides.detach');
+
+            // ── Translation Reports ────────────────────────────
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::get('/', [TranslationReportController::class, 'index'])->name('index');
+                Route::get('/project-profitability', [TranslationReportController::class, 'projectProfitability'])->name('project-profitability');
+                Route::get('/revenue-language-pair', [TranslationReportController::class, 'revenueByLanguagePair'])->name('revenue-language-pair');
+                Route::get('/revenue-service-type', [TranslationReportController::class, 'revenueByServiceType'])->name('revenue-service-type');
+                Route::get('/revenue-client', [TranslationReportController::class, 'revenueByClient'])->name('revenue-client');
+                Route::get('/translator-utilisation', [TranslationReportController::class, 'translatorUtilisation'])->name('translator-utilisation');
+                Route::get('/average-margin', [TranslationReportController::class, 'averageMargin'])->name('average-margin');
+                Route::get('/delivery-performance', [TranslationReportController::class, 'deliveryPerformance'])->name('delivery-performance');
+                Route::get('/pipeline', [TranslationReportController::class, 'pipeline'])->name('pipeline');
+            });
         });
 
         // ── Audit Log ──────────────────────────────────────

@@ -11,6 +11,7 @@ import {
     Droplets,
     PieChart,
     ListOrdered,
+    Activity,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -104,31 +105,59 @@ export default function ReportIndex() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
                         <BarChart3 className="size-6" />
-                        Financial Reports
+                        Reports
                     </h1>
                     <p className="text-muted-foreground text-sm mt-1">
-                        Key financial statements derived from your accounting data
+                        Financial statements and translation analytics
                     </p>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {reports.map((report) => (
-                        <Link key={report.href} href={report.href} className="group">
-                            <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md group-hover:scale-[1.02]">
-                                <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                                    <div className={`rounded-xl p-3 ${report.bg}`}>
-                                        <report.icon className={`size-6 ${report.color}`} />
-                                    </div>
-                                    <div>
-                                        <CardTitle className="text-base">{report.title}</CardTitle>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <CardDescription>{report.description}</CardDescription>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
+                <div>
+                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <BarChart3 className="size-5 text-muted-foreground" />
+                        Financial Reports
+                    </h2>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {reports.map((report) => (
+                            <Link key={report.href} href={report.href} className="group">
+                                <Card className="h-full transition-all hover:border-primary/50 hover:shadow-md group-hover:scale-[1.02]">
+                                    <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                                        <div className={`rounded-xl p-3 ${report.bg}`}>
+                                            <report.icon className={`size-6 ${report.color}`} />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-base">{report.title}</CardTitle>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CardDescription>{report.description}</CardDescription>
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <Activity className="size-5 text-muted-foreground" />
+                        Translation Reports
+                    </h2>
+                    <Link href="/translation/reports" className="group inline-flex">
+                        <Card className="transition-all hover:border-primary/50 hover:shadow-md group-hover:scale-[1.02]">
+                            <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                                <div className="rounded-xl p-3 bg-teal-50 dark:bg-teal-900/20">
+                                    <Activity className="size-6 text-teal-600 dark:text-teal-400" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-base">Translation Analytics</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <CardDescription>Profitability, utilisation, pipeline and delivery performance reports</CardDescription>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
             </div>
         </AppLayout>

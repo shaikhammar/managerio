@@ -23,8 +23,8 @@ import {
     SidebarMenuItem,
     SidebarSeparator,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
 import type { NavItem, NavGroup, CurrentBusiness } from '@/types';
+import { dashboard } from '@/routes';
 
 const mainNavItems: NavItem[] = [
     {
@@ -102,6 +102,7 @@ const navGroups: NavGroup[] = [
             { title: 'Translation Memories', href: '/translation/translation-memories' },
             { title: 'Term Bases', href: '/translation/term-bases' },
             { title: 'Style Guides', href: '/translation/style-guides' },
+            { title: 'Reports', href: '/translation/reports' },
         ],
     },
     {
