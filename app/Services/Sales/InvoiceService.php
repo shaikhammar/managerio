@@ -14,6 +14,7 @@ use App\Services\Accounting\JournalService;
 use App\Services\Accounting\NumberSequenceService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class InvoiceService
 {
@@ -687,5 +688,10 @@ class InvoiceService
         }
 
         return [$subtotal, $taxTotal];
+    }
+
+    public function generatePortalUrl(Invoice $invoice): string
+    {
+        return URL::signedRoute('portal.invoices.show', ['invoice' => $invoice->id]);
     }
 }
