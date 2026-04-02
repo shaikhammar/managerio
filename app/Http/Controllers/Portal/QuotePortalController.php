@@ -7,6 +7,7 @@ use App\Services\Sales\QuoteService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -28,6 +29,8 @@ class QuotePortalController
             'quote' => $quote,
             'business' => $quote->business,
             'alreadyResponded' => $alreadyResponded,
+            'approveUrl' => URL::signedRoute('portal.quotes.approve', ['quote' => $quote->id]),
+            'rejectUrl' => URL::signedRoute('portal.quotes.reject', ['quote' => $quote->id]),
         ]);
     }
 
