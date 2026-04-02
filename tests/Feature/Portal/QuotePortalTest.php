@@ -36,3 +36,27 @@ it('shows the quote portal page with a valid signature', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('portal/quote-approval'));
 });
+
+it('approves a quote via the portal', function () {
+    $url = URL::signedRoute('portal.quotes.approve', ['quote' => $this->quote->id]);
+
+    $this->post($url, ['comment' => 'Approved!'])
+        ->assertRedirect();
+
+    expect($this->quote->fresh()->status->value)->toBe('approved');
+    expect($this->quote->fresh()->portal_comment)->toBe('Approved!');
+});
+
+it('rejects a quote via the portal', function () {
+    $url = URL::signedRoute('portal.quotes.reject', ['quote' => $this->quote->id]);
+
+    $this->post($url, ['comment' => 'Too expensive'])
+        ->assertRedirect();
+
+    expect($this->quote->fresh()->status->value)->toBe('cancelled');
+});
+
+it('returns 403 when posting without a valid signature', function () {
+    $this->post('/portal/quotes/'.$this->quote->id.'/approve', ['comment' => 'x'])
+        ->assertStatus(403);
+});
