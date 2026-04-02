@@ -1,8 +1,10 @@
 <?php
 
+use App\Mail\QuotePortalResponseMail;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
 beforeEach(function () {
@@ -59,4 +61,33 @@ it('rejects a quote via the portal', function () {
 it('returns 403 when posting without a valid signature', function () {
     $this->post('/portal/quotes/'.$this->quote->id.'/approve', ['comment' => 'x'])
         ->assertStatus(403);
+});
+
+it('sends a notification email to the business when a quote is approved', function () {
+    Mail::fake();
+
+    $this->business->update([
+        'smtp_from_email' => 'owner@agency.com',
+        'smtp_host' => 'smtp.test',
+    ]);
+
+    $url = URL::signedRoute('portal.quotes.approve', ['quote' => $this->quote->id]);
+
+    $this->post($url, ['comment' => 'Approved!'])
+        ->assertRedirect();
+
+    Mail::assertQueued(QuotePortalResponseMail::class, function ($mail) {
+        return $mail->hasTo('owner@agency.com');
+    });
+});
+
+it('does not send an email if SMTP is not configured', function () {
+    Mail::fake();
+
+    $url = URL::signedRoute('portal.quotes.approve', ['quote' => $this->quote->id]);
+
+    $this->post($url, ['comment' => null])
+        ->assertRedirect();
+
+    Mail::assertNothingQueued();
 });

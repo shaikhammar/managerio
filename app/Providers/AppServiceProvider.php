@@ -6,7 +6,9 @@ use App\Events\BusinessCreated;
 use App\Events\InvoicePosted;
 use App\Events\JournalEntryPosted;
 use App\Events\PaymentReceived;
+use App\Events\QuoteRespondedFromPortal;
 use App\Listeners\InvalidateReportCache;
+use App\Listeners\SendQuotePortalResponseNotification;
 use App\Listeners\SendWelcomeEmail;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -70,5 +72,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Send a welcome email when a new business workspace is created.
         Event::listen(BusinessCreated::class, SendWelcomeEmail::class);
+
+        // Notify the business owner when a client responds to a quote via the portal.
+        Event::listen(QuoteRespondedFromPortal::class, SendQuotePortalResponseNotification::class);
     }
 }
