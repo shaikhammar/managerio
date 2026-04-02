@@ -4,11 +4,13 @@ namespace App\Listeners;
 
 use App\Events\QuoteRespondedFromPortal;
 use App\Mail\QuotePortalResponseMail;
+use App\Services\MailService;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class SendQuotePortalResponseNotification
 {
+    public function __construct(public MailService $mailService) {}
+
     public function handle(QuoteRespondedFromPortal $event): void
     {
         $quote = $event->quote;
@@ -22,7 +24,8 @@ class SendQuotePortalResponseNotification
 
         $decision = $quote->status->value === 'approved' ? 'approved' : 'rejected';
 
-        Mail::to($business->smtp_from_email)
+        $this->mailService->mailerFor($business)
+            ->to($business->smtp_from_email)
             ->queue(new QuotePortalResponseMail($quote, $business, $decision));
     }
 }

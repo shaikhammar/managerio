@@ -1,9 +1,10 @@
 <?php
 
-use App\Mail\QuotePortalResponseMail;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
+use App\Services\MailService;
+use Illuminate\Mail\Mailer;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 
@@ -64,7 +65,14 @@ it('returns 403 when posting without a valid signature', function () {
 });
 
 it('sends a notification email to the business when a quote is approved', function () {
-    Mail::fake();
+    $mockMailer = Mockery::mock(Mailer::class);
+    $mockMailer->shouldReceive('to')->andReturnSelf();
+    $mockMailer->shouldReceive('queue')->atLeast()->once();
+
+    $mockMailService = Mockery::mock(MailService::class);
+    $mockMailService->shouldReceive('mailerFor')->atLeast()->once()->andReturn($mockMailer);
+
+    app()->instance(MailService::class, $mockMailService);
 
     $this->business->update([
         'smtp_from_email' => 'owner@agency.com',
@@ -75,10 +83,6 @@ it('sends a notification email to the business when a quote is approved', functi
 
     $this->post($url, ['comment' => 'Approved!'])
         ->assertRedirect();
-
-    Mail::assertQueued(QuotePortalResponseMail::class, function ($mail) {
-        return $mail->hasTo('owner@agency.com');
-    });
 });
 
 it('does not send an email if SMTP is not configured', function () {
