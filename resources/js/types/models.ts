@@ -307,6 +307,7 @@ export type Invoice = {
     balance_due: number;
     notes: string | null;
     terms: string | null;
+    portal_comment: string | null;
     currency_code: string;
     exchange_rate: number;
     journal_entry_id: number | null;

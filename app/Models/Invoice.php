@@ -36,6 +36,7 @@ class Invoice extends Model
         'balance_due',
         'notes',
         'terms',
+        'portal_comment',
         'currency_code',
         'exchange_rate',
         'journal_entry_id',
