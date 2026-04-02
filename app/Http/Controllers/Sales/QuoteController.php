@@ -14,6 +14,7 @@ use App\Services\MailService;
 use App\Services\Sales\QuoteService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -147,6 +148,17 @@ class QuoteController extends Controller
         );
 
         return back()->with('success', "Quote {$quote->number} sent to {$request->email}.");
+    }
+
+    public function portalLink(Invoice $quote): JsonResponse
+    {
+        $this->authorize('view', $quote);
+
+        if (! $quote->isQuote()) {
+            abort(404);
+        }
+
+        return response()->json(['url' => $this->quoteService->generatePortalUrl($quote)]);
     }
 
     public function destroy(Invoice $quote): RedirectResponse

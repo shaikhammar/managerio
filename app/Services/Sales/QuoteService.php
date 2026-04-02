@@ -4,12 +4,14 @@ namespace App\Services\Sales;
 
 use App\Domain\Sales\Enums\InvoiceStatus;
 use App\Domain\Sales\Enums\InvoiceType;
+use App\Events\QuoteRespondedFromPortal;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\TaxCode;
 use App\Services\Accounting\NumberSequenceService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\URL;
 
 class QuoteService
 {
@@ -154,6 +156,39 @@ class QuoteService
 
             return $invoice;
         });
+    }
+
+    public function generatePortalUrl(Invoice $quote): string
+    {
+        return URL::signedRoute('portal.quotes.show', ['quote' => $quote->id]);
+    }
+
+    public function approveFromPortal(Invoice $quote, ?string $comment): void
+    {
+        if (in_array($quote->status, [InvoiceStatus::APPROVED, InvoiceStatus::CANCELLED])) {
+            throw new DomainException('This quote has already been responded to.');
+        }
+
+        $quote->update([
+            'status' => InvoiceStatus::APPROVED,
+            'portal_comment' => $comment,
+        ]);
+
+        QuoteRespondedFromPortal::dispatch($quote->fresh(['contact', 'business']));
+    }
+
+    public function rejectFromPortal(Invoice $quote, ?string $comment): void
+    {
+        if (in_array($quote->status, [InvoiceStatus::APPROVED, InvoiceStatus::CANCELLED])) {
+            throw new DomainException('This quote has already been responded to.');
+        }
+
+        $quote->update([
+            'status' => InvoiceStatus::CANCELLED,
+            'portal_comment' => $comment,
+        ]);
+
+        QuoteRespondedFromPortal::dispatch($quote->fresh(['contact', 'business']));
     }
 
     // ── Private Helpers (Duplicate of InvoiceService for isolation) ──

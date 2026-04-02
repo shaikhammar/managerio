@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Ban, Download, FileCheck, Mail } from 'lucide-react';
+import { ArrowLeft, Ban, Download, FileCheck, Link2, Mail } from 'lucide-react';
 import { useState } from 'react';
 import QuoteController from '@/actions/App/Http/Controllers/Sales/QuoteController';
 import InputError from '@/components/input-error';
@@ -33,6 +33,18 @@ export default function QuoteShow({ quote }: Props) {
 
     const emailForm = useForm({ email: quote.contact?.email ?? '' });
     const [emailOpen, setEmailOpen] = useState(false);
+    const [copying, setCopying] = useState(false);
+
+    async function copyPortalLink() {
+        setCopying(true);
+        try {
+            const res = await fetch(QuoteController.portalLink.url(quote));
+            const data = (await res.json()) as { url: string };
+            await navigator.clipboard.writeText(data.url);
+        } finally {
+            setCopying(false);
+        }
+    }
 
     function handleConvert() {
         if (confirm('Convert this quote into a sales invoice? This will generate accounting entries.')) {
@@ -70,6 +82,10 @@ export default function QuoteShow({ quote }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={copyPortalLink} disabled={copying}>
+                            <Link2 className="size-4 mr-2" />
+                            {copying ? 'Copying…' : 'Copy Portal Link'}
+                        </Button>
                         <Button variant="outline" size="sm" asChild>
                             <a href={QuoteController.pdf.url(quote)} target="_blank" rel="noreferrer">
                                 <Download className="mr-2 size-4" />

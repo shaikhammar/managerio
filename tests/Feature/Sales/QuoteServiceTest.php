@@ -63,3 +63,84 @@ it('can convert a quote to a draft invoice without auto-posting', function () {
     // Verify Quote status changed to approved/closed
     expect($quote->fresh()->status)->toBe(InvoiceStatus::APPROVED);
 });
+
+it('generates a valid signed portal URL for a quote', function () {
+    $quote = Invoice::factory()->create([
+        'business_id' => $this->business->id,
+        'contact_id' => $this->contact->id,
+        'type' => 'quote',
+        'status' => 'sent',
+        'number' => 'Q-P01',
+        'date' => now()->format('Y-m-d'),
+        'subtotal' => 0,
+        'tax_amount' => 0,
+        'total' => 0,
+        'balance_due' => 0,
+        'amount_paid' => 0,
+    ]);
+
+    $url = $this->quoteService->generatePortalUrl($quote);
+
+    expect($url)->toContain('/portal/quotes/'.$quote->id);
+});
+
+it('approves a sent quote from the portal', function () {
+    $quote = Invoice::factory()->create([
+        'business_id' => $this->business->id,
+        'contact_id' => $this->contact->id,
+        'type' => 'quote',
+        'status' => 'sent',
+        'number' => 'Q-P02',
+        'date' => now()->format('Y-m-d'),
+        'subtotal' => 0,
+        'tax_amount' => 0,
+        'total' => 0,
+        'balance_due' => 0,
+        'amount_paid' => 0,
+    ]);
+
+    $this->quoteService->approveFromPortal($quote, 'Looks great!');
+
+    expect($quote->fresh()->status->value)->toBe('approved');
+    expect($quote->fresh()->portal_comment)->toBe('Looks great!');
+});
+
+it('rejects a sent quote from the portal', function () {
+    $quote = Invoice::factory()->create([
+        'business_id' => $this->business->id,
+        'contact_id' => $this->contact->id,
+        'type' => 'quote',
+        'status' => 'sent',
+        'number' => 'Q-P03',
+        'date' => now()->format('Y-m-d'),
+        'subtotal' => 0,
+        'tax_amount' => 0,
+        'total' => 0,
+        'balance_due' => 0,
+        'amount_paid' => 0,
+    ]);
+
+    $this->quoteService->rejectFromPortal($quote, 'Price too high.');
+
+    expect($quote->fresh()->status->value)->toBe('cancelled');
+    expect($quote->fresh()->portal_comment)->toBe('Price too high.');
+});
+
+it('throws a DomainException when approving an already-responded quote', function () {
+    $quote = Invoice::factory()->create([
+        'business_id' => $this->business->id,
+        'contact_id' => $this->contact->id,
+        'type' => 'quote',
+        'status' => 'approved',
+        'number' => 'Q-P04',
+        'date' => now()->format('Y-m-d'),
+        'subtotal' => 0,
+        'tax_amount' => 0,
+        'total' => 0,
+        'balance_due' => 0,
+        'amount_paid' => 0,
+    ]);
+
+    expect(fn () => $this->quoteService->approveFromPortal($quote, null))
+        ->toThrow(DomainException::class, 'This quote has already been responded to.');
+});

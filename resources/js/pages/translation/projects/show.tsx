@@ -1,6 +1,7 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { BarChart2, BookOpen, Brain, FileText, FileUp, Trash2, Users, X } from 'lucide-react';
+import { BarChart2, BookOpen, Brain, FileText, FileUp, Link2, Trash2, Users, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import ProjectController from '@/actions/App/Http/Controllers/Translation/ProjectController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -43,6 +44,7 @@ export default function ProjectShow({
     const [selectedTmId, setSelectedTmId] = useState('');
     const [selectedTbId, setSelectedTbId] = useState('');
     const [selectedSgId, setSelectedSgId] = useState('');
+    const [copying, setCopying] = useState(false);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
@@ -54,6 +56,17 @@ export default function ProjectShow({
         file: null,
         type: 'source',
     });
+
+    async function copyPortalLink() {
+        setCopying(true);
+        try {
+            const res = await fetch(ProjectController.portalLink.url(project));
+            const data = (await res.json()) as { url: string };
+            await navigator.clipboard.writeText(data.url);
+        } finally {
+            setCopying(false);
+        }
+    }
 
     function handleStatusChange(value: string) {
         router.post(`/translation/projects/${project.id}/status`, { status: value });
@@ -161,6 +174,10 @@ return;
                         <p className="text-muted-foreground mt-1 font-mono text-sm">{project.reference}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" onClick={copyPortalLink} disabled={copying}>
+                            <Link2 className="size-4 mr-2" />
+                            {copying ? 'Copying…' : 'Copy Portal Link'}
+                        </Button>
                         {transitionableStatuses.length > 0 && (
                             <Select onValueChange={handleStatusChange}>
                                 <SelectTrigger className="w-44">

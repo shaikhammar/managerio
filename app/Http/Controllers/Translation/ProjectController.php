@@ -18,8 +18,10 @@ use App\Models\ServiceType;
 use App\Models\StyleGuide;
 use App\Models\TermBase;
 use App\Models\TranslationMemory;
+use App\Services\Translation\ProjectPortalService;
 use App\Services\Translation\ProjectService;
 use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,7 +29,10 @@ use Inertia\Response;
 
 class ProjectController extends Controller
 {
-    public function __construct(private ProjectService $projectService) {}
+    public function __construct(
+        private ProjectService $projectService,
+        private ProjectPortalService $projectPortalService,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -235,6 +240,13 @@ class ProjectController extends Controller
         );
 
         return back()->with('success', 'File uploaded successfully.');
+    }
+
+    public function portalLink(Project $project): JsonResponse
+    {
+        $this->authorize('view', $project);
+
+        return response()->json(['url' => $this->projectPortalService->generatePortalUrl($project)]);
     }
 
     public function destroyFile(Project $project, ProjectFile $projectFile): RedirectResponse

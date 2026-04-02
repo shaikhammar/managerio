@@ -100,12 +100,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
             Route::get('quotes/{quote}/pdf', [QuoteController::class, 'pdf'])->name('quotes.pdf');
             Route::post('quotes/{quote}/send-email', [QuoteController::class, 'sendEmail'])->name('quotes.send-email');
+            Route::get('quotes/{quote}/portal-link', [QuoteController::class, 'portalLink'])->name('quotes.portal-link');
             Route::delete('quotes/bulk/delete', [BulkQuoteController::class, 'deleteDrafts'])->name('quotes.bulk.delete');
             Route::resource('invoices', InvoiceController::class);
             Route::post('invoices/{invoice}/post', [InvoiceController::class, 'post'])->name('invoices.post');
             Route::post('invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
             Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
             Route::post('invoices/{invoice}/send-email', [InvoiceController::class, 'sendEmail'])->name('invoices.send-email');
+            Route::get('invoices/{invoice}/portal-link', [InvoiceController::class, 'portalLink'])->name('invoices.portal-link');
             Route::post('invoices/bulk/mark-sent', [BulkInvoiceController::class, 'markSent'])->name('invoices.bulk.mark-sent');
             Route::delete('invoices/bulk/delete', [BulkInvoiceController::class, 'deleteDrafts'])->name('invoices.bulk.delete');
             Route::resource('credit-notes', CreditNoteController::class);
@@ -157,6 +159,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('projects/{project}/generate-purchase-orders', [ProjectController::class, 'generatePurchaseOrders'])->name('projects.generate-purchase-orders');
             Route::post('projects/{project}/files', [ProjectController::class, 'storeFile'])->name('projects.files.store');
             Route::delete('projects/{project}/files/{projectFile}', [ProjectController::class, 'destroyFile'])->name('projects.files.destroy');
+            Route::get('projects/{project}/portal-link', [ProjectController::class, 'portalLink'])->name('translation.projects.portal-link');
             Route::get('projects/{project}/cat-analyses/create', [CatAnalysisController::class, 'create'])->name('projects.cat-analyses.create');
             Route::post('projects/{project}/cat-analyses', [CatAnalysisController::class, 'store'])->name('projects.cat-analyses.store');
             Route::post('projects/{project}/cat-analyses/import', [CatAnalysisController::class, 'import'])->name('projects.cat-analyses.import');
