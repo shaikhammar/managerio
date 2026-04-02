@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Ban, CreditCard, Download, Mail, Send } from 'lucide-react';
+import { ArrowLeft, Ban, CreditCard, Download, Link2, Mail, Send } from 'lucide-react';
 import { useState } from 'react';
 import ReceiptController from '@/actions/App/Http/Controllers/Payments/ReceiptController';
 import InvoiceController from '@/actions/App/Http/Controllers/Sales/InvoiceController';
@@ -37,6 +37,18 @@ export default function InvoiceShow({ invoice }: Props) {
 
     const emailForm = useForm({ email: invoice.contact?.email ?? '' });
     const [emailOpen, setEmailOpen] = useState(false);
+    const [copying, setCopying] = useState(false);
+
+    async function copyPortalLink() {
+        setCopying(true);
+        try {
+            const res = await fetch(InvoiceController.portalLink.url(invoice));
+            const data = (await res.json()) as { url: string };
+            await navigator.clipboard.writeText(data.url);
+        } finally {
+            setCopying(false);
+        }
+    }
 
     function handlePost() {
         router.post(InvoiceController.post.url(invoice));
@@ -77,6 +89,10 @@ export default function InvoiceShow({ invoice }: Props) {
                         </div>
                     </div>
                     <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={copyPortalLink} disabled={copying}>
+                            <Link2 className="size-4 mr-2" />
+                            {copying ? 'Copying…' : 'Copy Portal Link'}
+                        </Button>
                         <Button variant="outline" size="sm" asChild>
                             <a href={InvoiceController.pdf.url(invoice)} target="_blank" rel="noreferrer">
                                 <Download className="mr-2 size-4" />

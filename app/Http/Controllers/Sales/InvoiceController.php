@@ -14,6 +14,7 @@ use App\Services\MailService;
 use App\Services\Sales\InvoiceService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -149,6 +150,13 @@ class InvoiceController extends Controller
         );
 
         return back()->with('success', "Invoice {$invoice->number} sent to {$request->email}.");
+    }
+
+    public function portalLink(Invoice $invoice): JsonResponse
+    {
+        $this->authorize('view', $invoice);
+
+        return response()->json(['url' => $this->invoiceService->generatePortalUrl($invoice)]);
     }
 
     public function destroy(Invoice $invoice): RedirectResponse
