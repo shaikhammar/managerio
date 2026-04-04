@@ -13,6 +13,8 @@ type Props = {
     quote: Invoice;
     business: Business;
     alreadyResponded: boolean;
+    approveUrl: string;
+    rejectUrl: string;
 };
 
 const statusColors: Record<string, string> = {
@@ -22,10 +24,10 @@ const statusColors: Record<string, string> = {
     cancelled: 'bg-rose-100 text-rose-700',
 };
 
-export default function QuoteApproval({ quote, business, alreadyResponded }: Props) {
+export default function QuoteApproval({ quote, business, alreadyResponded, approveUrl, rejectUrl }: Props) {
     const { format } = useCurrency();
-    const page = usePage<Record<string, unknown>>();
-    const responded = page.props.responded as string | undefined;
+    const { flash } = usePage<{ flash: { responded?: string } }>().props;
+    const responded = flash?.responded;
     const [action, setAction] = useState<'approve' | 'reject' | null>(null);
 
     const form = useForm({ comment: '' });
@@ -35,11 +37,7 @@ export default function QuoteApproval({ quote, business, alreadyResponded }: Pro
         if (!action) {
             return;
         }
-        const base = window.location.href.split('?')[0];
-        const route = action === 'approve' ? `${base}/approve` : `${base}/reject`;
-        // Preserve the signature query params
-        const params = new URLSearchParams(window.location.search);
-        form.post(`${route}?${params.toString()}`);
+        form.post(action === 'approve' ? approveUrl : rejectUrl);
     }
 
     if (responded) {

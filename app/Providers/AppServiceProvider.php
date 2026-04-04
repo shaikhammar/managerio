@@ -6,7 +6,9 @@ use App\Events\BusinessCreated;
 use App\Events\InvoicePosted;
 use App\Events\JournalEntryPosted;
 use App\Events\PaymentReceived;
+use App\Events\ProjectMovedToInProgress;
 use App\Events\QuoteRespondedFromPortal;
+use App\Listeners\AutoGeneratePurchaseOrdersListener;
 use App\Listeners\InvalidateReportCache;
 use App\Listeners\SendQuotePortalResponseNotification;
 use App\Listeners\SendWelcomeEmail;
@@ -75,5 +77,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Notify the business owner when a client responds to a quote via the portal.
         Event::listen(QuoteRespondedFromPortal::class, SendQuotePortalResponseNotification::class);
+
+        // Auto-generate purchase orders when a project moves to In Progress.
+        Event::listen(ProjectMovedToInProgress::class, AutoGeneratePurchaseOrdersListener::class);
     }
 }

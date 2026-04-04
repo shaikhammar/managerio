@@ -24,6 +24,7 @@ class Project extends Model
         'reference',
         'deadline',
         'notes',
+        'deadline_alert_sent_at',
         'status',
         'quote_id',
         'invoice_id',
@@ -34,6 +35,7 @@ class Project extends Model
         return [
             'status' => ProjectStatus::class,
             'deadline' => 'date',
+            'deadline_alert_sent_at' => 'date',
         ];
     }
 

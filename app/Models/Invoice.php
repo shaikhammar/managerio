@@ -37,6 +37,7 @@ class Invoice extends Model
         'notes',
         'terms',
         'portal_comment',
+        'last_reminder_sent_at',
         'currency_code',
         'exchange_rate',
         'journal_entry_id',
@@ -56,6 +57,7 @@ class Invoice extends Model
             'amount_paid' => 'decimal:2',
             'balance_due' => 'decimal:2',
             'exchange_rate' => 'decimal:6',
+            'last_reminder_sent_at' => 'datetime',
         ];
     }
 

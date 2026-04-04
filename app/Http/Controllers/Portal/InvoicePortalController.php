@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Models\Invoice;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,7 @@ class InvoicePortalController
             'invoice' => $invoice,
             'business' => $invoice->business,
             'isVoid' => $invoice->status->value === 'void',
+            'pdfUrl' => URL::signedRoute('portal.invoices.pdf', ['invoice' => $invoice->id]),
         ]);
     }
 

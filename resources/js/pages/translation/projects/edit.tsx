@@ -1,5 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Users } from 'lucide-react';
+import { useState } from 'react';
+import ProjectController from '@/actions/App/Http/Controllers/Translation/ProjectController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,6 +42,14 @@ type Props = {
     languagePairs: LanguagePairOption[];
     serviceTypes: ServiceTypeOption[];
     roles: Option[];
+};
+
+type SuggestionResult = {
+    contact_id: number;
+    name: string;
+    availability: string;
+    quality_rating: number | null;
+    score: number;
 };
 
 function emptyAssignment(): AssignmentInput {
@@ -89,6 +99,42 @@ export default function ProjectEdit({ project, customers, suppliers, languages, 
                     })) ?? [],
             })) ?? [],
     });
+
+    const [suggestions, setSuggestions] = useState<Record<number, SuggestionResult[]>>({});
+    const [suggestionsLoading, setSuggestionsLoading] = useState<Record<number, boolean>>({});
+
+    async function fetchSuggestions(targetIndex: number): Promise<void> {
+        const target = data.targets[targetIndex];
+        if (!target.language_pair_id) return;
+
+        const serviceTypeId = target.service_type_id || data.service_type_id;
+        if (!serviceTypeId) return;
+
+        setSuggestionsLoading((prev) => ({ ...prev, [targetIndex]: true }));
+        try {
+            const url = `${ProjectController.suggestTranslators.url(project)}?language_pair_id=${target.language_pair_id}&service_type_id=${serviceTypeId}`;
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            const json = (await res.json()) as SuggestionResult[];
+            setSuggestions((prev) => ({ ...prev, [targetIndex]: json }));
+        } finally {
+            setSuggestionsLoading((prev) => ({ ...prev, [targetIndex]: false }));
+        }
+    }
+
+    function applySuggestion(targetIndex: number, suggestion: SuggestionResult): void {
+        const newAssignment: AssignmentInput = {
+            contact_id: suggestion.contact_id,
+            role: 'translator',
+            rate: '',
+        };
+        setData(
+            'targets',
+            data.targets.map((t, i) =>
+                i === targetIndex ? { ...t, assignments: [...t.assignments, newAssignment] } : t,
+            ),
+        );
+        setSuggestions((prev) => ({ ...prev, [targetIndex]: [] }));
+    }
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -327,10 +373,22 @@ return `Pair #${pair.id}`;
                                     <Separator className="my-3" />
                                     <div className="flex items-center justify-between">
                                         <h5 className="text-sm font-medium">Team Assignments</h5>
-                                        <Button type="button" variant="ghost" size="sm" onClick={() => addAssignment(ti)}>
-                                            <Plus className="mr-1 size-3" />
-                                            Add Person
-                                        </Button>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => void fetchSuggestions(ti)}
+                                                disabled={!target.language_pair_id || !!suggestionsLoading[ti]}
+                                            >
+                                                <Users className="mr-1 size-3" />
+                                                {suggestionsLoading[ti] ? 'Loading...' : 'Suggest'}
+                                            </Button>
+                                            <Button type="button" variant="ghost" size="sm" onClick={() => addAssignment(ti)}>
+                                                <Plus className="mr-1 size-3" />
+                                                Add Person
+                                            </Button>
+                                        </div>
                                     </div>
                                     {target.assignments.map((assignment, ai) => (
                                         <div key={ai} className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-4">
@@ -383,6 +441,37 @@ return `Pair #${pair.id}`;
                                             </div>
                                         </div>
                                     ))}
+                                    {(suggestions[ti] ?? []).length > 0 && (
+                                        <div className="mt-3 rounded-md border border-dashed border-blue-200 bg-blue-50 p-3">
+                                            <p className="mb-2 text-xs font-medium text-blue-700">Suggested translators — click to add:</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {suggestions[ti].map((s) => (
+                                                    <button
+                                                        key={s.contact_id}
+                                                        type="button"
+                                                        onClick={() => applySuggestion(ti, s)}
+                                                        className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-blue-50"
+                                                    >
+                                                        {s.name}
+                                                        <span
+                                                            className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                                s.availability === 'available'
+                                                                    ? 'bg-green-100 text-green-700'
+                                                                    : s.availability === 'busy'
+                                                                      ? 'bg-yellow-100 text-yellow-700'
+                                                                      : 'bg-gray-100 text-gray-500'
+                                                            }`}
+                                                        >
+                                                            {s.availability === 'available' ? 'Available' : s.availability === 'busy' ? 'Busy' : 'On Leave'}
+                                                        </span>
+                                                        {s.quality_rating !== null && (
+                                                            <span className="text-yellow-500">{'★'.repeat(s.quality_rating)}</span>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </CardContent>

@@ -57,7 +57,13 @@ export default function ProjectStatus({ project, business }: Props) {
                         {project.deadline && (
                             <div className="flex items-center gap-3">
                                 <span className="text-sm text-gray-500 w-28">Deadline</span>
-                                <span className="text-sm">{project.deadline}</span>
+                                <span className="text-sm">
+                                    {new Date(project.deadline).toLocaleDateString(undefined, {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                    })}
+                                </span>
                             </div>
                         )}
 

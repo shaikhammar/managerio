@@ -10,6 +10,7 @@ type Props = {
     invoice: Invoice;
     business: Business;
     isVoid: boolean;
+    pdfUrl: string;
 };
 
 const statusColors: Record<string, string> = {
@@ -20,11 +21,8 @@ const statusColors: Record<string, string> = {
     void: 'bg-gray-100 text-gray-500',
 };
 
-export default function InvoiceView({ invoice, business, isVoid }: Props) {
+export default function InvoiceView({ invoice, business, isVoid, pdfUrl }: Props) {
     const { format } = useCurrency();
-    const base = window.location.href.split('?')[0];
-    const params = new URLSearchParams(window.location.search);
-    const pdfUrl = `${base}/pdf?${params.toString()}`;
 
     return (
         <PortalLayout businessName={business.name} logoPath={business.logo_path}>
