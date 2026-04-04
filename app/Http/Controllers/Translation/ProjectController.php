@@ -20,6 +20,7 @@ use App\Models\TermBase;
 use App\Models\TranslationMemory;
 use App\Services\Translation\ProjectPortalService;
 use App\Services\Translation\ProjectService;
+use App\Services\Translation\TranslatorSuggestionService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -32,6 +33,7 @@ class ProjectController extends Controller
     public function __construct(
         private ProjectService $projectService,
         private ProjectPortalService $projectPortalService,
+        private TranslatorSuggestionService $translatorSuggestionService,
     ) {}
 
     public function index(Request $request): Response
@@ -247,6 +249,26 @@ class ProjectController extends Controller
         $this->authorize('view', $project);
 
         return response()->json(['url' => $this->projectPortalService->generatePortalUrl($project)]);
+    }
+
+    public function suggestTranslators(Request $request, Project $project): JsonResponse
+    {
+        $this->authorize('view', $project);
+
+        $validated = $request->validate([
+            'language_pair_id' => ['required', 'integer'],
+            'service_type_id' => ['required', 'integer'],
+        ]);
+
+        $business = $request->user()->currentBusiness();
+
+        $suggestions = $this->translatorSuggestionService->suggest(
+            $business,
+            (int) $validated['language_pair_id'],
+            (int) $validated['service_type_id'],
+        );
+
+        return response()->json($suggestions);
     }
 
     public function destroyFile(Project $project, ProjectFile $projectFile): RedirectResponse

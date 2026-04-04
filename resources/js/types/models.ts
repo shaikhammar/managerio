@@ -308,6 +308,7 @@ export type Invoice = {
     notes: string | null;
     terms: string | null;
     portal_comment: string | null;
+    last_reminder_sent_at: string | null;
     currency_code: string;
     exchange_rate: number;
     journal_entry_id: number | null;
@@ -680,6 +681,7 @@ export type Project = {
     status: ProjectStatus;
     quote_id: number | null;
     invoice_id: number | null;
+    deadline_alert_sent_at: string | null;
     contact?: { id: number; name: string };
     source_language?: Language;
     service_type?: ServiceType;

@@ -58,6 +58,7 @@ class Invoice extends Model
             'amount_paid' => 'decimal:2',
             'balance_due' => 'decimal:2',
             'exchange_rate' => 'decimal:6',
+            'last_reminder_sent_at' => 'datetime',
         ];
     }
 
