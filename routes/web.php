@@ -160,6 +160,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('projects/{project}/files', [ProjectController::class, 'storeFile'])->name('projects.files.store');
             Route::delete('projects/{project}/files/{projectFile}', [ProjectController::class, 'destroyFile'])->name('projects.files.destroy');
             Route::get('projects/{project}/portal-link', [ProjectController::class, 'portalLink'])->name('translation.projects.portal-link');
+            Route::get('projects/{project}/suggest-translators', [ProjectController::class, 'suggestTranslators'])->name('projects.suggest-translators');
             Route::get('projects/{project}/cat-analyses/create', [CatAnalysisController::class, 'create'])->name('projects.cat-analyses.create');
             Route::post('projects/{project}/cat-analyses', [CatAnalysisController::class, 'store'])->name('projects.cat-analyses.store');
             Route::post('projects/{project}/cat-analyses/import', [CatAnalysisController::class, 'import'])->name('projects.cat-analyses.import');
