@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('accounting:process-recurring')->dailyAt('00:30');
 Schedule::command('invoice-reminders:send')->dailyAt('08:00');
+Schedule::command('project-alerts:send-deadline')->dailyAt('07:00');
