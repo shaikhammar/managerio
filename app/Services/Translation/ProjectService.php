@@ -5,6 +5,7 @@ namespace App\Services\Translation;
 use App\Domain\Sales\Enums\InvoiceStatus;
 use App\Domain\Sales\Enums\InvoiceType;
 use App\Domain\Translation\Enums\ProjectStatus;
+use App\Events\ProjectMovedToInProgress;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Project;
@@ -92,6 +93,10 @@ class ProjectService
         }
 
         $project->update(['status' => $newStatus]);
+
+        if ($newStatus === ProjectStatus::IN_PROGRESS) {
+            ProjectMovedToInProgress::dispatch($project);
+        }
 
         return $project->fresh();
     }
