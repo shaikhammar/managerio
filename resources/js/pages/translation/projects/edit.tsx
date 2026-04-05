@@ -114,6 +114,7 @@ export default function ProjectEdit({ project, customers, suppliers, languages, 
         try {
             const url = `${ProjectController.suggestTranslators.url(project)}?language_pair_id=${target.language_pair_id}&service_type_id=${serviceTypeId}`;
             const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!res.ok) return;
             const json = (await res.json()) as SuggestionResult[];
             setSuggestions((prev) => ({ ...prev, [targetIndex]: json }));
         } finally {
@@ -464,8 +465,8 @@ return `Pair #${pair.id}`;
                                                         >
                                                             {s.availability === 'available' ? 'Available' : s.availability === 'busy' ? 'Busy' : 'On Leave'}
                                                         </span>
-                                                        {s.quality_rating !== null && (
-                                                            <span className="text-yellow-500">{'★'.repeat(s.quality_rating)}</span>
+                                                        {s.quality_rating !== null && s.quality_rating > 0 && (
+                                                            <span className="text-yellow-500">{'★'.repeat(Math.min(s.quality_rating, 5))}</span>
                                                         )}
                                                     </button>
                                                 ))}

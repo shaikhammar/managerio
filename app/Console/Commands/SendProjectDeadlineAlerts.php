@@ -31,7 +31,6 @@ class SendProjectDeadlineAlerts extends Command
 
                 if (! $business->hasEmailConfigured()) {
                     Log::info("Skipping deadline alert for project {$project->reference}: SMTP not configured.");
-                    $project->update(['deadline_alert_sent_at' => today()]);
 
                     return;
                 }

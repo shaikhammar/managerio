@@ -92,11 +92,13 @@ class ProjectService
             );
         }
 
-        $project->update(['status' => $newStatus]);
+        DB::transaction(function () use ($project, $newStatus): void {
+            $project->update(['status' => $newStatus]);
 
-        if ($newStatus === ProjectStatus::IN_PROGRESS) {
-            ProjectMovedToInProgress::dispatch($project);
-        }
+            if ($newStatus === ProjectStatus::IN_PROGRESS) {
+                ProjectMovedToInProgress::dispatch($project);
+            }
+        });
 
         return $project->fresh();
     }
