@@ -29,7 +29,7 @@ class InvoiceReminderMail extends Mailable implements ShouldQueue
                 $business->smtp_from_email ?? config('mail.from.address'),
                 $business->smtp_from_name ?? $business->name,
             ),
-            to: [new Address($this->invoice->contact->email)],
+            to: [new Address($this->invoice->contact?->email ?? '')],
             subject: "Payment Reminder — Invoice {$this->invoice->number}",
         );
     }

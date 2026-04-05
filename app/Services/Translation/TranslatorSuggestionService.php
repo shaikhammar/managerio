@@ -18,11 +18,10 @@ class TranslatorSuggestionService
     {
         return TranslatorProfile::withoutGlobalScopes()
             ->where('business_id', $business->id)
-            ->with(['contact', 'languagePairs', 'serviceTypes'])
+            ->whereHas('languagePairs', fn ($q) => $q->where('language_pairs.id', $languagePairId))
+            ->whereHas('serviceTypes', fn ($q) => $q->where('service_types.id', $serviceTypeId))
+            ->with('contact')
             ->get()
-            ->filter(fn (TranslatorProfile $profile) => $profile->languagePairs->contains('id', $languagePairId)
-                && $profile->serviceTypes->contains('id', $serviceTypeId)
-            )
             ->map(fn (TranslatorProfile $profile) => [
                 'contact_id' => $profile->contact_id,
                 'name' => $profile->contact?->name ?? 'Unknown',

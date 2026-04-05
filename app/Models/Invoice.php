@@ -51,6 +51,7 @@ class Invoice extends Model
             'status' => InvoiceStatus::class,
             'date' => 'date:Y-m-d',
             'due_date' => 'date:Y-m-d',
+            'last_reminder_sent_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'total' => 'decimal:2',
