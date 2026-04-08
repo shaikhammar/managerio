@@ -95,6 +95,7 @@ class DashboardController extends Controller
                 'total' => (float) $inv->total,
                 'balance_due' => (float) $inv->balance_due,
                 'status' => $inv->status->value,
+                'currency_code' => $inv->currency_code,
             ]);
 
         // Recent payments

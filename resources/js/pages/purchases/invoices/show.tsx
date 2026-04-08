@@ -4,8 +4,8 @@ import SupplierPaymentController from '@/actions/App/Http/Controllers/Payments/S
 import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/PurchaseInvoiceController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCurrency } from '@/hooks/use-currency';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { invoice: Invoice };
@@ -20,7 +20,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PurchaseInvoiceShow({ invoice }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
@@ -106,27 +105,27 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{format(invoice.subtotal)}</span>
+                                    <span>{formatCurrency(invoice.subtotal, invoice.currency_code)}</span>
                                 </div>
                                 {invoice.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{format(invoice.tax_amount)}</span>
+                                        <span>{formatCurrency(invoice.tax_amount, invoice.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{format(invoice.total)}</span>
+                                    <span>{formatCurrency(invoice.total, invoice.currency_code)}</span>
                                 </div>
                                 {invoice.amount_paid > 0 && (
                                     <>
                                         <div className="flex justify-between text-sm text-red-600">
                                             <span>Paid</span>
-                                            <span>-{format(invoice.amount_paid)}</span>
+                                            <span>-{formatCurrency(invoice.amount_paid, invoice.currency_code)}</span>
                                         </div>
                                         <div className="flex justify-between font-bold border-t pt-1 text-amber-600">
                                             <span>Balance Due</span>
-                                            <span>{format(invoice.balance_due)}</span>
+                                            <span>{formatCurrency(invoice.balance_due, invoice.currency_code)}</span>
                                         </div>
                                     </>
                                 )}

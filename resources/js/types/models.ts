@@ -469,6 +469,7 @@ export type DashboardInvoice = {
     total: number;
     balance_due: number;
     status: InvoiceStatus;
+    currency_code: string;
 };
 
 export type DashboardPayment = {
