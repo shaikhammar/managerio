@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Landmark, User, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { Payment, BreadcrumbItem } from '@/types';
 
@@ -11,7 +11,6 @@ type Props = {
 };
 
 export default function SupplierPaymentShow({ payment }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Supplier Payments', href: '/payments/supplier-payments' },
@@ -41,7 +40,7 @@ export default function SupplierPaymentShow({ payment }: Props) {
                     </div>
                     <div className="text-right">
                         <p className="text-xs text-muted-foreground font-medium uppercase">Amount Paid</p>
-                        <p className="text-3xl font-bold text-red-600">-{format(payment.amount)}</p>
+                        <p className="text-3xl font-bold text-red-600">-{formatCurrency(payment.amount, payment.currency_code)}</p>
                     </div>
                 </div>
 
@@ -109,7 +108,7 @@ export default function SupplierPaymentShow({ payment }: Props) {
                                                 </Link>
                                             </td>
                                             <td className="py-3 px-4 text-right text-sm font-medium">
-                                                {format(alloc.amount)}
+                                                {formatCurrency(alloc.amount, alloc.invoice?.currency_code ?? payment.currency_code)}
                                             </td>
                                         </tr>
                                     ))}

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
@@ -21,7 +21,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function QuoteShow({ quote }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Quotes', href: QuoteController.index.url() },
@@ -37,6 +36,7 @@ export default function QuoteShow({ quote }: Props) {
 
     async function copyPortalLink() {
         setCopying(true);
+
         try {
             const res = await fetch(QuoteController.portalLink.url(quote));
             const data = (await res.json()) as { url: string };
@@ -168,10 +168,10 @@ export default function QuoteShow({ quote }: Props) {
                                             <p className="font-medium text-sm">{line.description}</p>
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price, quote.currency_code)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total, quote.currency_code)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -181,17 +181,17 @@ export default function QuoteShow({ quote }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{format(quote.subtotal)}</span>
+                                    <span>{formatCurrency(quote.subtotal, quote.currency_code)}</span>
                                 </div>
                                 {quote.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{format(quote.tax_amount)}</span>
+                                        <span>{formatCurrency(quote.tax_amount, quote.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{format(quote.total)}</span>
+                                    <span>{formatCurrency(quote.total, quote.currency_code)}</span>
                                 </div>
                             </div>
                         </div>

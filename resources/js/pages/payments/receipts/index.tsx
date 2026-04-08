@@ -3,7 +3,7 @@ import { Plus, Search, CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Payment, PaginatedData } from '@/types';
 
@@ -18,7 +18,6 @@ type Props = {
 };
 
 export default function ReceiptIndex({ receipts, filters }: Props) {
-    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -73,7 +72,7 @@ export default function ReceiptIndex({ receipts, filters }: Props) {
                                         <td className="py-3 px-4 text-sm">{receipt.contact?.name || '—'}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{receipt.date}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{receipt.reference || '—'}</td>
-                                        <td className="py-3 px-4 text-right text-sm font-medium text-emerald-600 dark:text-emerald-400">+{format(receipt.amount)}</td>
+                                        <td className="py-3 px-4 text-right text-sm font-medium text-emerald-600 dark:text-emerald-400">+{formatCurrency(receipt.amount, receipt.currency_code)}</td>
                                     </tr>
                                 ))
                             )}

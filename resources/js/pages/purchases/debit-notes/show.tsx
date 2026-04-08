@@ -3,7 +3,7 @@ import { ArrowLeft, Download } from 'lucide-react';
 import DebitNoteController from '@/actions/App/Http/Controllers/Purchases/DebitNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
@@ -16,7 +16,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function DebitNoteShow({ debitNote }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Debit Notes', href: DebitNoteController.index.url() },
@@ -86,10 +85,10 @@ export default function DebitNoteShow({ debitNote }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price, debitNote.currency_code)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total, debitNote.currency_code)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -99,17 +98,17 @@ export default function DebitNoteShow({ debitNote }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{format(debitNote.subtotal)}</span>
+                                    <span>{formatCurrency(debitNote.subtotal, debitNote.currency_code)}</span>
                                 </div>
                                 {debitNote.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{format(debitNote.tax_amount)}</span>
+                                        <span>{formatCurrency(debitNote.tax_amount, debitNote.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2 text-amber-600 dark:text-amber-400">
                                     <span>Total Debit</span>
-                                    <span>{format(debitNote.total)}</span>
+                                    <span>{formatCurrency(debitNote.total, debitNote.currency_code)}</span>
                                 </div>
                             </div>
                         </div>

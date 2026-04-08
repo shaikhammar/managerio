@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Printer } from 'lucide-react';
 import CreditNoteController from '@/actions/App/Http/Controllers/Sales/CreditNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
@@ -16,7 +16,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function CreditNoteShow({ creditNote }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Credit Notes', href: CreditNoteController.index.url() },
@@ -90,10 +89,10 @@ export default function CreditNoteShow({ creditNote }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price, creditNote.currency_code)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total, creditNote.currency_code)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -103,17 +102,17 @@ export default function CreditNoteShow({ creditNote }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal Credit</span>
-                                    <span>{format(creditNote.subtotal)}</span>
+                                    <span>{formatCurrency(creditNote.subtotal, creditNote.currency_code)}</span>
                                 </div>
                                 {creditNote.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax Credit</span>
-                                        <span>{format(creditNote.tax_amount)}</span>
+                                        <span>{formatCurrency(creditNote.tax_amount, creditNote.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2 text-red-600 dark:text-red-400">
                                     <span>Total Credit</span>
-                                    <span>{format(creditNote.total)}</span>
+                                    <span>{formatCurrency(creditNote.total, creditNote.currency_code)}</span>
                                 </div>
                             </div>
                         </div>

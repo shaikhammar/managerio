@@ -77,9 +77,9 @@ export default function InvoiceView({ invoice, business, isVoid, pdfUrl }: Props
                                         <tr key={line.id} className="border-b last:border-0">
                                             <td className="py-2">{line.description}</td>
                                             <td className="py-2 text-right">{line.quantity}</td>
-                                            <td className="py-2 text-right">{format(line.unit_price)}</td>
+                                            <td className="py-2 text-right">{formatCurrency(line.unit_price, invoice.currency_code)}</td>
                                             <td className="py-2 text-right">
-                                                {format(Number(line.quantity) * Number(line.unit_price))}
+                                                {formatCurrency(Number(line.quantity) * Number(line.unit_price), invoice.currency_code)}
                                             </td>
                                         </tr>
                                     ))}

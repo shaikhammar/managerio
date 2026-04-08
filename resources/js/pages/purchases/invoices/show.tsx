@@ -92,10 +92,10 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price, invoice.currency_code)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total, invoice.currency_code)}</td>
                                     </tr>
                                 ))}
                             </tbody>
