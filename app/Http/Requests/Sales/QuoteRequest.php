@@ -34,6 +34,8 @@ class QuoteRequest extends FormRequest
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'reference' => 'nullable|string|max:255',
+            'currency_code' => 'nullable|string|size:3',
+            'exchange_rate' => 'nullable|numeric|min:0.000001',
             'notes' => 'nullable|string',
             'terms' => 'nullable|string',
             'lines' => 'required|array|min:1',

@@ -36,7 +36,8 @@ class QuoteService
                 'due_date' => $data['due_date'] ?? null,
                 'reference' => $data['reference'] ?? null,
                 'status' => InvoiceStatus::DRAFT,
-                'currency_code' => $business->currency_code,
+                'currency_code' => $data['currency_code'] ?? $business->currency_code,
+                'exchange_rate' => $data['exchange_rate'] ?? 1,
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'total' => 0,
@@ -85,6 +86,8 @@ class QuoteService
                 'date' => $data['date'] ?? $quote->date,
                 'due_date' => $data['due_date'] ?? $quote->due_date,
                 'reference' => $data['reference'] ?? $quote->reference,
+                'currency_code' => $data['currency_code'] ?? $quote->currency_code,
+                'exchange_rate' => $data['exchange_rate'] ?? $quote->exchange_rate,
                 'notes' => $data['notes'] ?? $quote->notes,
                 'terms' => $data['terms'] ?? $quote->terms,
             ]);
