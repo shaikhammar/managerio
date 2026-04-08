@@ -2,7 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import ExchangeRateController from '@/actions/App/Http/Controllers/Accounting/ExchangeRateController';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useCurrency } from '@/hooks/use-currency';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, ExchangeRate } from '@/types';

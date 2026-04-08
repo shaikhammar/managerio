@@ -1,4 +1,4 @@
-import { Head, useForm, Link, usePage } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
 import InvoiceController from '@/actions/App/Http/Controllers/Sales/InvoiceController';
@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import { CURRENCIES } from '@/lib/currencies';
 import { formatCurrency } from '@/lib/utils';
-import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 
 type LineItem = {
@@ -46,7 +46,7 @@ type Props = {
 };
 
 export default function InvoiceForm({ customers, accounts, taxCodes, invoice }: Props) {
-    const { currency: baseCurrency, format } = useCurrency();
+    const { currency: baseCurrency } = useCurrency();
     const isEditing = !!invoice;
     const today = new Date().toISOString().split('T')[0];
 
@@ -176,7 +176,10 @@ return;
                                     <Label htmlFor="currency_code">Currency</Label>
                                     <Select value={data.currency_code} onValueChange={(v) => {
                                         setData('currency_code', v);
-                                        if (v === baseCurrency) { setData('exchange_rate', '1'); }
+
+                                        if (v === baseCurrency) {
+ setData('exchange_rate', '1'); 
+}
                                     }}>
                                         <SelectTrigger id="currency_code"><SelectValue /></SelectTrigger>
                                         <SelectContent>
