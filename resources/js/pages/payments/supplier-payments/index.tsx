@@ -3,7 +3,7 @@ import { Plus, Search, CreditCard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Payment, PaginatedData } from '@/types';
 
@@ -18,7 +18,6 @@ type Props = {
 };
 
 export default function SupplierPaymentIndex({ payments, filters }: Props) {
-    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -73,7 +72,7 @@ export default function SupplierPaymentIndex({ payments, filters }: Props) {
                                         <td className="py-3 px-4 text-sm">{payment.contact?.name || '—'}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{payment.date}</td>
                                         <td className="py-3 px-4 text-sm text-muted-foreground">{payment.reference || '—'}</td>
-                                        <td className="py-3 px-4 text-right text-sm font-medium text-red-600 dark:text-red-400">-{format(payment.amount)}</td>
+                                        <td className="py-3 px-4 text-right text-sm font-medium text-red-600 dark:text-red-400">-{formatCurrency(payment.amount, payment.currency_code)}</td>
                                     </tr>
                                 ))
                             )}

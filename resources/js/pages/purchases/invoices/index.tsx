@@ -5,8 +5,8 @@ import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCurrency } from '@/hooks/use-currency';
 import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -29,7 +29,6 @@ type Props = {
 };
 
 export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
-    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -118,10 +117,10 @@ export default function PurchaseInvoiceIndex({ invoices, filters }: Props) {
                                                 {invoice.status.replace('_', ' ')}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 text-right font-medium text-sm">{format(invoice.total)}</td>
+                                        <td className="py-3 px-4 text-right font-medium text-sm">{formatCurrency(invoice.total, invoice.currency_code)}</td>
                                         <td className="py-3 px-4 text-right text-sm">
                                             <span className={invoice.balance_due > 0 ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-muted-foreground'}>
-                                                {format(invoice.balance_due)}
+                                                {formatCurrency(invoice.balance_due, invoice.currency_code)}
                                             </span>
                                         </td>
                                     </tr>

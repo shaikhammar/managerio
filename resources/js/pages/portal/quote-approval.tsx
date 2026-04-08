@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import PortalLayout from '@/layouts/portal-layout';
 import type { Business, Invoice } from '@/types';
 
@@ -25,7 +25,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function QuoteApproval({ quote, business, alreadyResponded, approveUrl, rejectUrl }: Props) {
-    const { format } = useCurrency();
     const { flash } = usePage<{ flash: { responded?: string } }>().props;
     const responded = flash?.responded;
     const [action, setAction] = useState<'approve' | 'reject' | null>(null);
@@ -34,9 +33,11 @@ export default function QuoteApproval({ quote, business, alreadyResponded, appro
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
+
         if (!action) {
             return;
         }
+
         form.post(action === 'approve' ? approveUrl : rejectUrl);
     }
 
@@ -108,9 +109,9 @@ export default function QuoteApproval({ quote, business, alreadyResponded, appro
                                     <tr key={line.id} className="border-b last:border-0">
                                         <td className="py-2">{line.description}</td>
                                         <td className="py-2 text-right">{line.quantity}</td>
-                                        <td className="py-2 text-right">{format(line.unit_price)}</td>
+                                        <td className="py-2 text-right">{formatCurrency(line.unit_price, quote.currency_code)}</td>
                                         <td className="py-2 text-right">
-                                            {format(Number(line.quantity) * Number(line.unit_price))}
+                                            {formatCurrency(Number(line.quantity) * Number(line.unit_price), quote.currency_code)}
                                         </td>
                                     </tr>
                                 ))}
@@ -120,17 +121,17 @@ export default function QuoteApproval({ quote, business, alreadyResponded, appro
                         <div className="mt-4 border-t pt-4 space-y-1 text-sm text-right">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Subtotal</span>
-                                <span>{format(quote.subtotal)}</span>
+                                <span>{formatCurrency(quote.subtotal, quote.currency_code)}</span>
                             </div>
                             {Number(quote.tax_amount) > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Tax</span>
-                                    <span>{format(quote.tax_amount)}</span>
+                                    <span>{formatCurrency(quote.tax_amount, quote.currency_code)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between font-semibold text-base border-t pt-2 mt-2">
                                 <span>Total</span>
-                                <span>{format(quote.total)}</span>
+                                <span>{formatCurrency(quote.total, quote.currency_code)}</span>
                             </div>
                         </div>
                     </CardContent>

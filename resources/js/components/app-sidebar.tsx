@@ -84,6 +84,7 @@ const navGroups: NavGroup[] = [
             { title: 'Intercompany', href: '/accounting/intercompany' },
             { title: 'Fixed Assets', href: '/accounting/fixed-assets' },
             { title: 'Tax Codes', href: '/accounting/tax-codes' },
+            { title: 'Exchange Rates', href: '/accounting/exchange-rates' },
         ],
     },
     {

@@ -5,7 +5,7 @@ import DebitNoteController from '@/actions/App/Http/Controllers/Purchases/DebitN
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
@@ -26,7 +26,6 @@ type Props = {
 };
 
 export default function DebitNoteIndex({ debitNotes, filters }: Props) {
-    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -110,7 +109,7 @@ export default function DebitNoteIndex({ debitNotes, filters }: Props) {
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-right font-medium text-sm text-amber-600 dark:text-amber-400">
-                                            {format(note.total)}
+                                            {formatCurrency(note.total, note.currency_code)}
                                         </td>
                                     </tr>
                                 ))

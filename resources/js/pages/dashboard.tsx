@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, BankAccountSummary, DashboardInvoice, DashboardPayment } from '@/types';
@@ -165,10 +166,10 @@ export default function Dashboard() {
                                                 </p>
                                             </div>
                                             <div className="text-right ml-4">
-                                                <p className="text-sm font-semibold">{format(invoice.total)}</p>
+                                                <p className="text-sm font-semibold">{formatCurrency(invoice.total, invoice.currency_code)}</p>
                                                 {invoice.balance_due > 0 && (
                                                     <p className="text-xs text-amber-600 dark:text-amber-400">
-                                                        Due: {format(invoice.balance_due)}
+                                                        Due: {formatCurrency(invoice.balance_due, invoice.currency_code)}
                                                     </p>
                                                 )}
                                             </div>

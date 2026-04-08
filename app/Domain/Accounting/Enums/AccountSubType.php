@@ -37,6 +37,9 @@ enum AccountSubType: string
     case DEPRECIATION = 'depreciation';
     case OTHER_EXPENSE = 'other_expense';
 
+    // Multi-currency
+    case FOREX_GAIN_LOSS = 'forex_gain_loss';
+
     public function label(): string
     {
         return str_replace('_', ' ', ucwords($this->value, '_'));
@@ -58,6 +61,8 @@ enum AccountSubType: string
 
             self::COST_OF_SERVICES, self::OPERATING_EXPENSE, self::PAYROLL_EXPENSE,
             self::DEPRECIATION, self::OTHER_EXPENSE => AccountType::EXPENSE,
+
+            self::FOREX_GAIN_LOSS => AccountType::REVENUE,
         };
     }
 }

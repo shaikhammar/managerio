@@ -5,6 +5,7 @@ import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/Pu
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
@@ -23,12 +24,14 @@ const statusColors: Record<string, string> = {
 };
 
 export default function PurchaseOrderShow({ purchaseOrder }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Purchase Orders', href: PurchaseOrderController.index.url() },
         { title: purchaseOrder.number, href: PurchaseOrderController.show.url(purchaseOrder.id) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = purchaseOrder.currency_code !== baseCurrency;
 
     const canEdit = purchaseOrder.status === 'draft';
     const canSend = purchaseOrder.status === 'draft';
@@ -156,10 +159,10 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price, purchaseOrder.currency_code)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total, purchaseOrder.currency_code)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -169,18 +172,24 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{format(purchaseOrder.subtotal)}</span>
+                                    <span>{formatCurrency(purchaseOrder.subtotal, purchaseOrder.currency_code)}</span>
                                 </div>
                                 {purchaseOrder.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{format(purchaseOrder.tax_amount)}</span>
+                                        <span>{formatCurrency(purchaseOrder.tax_amount, purchaseOrder.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{format(purchaseOrder.total)}</span>
+                                    <span>{formatCurrency(purchaseOrder.total, purchaseOrder.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(purchaseOrder.total * purchaseOrder.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -214,7 +223,7 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                                     <Link href={PurchaseInvoiceController.show.url(inv)} className="font-mono text-sm font-medium hover:underline">
                                         {inv.number}
                                     </Link>
-                                    <span className="text-sm text-muted-foreground">{format(inv.total)}</span>
+                                    <span className="text-sm text-muted-foreground">{formatCurrency(inv.total, inv.currency_code)}</span>
                                 </div>
                             ))}
                         </CardContent>

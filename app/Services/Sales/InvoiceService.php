@@ -70,7 +70,8 @@ class InvoiceService
                 'due_date' => $data['due_date'] ?? null,
                 'reference' => $data['reference'] ?? null,
                 'status' => InvoiceStatus::DRAFT,
-                'currency_code' => $business->currency_code,
+                'currency_code' => $data['currency_code'] ?? $business->currency_code,
+                'exchange_rate' => $data['exchange_rate'] ?? 1,
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'total' => 0,
@@ -223,7 +224,8 @@ class InvoiceService
                 'due_date' => $data['due_date'] ?? null,
                 'reference' => $data['reference'] ?? null,
                 'status' => InvoiceStatus::DRAFT,
-                'currency_code' => $business->currency_code,
+                'currency_code' => $data['currency_code'] ?? $business->currency_code,
+                'exchange_rate' => $data['exchange_rate'] ?? 1,
                 'subtotal' => 0,
                 'tax_amount' => 0,
                 'total' => 0,
@@ -373,23 +375,24 @@ class InvoiceService
             ->where('sub_type', AccountSubType::ACCOUNTS_RECEIVABLE)
             ->firstOrFail();
 
+        $rate = (string) $invoice->exchange_rate;
         $lines = [];
 
-        // DR: Accounts Receivable (total including tax)
+        // DR: Accounts Receivable (total in base currency)
         $lines[] = [
             'account_id' => $arAccount->id,
             'contact_id' => $invoice->contact_id,
-            'debit' => (float) $invoice->total,
+            'debit' => (float) bcmul((string) $invoice->total, $rate, 2),
             'credit' => 0,
             'description' => "Invoice {$invoice->number}",
         ];
 
-        // CR: Revenue accounts (per invoice line)
+        // CR: Revenue accounts (per invoice line, converted to base currency)
         foreach ($invoice->lines as $invoiceLine) {
             $lines[] = [
                 'account_id' => $invoiceLine->account_id,
                 'debit' => 0,
-                'credit' => (float) $invoiceLine->line_total,
+                'credit' => (float) bcmul((string) $invoiceLine->line_total, $rate, 2),
                 'description' => $invoiceLine->description,
             ];
 
@@ -403,7 +406,7 @@ class InvoiceService
                 $lines[] = [
                     'account_id' => $taxAccount->id,
                     'debit' => 0,
-                    'credit' => (float) $invoiceLine->tax_amount,
+                    'credit' => (float) bcmul((string) $invoiceLine->tax_amount, $rate, 2),
                     'description' => "Tax on {$invoiceLine->description}",
                     'tax_code_id' => $invoiceLine->tax_code_id,
                 ];
@@ -438,22 +441,23 @@ class InvoiceService
             ->where('sub_type', AccountSubType::ACCOUNTS_PAYABLE)
             ->firstOrFail();
 
+        $rate = (string) $invoice->exchange_rate;
         $lines = [];
 
-        // CR: Accounts Payable (total including tax)
+        // CR: Accounts Payable (total in base currency)
         $lines[] = [
             'account_id' => $apAccount->id,
             'contact_id' => $invoice->contact_id,
             'debit' => 0,
-            'credit' => (float) $invoice->total,
+            'credit' => (float) bcmul((string) $invoice->total, $rate, 2),
             'description' => "Purchase Invoice {$invoice->number}",
         ];
 
-        // DR: Expense accounts (per invoice line)
+        // DR: Expense accounts (per invoice line, converted to base currency)
         foreach ($invoice->lines as $invoiceLine) {
             $lines[] = [
                 'account_id' => $invoiceLine->account_id,
-                'debit' => (float) $invoiceLine->line_total,
+                'debit' => (float) bcmul((string) $invoiceLine->line_total, $rate, 2),
                 'credit' => 0,
                 'description' => $invoiceLine->description,
             ];
@@ -467,7 +471,7 @@ class InvoiceService
 
                 $lines[] = [
                     'account_id' => $taxAccount->id,
-                    'debit' => (float) $invoiceLine->tax_amount,
+                    'debit' => (float) bcmul((string) $invoiceLine->tax_amount, $rate, 2),
                     'credit' => 0,
                     'description' => "Tax on {$invoiceLine->description}",
                     'tax_code_id' => $invoiceLine->tax_code_id,
@@ -503,22 +507,23 @@ class InvoiceService
             ->where('sub_type', AccountSubType::ACCOUNTS_RECEIVABLE)
             ->firstOrFail();
 
+        $rate = (string) $invoice->exchange_rate;
         $lines = [];
 
-        // CR: Accounts Receivable (total including tax) - Reducing what customer owes
+        // CR: Accounts Receivable (in base currency) - Reducing what customer owes
         $lines[] = [
             'account_id' => $arAccount->id,
             'contact_id' => $invoice->contact_id,
             'debit' => 0,
-            'credit' => (float) $invoice->total,
+            'credit' => (float) bcmul((string) $invoice->total, $rate, 2),
             'description' => "Credit Note {$invoice->number}",
         ];
 
-        // DR: Revenue accounts (per line) - Reducing revenue
+        // DR: Revenue accounts (per line, converted to base currency) - Reducing revenue
         foreach ($invoice->lines as $invoiceLine) {
             $lines[] = [
                 'account_id' => $invoiceLine->account_id,
-                'debit' => (float) $invoiceLine->line_total,
+                'debit' => (float) bcmul((string) $invoiceLine->line_total, $rate, 2),
                 'credit' => 0,
                 'description' => $invoiceLine->description,
             ];
@@ -532,7 +537,7 @@ class InvoiceService
 
                 $lines[] = [
                     'account_id' => $taxAccount->id,
-                    'debit' => (float) $invoiceLine->tax_amount,
+                    'debit' => (float) bcmul((string) $invoiceLine->tax_amount, $rate, 2),
                     'credit' => 0,
                     'description' => "Tax on {$invoiceLine->description}",
                     'tax_code_id' => $invoiceLine->tax_code_id,
@@ -569,23 +574,24 @@ class InvoiceService
             ->where('sub_type', AccountSubType::ACCOUNTS_PAYABLE)
             ->firstOrFail();
 
+        $rate = (string) $invoice->exchange_rate;
         $lines = [];
 
-        // DR: Accounts Payable (total including tax) - Reducing what we owe the supplier
+        // DR: Accounts Payable (in base currency) - Reducing what we owe the supplier
         $lines[] = [
             'account_id' => $apAccount->id,
             'contact_id' => $invoice->contact_id,
-            'debit' => (float) $invoice->total,
+            'debit' => (float) bcmul((string) $invoice->total, $rate, 2),
             'credit' => 0,
             'description' => "Debit Note {$invoice->number}",
         ];
 
-        // CR: Expense accounts (per line) - Reducing expense
+        // CR: Expense accounts (per line, converted to base currency) - Reducing expense
         foreach ($invoice->lines as $invoiceLine) {
             $lines[] = [
                 'account_id' => $invoiceLine->account_id,
                 'debit' => 0,
-                'credit' => (float) $invoiceLine->line_total,
+                'credit' => (float) bcmul((string) $invoiceLine->line_total, $rate, 2),
                 'description' => $invoiceLine->description,
             ];
 
@@ -599,7 +605,7 @@ class InvoiceService
                 $lines[] = [
                     'account_id' => $taxAccount->id,
                     'debit' => 0,
-                    'credit' => (float) $invoiceLine->tax_amount,
+                    'credit' => (float) bcmul((string) $invoiceLine->tax_amount, $rate, 2),
                     'description' => "Tax on {$invoiceLine->description}",
                     'tax_code_id' => $invoiceLine->tax_code_id,
                 ];

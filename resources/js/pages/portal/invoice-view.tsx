@@ -2,8 +2,8 @@ import { Head } from '@inertiajs/react';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCurrency } from '@/hooks/use-currency';
 import PortalLayout from '@/layouts/portal-layout';
+import { formatCurrency } from '@/lib/utils';
 import type { Business, Invoice } from '@/types';
 
 type Props = {
@@ -22,7 +22,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function InvoiceView({ invoice, business, isVoid, pdfUrl }: Props) {
-    const { format } = useCurrency();
 
     return (
         <PortalLayout businessName={business.name} logoPath={business.logo_path}>
@@ -78,9 +77,9 @@ export default function InvoiceView({ invoice, business, isVoid, pdfUrl }: Props
                                         <tr key={line.id} className="border-b last:border-0">
                                             <td className="py-2">{line.description}</td>
                                             <td className="py-2 text-right">{line.quantity}</td>
-                                            <td className="py-2 text-right">{format(line.unit_price)}</td>
+                                            <td className="py-2 text-right">{formatCurrency(line.unit_price, invoice.currency_code)}</td>
                                             <td className="py-2 text-right">
-                                                {format(Number(line.quantity) * Number(line.unit_price))}
+                                                {formatCurrency(Number(line.quantity) * Number(line.unit_price), invoice.currency_code)}
                                             </td>
                                         </tr>
                                     ))}
@@ -90,27 +89,27 @@ export default function InvoiceView({ invoice, business, isVoid, pdfUrl }: Props
                             <div className="mt-4 border-t pt-4 space-y-1 text-sm text-right">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Subtotal</span>
-                                    <span>{format(invoice.subtotal)}</span>
+                                    <span>{formatCurrency(invoice.subtotal, invoice.currency_code)}</span>
                                 </div>
                                 {Number(invoice.tax_amount) > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-500">Tax</span>
-                                        <span>{format(invoice.tax_amount)}</span>
+                                        <span>{formatCurrency(invoice.tax_amount, invoice.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-semibold text-base border-t pt-2 mt-2">
                                     <span>Total</span>
-                                    <span>{format(invoice.total)}</span>
+                                    <span>{formatCurrency(invoice.total, invoice.currency_code)}</span>
                                 </div>
                                 {Number(invoice.amount_paid) > 0 && (
                                     <div className="flex justify-between text-emerald-600">
                                         <span>Amount Paid</span>
-                                        <span>-{format(invoice.amount_paid)}</span>
+                                        <span>-{formatCurrency(invoice.amount_paid, invoice.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-base">
                                     <span>Balance Due</span>
-                                    <span>{format(invoice.balance_due)}</span>
+                                    <span>{formatCurrency(invoice.balance_due, invoice.currency_code)}</span>
                                 </div>
                             </div>
                         </CardContent>

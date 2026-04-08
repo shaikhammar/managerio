@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/use-currency';
 import AppLayout from '@/layouts/app-layout';
+import { CURRENCIES } from '@/lib/currencies';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, ContactOption, TaxCodeOption, Invoice } from '@/types';
 
 type LineItem = {
@@ -42,7 +44,7 @@ type Props = {
 };
 
 export default function QuoteForm({ customers, taxCodes, quote }: Props) {
-    const { format } = useCurrency();
+    const { currency: baseCurrency } = useCurrency();
     const isEditing = !!quote;
     const today = new Date().toISOString().split('T')[0];
 
@@ -60,8 +62,10 @@ export default function QuoteForm({ customers, taxCodes, quote }: Props) {
     const { data, setData, post, put, processing, errors, transform } = useForm({
         contact_id: quote?.contact_id?.toString() || '',
         date: quote?.date || today,
-        due_date: quote?.due_date || '', // Expiry date
+        due_date: quote?.due_date || '',
         reference: quote?.reference || '',
+        currency_code: quote?.currency_code || baseCurrency,
+        exchange_rate: quote?.exchange_rate?.toString() || '1',
         notes: quote?.notes || '',
         terms: quote?.terms || '',
         lines: (quote?.lines || [emptyLine()]).map((l: any) => ({
@@ -101,6 +105,8 @@ return;
 
         return { subtotal, tax, total: subtotal + tax };
     }, [data.lines, taxCodes]);
+
+    const isForeignCurrency = data.currency_code !== baseCurrency;
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -161,7 +167,43 @@ return;
                                     <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} placeholder="e.g. Project Phase 1" />
                                     <InputError message={errors.reference} />
                                 </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="currency_code">Currency</Label>
+                                    <Select value={data.currency_code} onValueChange={(v) => {
+                                        setData('currency_code', v);
+                                        if (v === baseCurrency) setData('exchange_rate', '1');
+                                    }}>
+                                        <SelectTrigger id="currency_code"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {CURRENCIES.map((c) => (
+                                                <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.currency_code} />
+                                </div>
                             </div>
+                            {isForeignCurrency && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="exchange_rate">Exchange Rate <span className="text-muted-foreground text-xs">(1 {data.currency_code} = ? {baseCurrency})</span></Label>
+                                        <Input
+                                            id="exchange_rate"
+                                            type="number"
+                                            step="0.000001"
+                                            min="0.000001"
+                                            value={data.exchange_rate}
+                                            onChange={(e) => setData('exchange_rate', e.target.value)}
+                                        />
+                                        <InputError message={errors.exchange_rate} />
+                                        {totals.total > 0 && (
+                                            <p className="text-xs text-muted-foreground">
+                                                ≈ {formatCurrency(totals.total * parseFloat(data.exchange_rate || '1'), baseCurrency)} in {baseCurrency}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -248,7 +290,7 @@ return;
                                                         </Select>
                                                     </td>
                                                     <td className="py-2 pr-2 text-right text-sm font-medium pt-4">
-                                                        {format(calc.total)}
+                                                        {formatCurrency(calc.total, data.currency_code)}
                                                     </td>
                                                     <td className="py-2 pt-3">
                                                         <Button
@@ -274,17 +316,17 @@ return;
                                 <div className="w-64 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Subtotal</span>
-                                        <span className="font-medium">{format(totals.subtotal)}</span>
+                                        <span className="font-medium">{formatCurrency(totals.subtotal, data.currency_code)}</span>
                                     </div>
                                     {totals.tax > 0 && (
                                         <div className="flex justify-between text-sm">
                                             <span className="text-muted-foreground">Tax</span>
-                                            <span className="font-medium">{format(totals.tax)}</span>
+                                            <span className="font-medium">{formatCurrency(totals.tax, data.currency_code)}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-lg font-bold border-t pt-2">
                                         <span>Total</span>
-                                        <span>{format(totals.total)}</span>
+                                        <span>{formatCurrency(totals.total, data.currency_code)}</span>
                                     </div>
                                 </div>
                             </div>

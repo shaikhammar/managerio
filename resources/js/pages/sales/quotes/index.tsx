@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice, PaginatedData } from '@/types';
 
@@ -25,7 +25,6 @@ type Props = {
 };
 
 export default function QuoteIndex({ quotes, filters }: Props) {
-    const { format } = useCurrency();
     const [search, setSearch] = useState(filters.search || '');
 
     function handleSearch(e: React.FormEvent) {
@@ -110,7 +109,7 @@ export default function QuoteIndex({ quotes, filters }: Props) {
                                                 {quote.status === 'approved' ? 'Converted' : quote.status.replace('_', ' ')}
                                             </span>
                                         </td>
-                                        <td className="py-3 px-4 text-right font-medium text-sm">{format(quote.total)}</td>
+                                        <td className="py-3 px-4 text-right font-medium text-sm">{formatCurrency(quote.total, quote.currency_code)}</td>
                                     </tr>
                                 ))
                             )}

@@ -45,7 +45,8 @@ export type AccountSubType =
     | 'accounts_payable' | 'tax_payable' | 'credit_card' | 'other_current_liability' | 'long_term_liability'
     | 'owner_equity' | 'retained_earnings' | 'intercompany'
     | 'sales_revenue' | 'service_revenue' | 'other_revenue'
-    | 'cost_of_services' | 'operating_expense' | 'payroll_expense' | 'depreciation' | 'other_expense';
+    | 'cost_of_services' | 'operating_expense' | 'payroll_expense' | 'depreciation' | 'other_expense'
+    | 'forex_gain_loss';
 
 export type Account = {
     id: number;
@@ -372,6 +373,8 @@ export type Payment = {
     number: string;
     date: string;
     amount: number;
+    currency_code: string;
+    exchange_rate: number;
     bank_account_id: number;
     reference: string | null;
     description: string | null;
@@ -380,6 +383,17 @@ export type Payment = {
     bank_account?: Account;
     journal_entry?: JournalEntry;
     allocations?: PaymentAllocation[];
+    created_at: string;
+    updated_at: string;
+};
+
+// ── Exchange Rate ─────────────────────────────────────────
+export type ExchangeRate = {
+    id: number;
+    business_id: number;
+    currency_code: string;
+    rate: number;
+    date: string;
     created_at: string;
     updated_at: string;
 };
@@ -455,6 +469,7 @@ export type DashboardInvoice = {
     total: number;
     balance_due: number;
     status: InvoiceStatus;
+    currency_code: string;
 };
 
 export type DashboardPayment = {

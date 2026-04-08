@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Contact, Invoice } from '@/types';
 
@@ -12,7 +12,6 @@ type Props = {
 };
 
 export default function CustomerShow({ customer }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Customers', href: '/sales/customers' },
@@ -119,7 +118,7 @@ export default function CustomerShow({ customer }: Props) {
                                             </td>
                                             <td className="py-2 text-sm text-muted-foreground">{inv.date}</td>
                                             <td className="py-2"><Badge variant="secondary" className="capitalize text-xs">{inv.status}</Badge></td>
-                                            <td className="py-2 text-right text-sm font-medium">{format(inv.total)}</td>
+                                            <td className="py-2 text-right text-sm font-medium">{formatCurrency(inv.total, inv.currency_code)}</td>
                                         </tr>
                                     ))}
                                 </tbody>

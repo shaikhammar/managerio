@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useCurrency } from '@/hooks/use-currency';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
+import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
 type Props = { invoice: Invoice };
@@ -25,12 +26,14 @@ const statusColors: Record<string, string> = {
 };
 
 export default function InvoiceShow({ invoice }: Props) {
-    const { format } = useCurrency();
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: '/dashboard' },
         { title: 'Invoices', href: InvoiceController.index.url() },
         { title: invoice.number, href: InvoiceController.show.url(invoice) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = invoice.currency_code !== baseCurrency;
 
     const canEdit = !['paid', 'partially_paid', 'void'].includes(invoice.status);
     const canVoid = ['sent', 'overdue'].includes(invoice.status);
@@ -41,6 +44,7 @@ export default function InvoiceShow({ invoice }: Props) {
 
     async function copyPortalLink() {
         setCopying(true);
+
         try {
             const res = await fetch(InvoiceController.portalLink.url(invoice));
             const data = (await res.json()) as { url: string };
@@ -186,10 +190,10 @@ export default function InvoiceShow({ invoice }: Props) {
                                             )}
                                         </td>
                                         <td className="py-3 text-right text-sm">{line.quantity}</td>
-                                        <td className="py-3 text-right text-sm">{format(line.unit_price)}</td>
+                                        <td className="py-3 text-right text-sm">{formatCurrency(line.unit_price, invoice.currency_code)}</td>
                                         <td className="py-3 text-right text-sm">{line.discount_percent > 0 ? `${line.discount_percent}%` : '—'}</td>
                                         <td className="py-3 text-sm">{line.tax_code?.name || '—'}</td>
-                                        <td className="py-3 text-right text-sm font-medium">{format(line.line_total)}</td>
+                                        <td className="py-3 text-right text-sm font-medium">{formatCurrency(line.line_total, invoice.currency_code)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -199,27 +203,33 @@ export default function InvoiceShow({ invoice }: Props) {
                             <div className="w-64 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Subtotal</span>
-                                    <span>{format(invoice.subtotal)}</span>
+                                    <span>{formatCurrency(invoice.subtotal, invoice.currency_code)}</span>
                                 </div>
                                 {invoice.tax_amount > 0 && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Tax</span>
-                                        <span>{format(invoice.tax_amount)}</span>
+                                        <span>{formatCurrency(invoice.tax_amount, invoice.currency_code)}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                                     <span>Total</span>
-                                    <span>{format(invoice.total)}</span>
+                                    <span>{formatCurrency(invoice.total, invoice.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(invoice.total * invoice.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                                 {invoice.amount_paid > 0 && (
                                     <>
                                         <div className="flex justify-between text-sm text-emerald-600">
                                             <span>Paid</span>
-                                            <span>-{format(invoice.amount_paid)}</span>
+                                            <span>-{formatCurrency(invoice.amount_paid, invoice.currency_code)}</span>
                                         </div>
                                         <div className="flex justify-between font-bold border-t pt-1 text-amber-600">
                                             <span>Balance Due</span>
-                                            <span>{format(invoice.balance_due)}</span>
+                                            <span>{formatCurrency(invoice.balance_due, invoice.currency_code)}</span>
                                         </div>
                                     </>
                                 )}
