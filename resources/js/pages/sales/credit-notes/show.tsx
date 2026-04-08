@@ -3,6 +3,7 @@ import { ArrowLeft, Download, Printer } from 'lucide-react';
 import CreditNoteController from '@/actions/App/Http/Controllers/Sales/CreditNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCurrency } from '@/hooks/use-currency';
 import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
@@ -21,6 +22,9 @@ export default function CreditNoteShow({ creditNote }: Props) {
         { title: 'Credit Notes', href: CreditNoteController.index.url() },
         { title: creditNote.number, href: CreditNoteController.show.url(creditNote.id) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = creditNote.currency_code !== baseCurrency;
 
     const canEdit = creditNote.status !== 'void';
 
@@ -114,6 +118,12 @@ export default function CreditNoteShow({ creditNote }: Props) {
                                     <span>Total Credit</span>
                                     <span>{formatCurrency(creditNote.total, creditNote.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(creditNote.total * creditNote.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useCurrency } from '@/hooks/use-currency';
 import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
@@ -26,6 +27,9 @@ export default function QuoteShow({ quote }: Props) {
         { title: 'Quotes', href: QuoteController.index.url() },
         { title: quote.number, href: QuoteController.show.url(quote) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = quote.currency_code !== baseCurrency;
 
     const isDraft = quote.status === 'draft';
     const isConverted = quote.status === 'approved';
@@ -193,6 +197,12 @@ export default function QuoteShow({ quote }: Props) {
                                     <span>Total</span>
                                     <span>{formatCurrency(quote.total, quote.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(quote.total * quote.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>

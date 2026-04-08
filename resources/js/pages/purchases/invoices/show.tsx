@@ -5,6 +5,7 @@ import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
@@ -25,6 +26,9 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
         { title: 'Purchase Invoices', href: PurchaseInvoiceController.index.url() },
         { title: invoice.number, href: PurchaseInvoiceController.show.url(invoice) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = invoice.currency_code !== baseCurrency;
 
     const canEdit = !['paid', 'partially_paid', 'void'].includes(invoice.status);
 
@@ -117,6 +121,12 @@ export default function PurchaseInvoiceShow({ invoice }: Props) {
                                     <span>Total</span>
                                     <span>{formatCurrency(invoice.total, invoice.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(invoice.total * invoice.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                                 {invoice.amount_paid > 0 && (
                                     <>
                                         <div className="flex justify-between text-sm text-red-600">

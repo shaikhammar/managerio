@@ -3,6 +3,7 @@ import { ArrowLeft, Download } from 'lucide-react';
 import DebitNoteController from '@/actions/App/Http/Controllers/Purchases/DebitNoteController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCurrency } from '@/hooks/use-currency';
 import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
@@ -21,6 +22,9 @@ export default function DebitNoteShow({ debitNote }: Props) {
         { title: 'Debit Notes', href: DebitNoteController.index.url() },
         { title: debitNote.number, href: DebitNoteController.show.url(debitNote.id) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = debitNote.currency_code !== baseCurrency;
 
     const canEdit = debitNote.status !== 'void';
 
@@ -110,6 +114,12 @@ export default function DebitNoteShow({ debitNote }: Props) {
                                     <span>Total Debit</span>
                                     <span>{formatCurrency(debitNote.total, debitNote.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(debitNote.total * debitNote.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>

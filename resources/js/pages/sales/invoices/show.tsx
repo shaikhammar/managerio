@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { useCurrency } from '@/hooks/use-currency';
 import { formatCurrency } from '@/lib/utils';
 import type { BreadcrumbItem, Invoice } from '@/types';
 
@@ -30,6 +31,9 @@ export default function InvoiceShow({ invoice }: Props) {
         { title: 'Invoices', href: InvoiceController.index.url() },
         { title: invoice.number, href: InvoiceController.show.url(invoice) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = invoice.currency_code !== baseCurrency;
 
     const canEdit = !['paid', 'partially_paid', 'void'].includes(invoice.status);
     const canVoid = ['sent', 'overdue'].includes(invoice.status);
@@ -211,6 +215,12 @@ export default function InvoiceShow({ invoice }: Props) {
                                     <span>Total</span>
                                     <span>{formatCurrency(invoice.total, invoice.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(invoice.total * invoice.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                                 {invoice.amount_paid > 0 && (
                                     <>
                                         <div className="flex justify-between text-sm text-emerald-600">

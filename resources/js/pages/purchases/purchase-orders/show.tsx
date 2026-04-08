@@ -4,6 +4,7 @@ import PurchaseInvoiceController from '@/actions/App/Http/Controllers/Purchases/
 import PurchaseOrderController from '@/actions/App/Http/Controllers/Purchases/PurchaseOrderController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCurrency } from '@/hooks/use-currency';
 import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, Invoice } from '@/types';
@@ -28,6 +29,9 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
         { title: 'Purchase Orders', href: PurchaseOrderController.index.url() },
         { title: purchaseOrder.number, href: PurchaseOrderController.show.url(purchaseOrder.id) },
     ];
+
+    const { currency: baseCurrency } = useCurrency();
+    const isForeignCurrency = purchaseOrder.currency_code !== baseCurrency;
 
     const canEdit = purchaseOrder.status === 'draft';
     const canSend = purchaseOrder.status === 'draft';
@@ -180,6 +184,12 @@ export default function PurchaseOrderShow({ purchaseOrder }: Props) {
                                     <span>Total</span>
                                     <span>{formatCurrency(purchaseOrder.total, purchaseOrder.currency_code)}</span>
                                 </div>
+                                {isForeignCurrency && (
+                                    <div className="flex justify-between text-xs text-muted-foreground">
+                                        <span>≈ {baseCurrency} equivalent</span>
+                                        <span>{formatCurrency(purchaseOrder.total * purchaseOrder.exchange_rate, baseCurrency)}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </CardContent>
