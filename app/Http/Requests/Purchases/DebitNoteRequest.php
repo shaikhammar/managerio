@@ -26,6 +26,8 @@ class DebitNoteRequest extends FormRequest
             'date' => 'required|date',
             'reference' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'currency_code' => 'nullable|string|size:3',
+            'exchange_rate' => 'nullable|numeric|min:0.000001',
             'lines' => 'required|array|min:1',
             'lines.*.account_id' => ['required', Rule::exists('accounts', 'id')->where('business_id', $businessId)],
             'lines.*.description' => 'required|string',

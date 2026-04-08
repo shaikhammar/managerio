@@ -23,6 +23,8 @@ class Payment extends Model
         'number',
         'date',
         'amount',
+        'currency_code',
+        'exchange_rate',
         'bank_account_id',
         'reference',
         'description',
@@ -35,6 +37,7 @@ class Payment extends Model
             'type' => PaymentType::class,
             'date' => 'date:Y-m-d',
             'amount' => 'decimal:2',
+            'exchange_rate' => 'decimal:6',
         ];
     }
 

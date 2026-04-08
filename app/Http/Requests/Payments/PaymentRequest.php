@@ -25,6 +25,8 @@ class PaymentRequest extends FormRequest
             'contact_id' => ['required', Rule::exists('contacts', 'id')->where('business_id', $businessId)],
             'date' => 'required|date',
             'amount' => 'required|numeric|min:0.01',
+            'currency_code' => 'nullable|string|size:3',
+            'exchange_rate' => 'nullable|numeric|min:0.000001',
             'bank_account_id' => ['required', Rule::exists('accounts', 'id')->where('business_id', $businessId)],
             'reference' => 'nullable|string|max:255',
             'description' => 'nullable|string',

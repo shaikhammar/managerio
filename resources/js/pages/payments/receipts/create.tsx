@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/use-currency';
+import { CURRENCIES } from '@/lib/currencies';
+import { formatCurrency } from '@/lib/utils';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, ContactOption, AccountOption, Invoice } from '@/types';
 
@@ -23,16 +25,20 @@ type Props = {
 };
 
 export default function ReceiptCreate({ customers, bankAccounts, outstandingInvoices }: Props) {
-    const { format } = useCurrency();
+    const { currency: baseCurrency, format } = useCurrency();
     const { data, setData, post, processing, errors, transform } = useForm({
         contact_id: 'none',
         bank_account_id: 'none',
         date: new Date().toISOString().split('T')[0],
         amount: '',
+        currency_code: baseCurrency,
+        exchange_rate: '1',
         reference: '',
         description: '',
         allocations: [] as { invoice_id: number; amount: string }[],
     });
+
+    const isForeignCurrency = data.currency_code !== baseCurrency;
 
     const filteredInvoices = data.contact_id && data.contact_id !== 'none'
         ? outstandingInvoices.filter((inv) => inv.contact_id.toString() === data.contact_id)
@@ -113,6 +119,42 @@ export default function ReceiptCreate({ customers, bankAccounts, outstandingInvo
                                     <Label htmlFor="reference">Reference</Label>
                                     <Input id="reference" value={data.reference} onChange={(e) => setData('reference', e.target.value)} />
                                 </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="currency_code">Currency</Label>
+                                    <Select value={data.currency_code} onValueChange={(v) => {
+                                        setData('currency_code', v);
+                                        if (v === baseCurrency) { setData('exchange_rate', '1'); }
+                                    }}>
+                                        <SelectTrigger id="currency_code"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {CURRENCIES.map((c) => (
+                                                <SelectItem key={c.code} value={c.code}>{c.code} — {c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <InputError message={errors.currency_code} />
+                                </div>
+                                {isForeignCurrency && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="exchange_rate">Exchange Rate <span className="text-muted-foreground text-xs">(1 {data.currency_code} = ? {baseCurrency})</span></Label>
+                                        <Input
+                                            id="exchange_rate"
+                                            type="number"
+                                            step="0.000001"
+                                            min="0.000001"
+                                            value={data.exchange_rate}
+                                            onChange={(e) => setData('exchange_rate', e.target.value)}
+                                        />
+                                        <InputError message={errors.exchange_rate} />
+                                        {data.amount && (
+                                            <p className="text-xs text-muted-foreground">
+                                                ≈ {formatCurrency(parseFloat(data.amount || '0') * parseFloat(data.exchange_rate || '1'), baseCurrency)} in {baseCurrency}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

@@ -91,6 +91,9 @@ class BusinessSetupService
             ['7000', 'Utilities', AccountType::EXPENSE, AccountSubType::OPERATING_EXPENSE, false],
             ['7100', 'Depreciation', AccountType::EXPENSE, AccountSubType::DEPRECIATION, false],
             ['7200', 'Miscellaneous Expenses', AccountType::EXPENSE, AccountSubType::OTHER_EXPENSE, false],
+
+            // ── Multi-currency ────────────────────────────────
+            ['8000', 'Foreign Exchange Gain/Loss', AccountType::REVENUE, AccountSubType::FOREX_GAIN_LOSS, true],
         ];
 
         foreach ($accounts as [$code, $name, $type, $subType, $isSystem]) {
