@@ -68,7 +68,7 @@ export default function CreditNoteForm({ customers, accounts, taxCodes, creditNo
         currency_code: creditNote?.currency_code || baseCurrency,
         exchange_rate: creditNote?.exchange_rate?.toString() || '1',
         notes: creditNote?.notes || '',
-        lines: (creditNote?.lines || [emptyLine()]).map((l: any) => ({
+        lines: (creditNote?.lines || [emptyLine()]).map((l) => ({
             account_id: l.account_id?.toString() || '',
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',
@@ -166,7 +166,10 @@ return;
                                     <Label htmlFor="currency_code">Currency</Label>
                                     <Select value={data.currency_code} onValueChange={(v) => {
                                         setData('currency_code', v);
-                                        if (v === baseCurrency) setData('exchange_rate', '1');
+
+                                        if (v === baseCurrency) {
+setData('exchange_rate', '1');
+}
                                     }}>
                                         <SelectTrigger id="currency_code"><SelectValue /></SelectTrigger>
                                         <SelectContent>

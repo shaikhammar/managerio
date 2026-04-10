@@ -68,7 +68,7 @@ export default function QuoteForm({ customers, taxCodes, quote }: Props) {
         exchange_rate: quote?.exchange_rate?.toString() || '1',
         notes: quote?.notes || '',
         terms: quote?.terms || '',
-        lines: (quote?.lines || [emptyLine()]).map((l: any) => ({
+        lines: (quote?.lines || [emptyLine()]).map((l) => ({
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',
             unit_price: l.unit_price?.toString() || '0',
@@ -171,7 +171,10 @@ return;
                                     <Label htmlFor="currency_code">Currency</Label>
                                     <Select value={data.currency_code} onValueChange={(v) => {
                                         setData('currency_code', v);
-                                        if (v === baseCurrency) setData('exchange_rate', '1');
+
+                                        if (v === baseCurrency) {
+setData('exchange_rate', '1');
+}
                                     }}>
                                         <SelectTrigger id="currency_code"><SelectValue /></SelectTrigger>
                                         <SelectContent>

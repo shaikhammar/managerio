@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/hooks/use-currency';
+import AppLayout from '@/layouts/app-layout';
 import { CURRENCIES } from '@/lib/currencies';
 import { formatCurrency } from '@/lib/utils';
-import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem, ContactOption, AccountOption, TaxCodeOption, Invoice } from '@/types';
 
 type LineItem = {
@@ -68,7 +68,7 @@ export default function DebitNoteForm({ suppliers, accounts, taxCodes, debitNote
         currency_code: debitNote?.currency_code || baseCurrency,
         exchange_rate: debitNote?.exchange_rate?.toString() || '1',
         notes: debitNote?.notes || '',
-        lines: (debitNote?.lines || [emptyLine()]).map((l: any) => ({
+        lines: (debitNote?.lines || [emptyLine()]).map((l) => ({
             account_id: l.account_id?.toString() || '',
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',
@@ -165,7 +165,10 @@ export default function DebitNoteForm({ suppliers, accounts, taxCodes, debitNote
                                     <Label htmlFor="currency_code">Currency</Label>
                                     <Select value={data.currency_code} onValueChange={(v) => {
                                         setData('currency_code', v);
-                                        if (v === baseCurrency) setData('exchange_rate', '1');
+
+                                        if (v === baseCurrency) {
+setData('exchange_rate', '1');
+}
                                     }}>
                                         <SelectTrigger id="currency_code"><SelectValue /></SelectTrigger>
                                         <SelectContent>

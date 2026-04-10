@@ -1,11 +1,14 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/react-starter-kit",
+    "name": "managerio/managerio",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Business management platform for translation agencies and freelance translators.",
     "keywords": [
         "laravel",
-        "framework"
+        "translation",
+        "business-management",
+        "invoicing",
+        "accounting"
     ],
     "license": "MIT",
     "require": {
