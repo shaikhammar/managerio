@@ -9,10 +9,6 @@ import {
     Landmark,
     Shield,
     Users,
-    Zap,
-    Clock,
-    TrendingUp,
-    Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import MarketingLayout from '@/layouts/marketing-layout';
@@ -88,6 +84,21 @@ const featureGroups: FeatureGroup[] = [
         ],
     },
     {
+        icon: Globe2,
+        color: 'text-teal-600',
+        bg: 'bg-teal-100 dark:bg-teal-900/30',
+        heading: 'Translation Management',
+        subheading: 'Purpose-built tools for language service providers.',
+        features: [
+            { title: 'Translation Projects', desc: 'Full project management with source/target languages, word counts, deadlines, and status tracking.' },
+            { title: 'Language Pairs & Rate Cards', desc: 'Per-word and per-hour rates per language pair, service type, and client. Volume tiers and rush rates.' },
+            { title: 'CAT Tool Analysis', desc: 'Import fuzzy match analysis to auto-calculate project costs and client quotes based on translation memory leverage.' },
+            { title: 'Purchase Orders', desc: 'Issue POs to freelancers per project before work begins. Track delivery and link to purchase invoices.' },
+            { title: 'Translator Profiles', desc: 'Extended vendor profiles with language pairs, specializations (legal, medical, technical), and performance tracking.' },
+            { title: 'Translation Reports', desc: 'Revenue by language pair, project profitability, translator utilization, and pipeline reporting.' },
+        ],
+    },
+    {
         icon: Shield,
         color: 'text-pink-600',
         bg: 'bg-pink-100 dark:bg-pink-900/30',
@@ -102,14 +113,6 @@ const featureGroups: FeatureGroup[] = [
     },
 ];
 
-const comingSoon = [
-    { icon: Globe2, title: 'Translation Projects', desc: 'Full project management with source/target languages, word counts, deadlines, and status tracking.' },
-    { icon: Layers, title: 'Language Pairs & Rate Cards', desc: 'Per-word and per-hour rates per language pair, service type, and client. Volume tiers and rush rates.' },
-    { icon: TrendingUp, title: 'CAT Tool Analysis', desc: 'Import fuzzy match analysis to auto-calculate project costs and client quotes based on translation memory leverage.' },
-    { icon: Clock, title: 'Purchase Orders', desc: 'Issue POs to freelancers per project before work begins. Track delivery and link to purchase invoices.' },
-    { icon: Users, title: 'Translator Profiles', desc: 'Extended vendor profiles with language pairs, specializations (legal, medical, technical), and performance tracking.' },
-    { icon: BarChart3, title: 'Translation Reports', desc: 'Revenue by language pair, project profitability, translator utilization, and pipeline reporting.' },
-];
 
 export default function Features() {
     return (
@@ -156,34 +159,6 @@ export default function Features() {
                             </div>
                         </div>
                     ))}
-                </div>
-            </section>
-
-            {/* Coming Soon */}
-            <section className="py-20 bg-slate-50 dark:bg-slate-900/40 border-t">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-14">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200/60 px-4 py-1.5 text-sm text-indigo-700 dark:text-indigo-300 mb-4">
-                            <Zap className="size-3.5" />
-                            On the Roadmap
-                        </div>
-                        <h2 className="text-3xl font-bold">Translation-specific features coming soon</h2>
-                        <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-                            We're building the features that make ManagerIO truly purpose-built for the language services industry.
-                        </p>
-                    </div>
-                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                        {comingSoon.map((item) => (
-                            <div key={item.title} className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 opacity-80">
-                                <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2.5 w-fit mb-3">
-                                    <item.icon className="size-5 text-slate-500" />
-                                </div>
-                                <h3 className="font-semibold mb-1">{item.title}</h3>
-                                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                                <p className="text-xs text-indigo-600 font-medium mt-3">Coming soon</p>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </section>
 

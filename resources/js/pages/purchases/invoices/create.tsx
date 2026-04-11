@@ -70,7 +70,7 @@ export default function PurchaseInvoiceForm({ suppliers, accounts, taxCodes, inv
         terms: invoice?.terms || '',
         currency_code: invoice?.currency_code || baseCurrency,
         exchange_rate: invoice?.exchange_rate?.toString() || '1',
-        lines: (invoice?.lines || [emptyLine()]).map((l: any) => ({
+        lines: (invoice?.lines || [emptyLine()]).map((l) => ({
             account_id: l.account_id?.toString() || '',
             description: l.description || '',
             quantity: l.quantity?.toString() || '1',

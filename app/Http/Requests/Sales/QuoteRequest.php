@@ -21,6 +21,30 @@ class QuoteRequest extends FormRequest
     }
 
     /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'contact_id.required' => 'Please select a customer.',
+            'contact_id.exists' => 'The selected customer is invalid.',
+            'date.required' => 'Please enter a quote date.',
+            'due_date.after_or_equal' => 'The expiry date cannot be before the quote date.',
+            'lines.required' => 'At least one line item is required.',
+            'lines.min' => 'At least one line item is required.',
+            'lines.*.description.required' => 'Please enter a description for each line item.',
+            'lines.*.quantity.required' => 'Quantity is required for each line item.',
+            'lines.*.quantity.numeric' => 'Quantity must be a number.',
+            'lines.*.quantity.min' => 'Quantity must be greater than zero.',
+            'lines.*.unit_price.required' => 'Unit price is required for each line item.',
+            'lines.*.unit_price.numeric' => 'Unit price must be a number.',
+            'lines.*.unit_price.min' => 'Unit price cannot be negative.',
+            'lines.*.discount_percent.numeric' => 'Discount must be a number.',
+            'lines.*.discount_percent.between' => 'Discount must be between 0 and 100.',
+        ];
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>

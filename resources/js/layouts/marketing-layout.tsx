@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Calculator, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
 
 type Props = { children: React.ReactNode };
@@ -25,7 +26,7 @@ export default function MarketingLayout({ children }: Props) {
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2.5">
                         <div className="size-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                            <Calculator className="size-4 text-white" />
+                            <AppLogoIcon className="size-4 fill-white" />
                         </div>
                         <span className="text-lg font-bold bg-gradient-to-r from-blue-700 to-indigo-600 bg-clip-text text-transparent">
                             ManagerIO
@@ -115,7 +116,7 @@ export default function MarketingLayout({ children }: Props) {
                         <div className="col-span-2 md:col-span-1">
                             <Link href="/" className="flex items-center gap-2 mb-3">
                                 <div className="size-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
-                                    <Calculator className="size-3.5 text-white" />
+                                    <AppLogoIcon className="size-3.5 fill-white" />
                                 </div>
                                 <span className="font-bold text-foreground">ManagerIO</span>
                             </Link>
